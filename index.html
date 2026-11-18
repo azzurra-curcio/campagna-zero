@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campagna Zero</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+/* Layout: intestazione · due schede affiancate (una per simulatore) · istruzioni · note legali */
+:root{
+  --paper:#f4f4f1; --surface:#ffffff; --ink:#1b1e1d; --muted:#5f6663; --line:#dfe2de;
+  --ads:#0d6b5c; --ads-soft:#e1efea; --soc:#9b2f5e; --soc-soft:#f6e6ed; --clip:#4338ca; --clip-soft:#e8e7fb; --mark:#f3c94b;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121413; --surface:#1b1e1d; --ink:#e9ece9; --muted:#a0a8a4; --line:#2e3431;
+    --ads:#45b89f; --ads-soft:#1b332d; --soc:#e07aa6; --soc-soft:#3a2230; --clip:#9d9af7; --clip-soft:#25244a; --mark:#e8bd3c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121413; --surface:#1b1e1d; --ink:#e9ece9; --muted:#a0a8a4; --line:#2e3431;
+  --ads:#45b89f; --ads-soft:#1b332d; --soc:#e07aa6; --soc-soft:#3a2230; --clip:#9d9af7; --clip-soft:#25244a; --mark:#e8bd3c; color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:16px/1.6 var(--f-body)}
+.wrap{max-width:1180px;margin:0 auto;padding:48px 20px 56px;display:flex;flex-direction:column;gap:36px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:clamp(34px,5vw,52px);letter-spacing:-.02em}
+h2{font-size:26px}
+h3{font-size:18px}
+p{margin:0}
+.eyebrow{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.intro{display:flex;flex-direction:column;gap:14px;max-width:68ch}
+.intro .lede{font-size:18px;color:var(--muted)}
+.intro .by{font-size:14px;color:var(--muted)}
+.intro .by b{color:var(--ink)}
+mark{background:var(--mark);color:#1c1a10;padding:0 5px;border-radius:4px}
+.labs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+
+.lab{--c:var(--ads);--cs:var(--ads-soft);background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--c);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:16px}
+.lab.soc{--c:var(--soc);--cs:var(--soc-soft)}
+.lab.clip{--c:var(--clip);--cs:var(--clip-soft)}
+.lab .name{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lab .name b{font:700 28px var(--f-display);letter-spacing:-.01em}
+.lab .name b i{font-style:normal;background:var(--mark);color:#1c1a10;padding:0 5px;border-radius:4px;margin-left:2px}
+.lab .plat{font:500 12px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--c)}
+.lab ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:15px}
+.lab .lbl{font-weight:600;font-size:14px}
+.clients{display:flex;flex-wrap:wrap;gap:6px}
+.clients span{font-size:13px;padding:3px 10px;border-radius:999px;background:var(--cs)}
+.go{margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--c);color:var(--surface);text-decoration:none;font-weight:600;padding:12px 18px;border-radius:10px;font-size:16px}
+.go:hover{filter:brightness(1.08)}
+.go:focus-visible{outline:3px solid var(--mark);outline-offset:3px}
+.how{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:18px}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.steps li::before{content:counter(s);width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:600 14px var(--f-mono)}
+.steps b{font-size:15px}
+.tips{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tips div{background:var(--paper);border-radius:10px;padding:14px;font-size:14px;color:var(--muted)}
+.tips b{display:block;color:var(--ink);margin-bottom:2px}
+footer{border-top:1px solid var(--line);padding-top:20px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--muted);max-width:90ch}
+footer b{color:var(--ink)}
+footer a{color:var(--ink)}
+
+
+.exam{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+.lab.reel{--c:#c2410c;--cs:#fdebe1;background:linear-gradient(135deg,var(--surface) 60%,#fdebe1)}
+.lab.guide{--c:var(--ink);--cs:var(--paper)}
+.lab.guide .name b{font-size:26px}
+.lab.guide .go{color:var(--paper)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lab.reel{--c:#fb923c;--cs:#3a2418;background:linear-gradient(135deg,var(--surface) 60%,#3a2418)}}
+:root[data-theme="dark"] .lab.reel{--c:#fb923c;--cs:#3a2418;background:linear-gradient(135deg,var(--surface) 60%,#3a2418)}
+@media (max-width:820px){.exam{grid-template-columns:1fr}}
+@media (min-width:821px) and (max-width:1060px){.exam .lab{display:flex}.exam .lab .more{grid-column:auto;grid-row:auto}}
+
+.time{font:500 12px var(--f-mono);color:var(--muted)}
+.path{display:flex;flex-direction:column;gap:12px}
+.path h2{font-size:22px}
+.path ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;counter-reset:p}
+.path li{counter-increment:p}
+.path a{display:grid;grid-template-columns:32px 1fr;align-items:center;column-gap:10px;text-decoration:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;height:100%}
+.path a:hover{border-color:var(--ink)}
+.path a,.path a b{color:var(--ink)}
+.path a::before{content:counter(p);grid-row:1 / 3;width:28px;height:28px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:600 13px var(--f-mono)}
+.path a b{font-family:var(--f-display);font-size:17px}
+.path a span{font-size:13px;color:var(--muted)}
+.path .hint{font-size:14px;color:var(--muted);margin:0}
+@media (max-width:900px){.path ol{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.path ol{grid-template-columns:1fr}}
+/* schede: dettagli richiudibili su telefono, sempre aperti su schermi grandi */
+.more{display:flex;flex-direction:column}
+.more summary{cursor:pointer;list-style:none;font-weight:600;font-size:14px;color:var(--c);display:flex;align-items:center;gap:6px}
+.more summary::-webkit-details-marker{display:none}
+.more summary::after{content:"+";font:600 16px var(--f-mono)}
+.more[open] summary::after{content:"–"}
+.more-b{display:flex;flex-direction:column;gap:12px;margin-top:4px}
+@media (min-width:821px){.more summary{display:none}.more-b{margin-top:0}}
+@media (min-width:821px) and (max-width:1060px){
+  .labs{grid-template-columns:1fr}
+  .lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);column-gap:28px;row-gap:12px;align-content:start}
+  .lab > *:not(.more){grid-column:1}
+  .lab .more{grid-column:2;grid-row:1 / span 5}
+  .lab .go{align-self:start;justify-self:start}
+}
+@media (max-width:820px){
+  .wrap{padding:28px 16px 40px;gap:26px}
+  .intro .lede{font-size:16px}
+  .lab{padding:20px;gap:12px}
+  .lab .name b{font-size:24px}
+  .lab .go{order:5;width:100%}
+  .lab .more{order:6;border-top:1px solid var(--line);padding-top:12px}
+  .how{padding:20px}
+  .steps{grid-template-columns:1fr;gap:14px}
+  .steps li{display:grid;grid-template-columns:30px 1fr;column-gap:12px;row-gap:2px;align-items:start;grid-auto-rows:min-content}
+  .steps li::before{grid-row:1 / 3}
+  h2{font-size:22px}
+}
+@media (max-width:820px){
+  .labs,.tips{grid-template-columns:1fr}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="intro">
+    <span class="eyebrow">Esercitazioni pratiche di advertising</span>
+    <h1>Campagna <mark>Zero</mark></h1>
+    <p class="lede">Esercitazioni pratiche per imparare a progettare, impostare e valutare campagne pubblicitarie su Google, Meta e TikTok, anche partendo da zero. Ogni simulazione parte dal brief di un cliente e si chiude con i risultati e i consigli per migliorare. La guida rapida raccoglie tutto ciò che serve ricordare.</p>
+    <p class="by">Un progetto di <b>Azzurra Curcio</b></p>
+  </header>
+
+  <section class="path" aria-label="Da dove iniziare">
+    <h2>Da dove iniziare</h2>
+    <ol>
+      <li><a href="#lab-reel"><b>Reel Lab</b><span>Il più semplice · 10–15 min</span></a></li>
+      <li><a href="#lab-social"><b>Social Lab</b><span>Meta Ads · 20–30 min</span></a></li>
+      <li><a href="#lab-clip"><b>Clip Lab</b><span>TikTok Ads · 20–30 min</span></a></li>
+      <li><a href="#lab-ads"><b>Ads Lab</b><span>Google Ads · 30–45 min</span></a></li>
+    </ol>
+    <p class="hint">In ogni simulatore trovi una campagna di esempio commentata e le sigle spiegate: passaci sopra con il mouse o toccale. La guida rapida resta sempre a disposizione.</p>
+  </section>
+
+  <section class="exam" aria-label="Il progetto della classe">
+    <article class="lab reel" id="lab-reel">
+      <span class="plat">Il progetto della classe · Instagram e TikTok</span>
+      <div class="name"><b>Reel<i>Lab</i></b></div>
+      <p>Il più semplice da cui iniziare, circa 10–15 minuti. Il percorso per il vostro reel sul corso: controlla che sia pronto e promuovilo direttamente dall'app, con "Metti in evidenza" su Instagram o "Promuovi" su TikTok.</p>
+      <details class="more"><summary>Cosa impari</summary><div class="more-b">
+      <ul>
+        <li>Checklist del reel: requisiti per la promozione e ingredienti creativi</li>
+        <li>Obiettivo, pubblico, budget e durata della promozione dall'app</li>
+        <li>Musica consentita, formati, costi nascosti del pagamento</li>
+        <li>Visualizzazioni, visite al profilo e nuovi follower</li>
+      </ul></div></details>
+      <a class="go" href="reel-lab.html">Apri Reel Lab →</a>
+    </article>
+    <article class="lab guide">
+      <span class="plat">Da consultare sempre</span>
+      <div class="name"><b>Guida rapida</b></div>
+      <p>Tutte le spiegazioni dei simulatori in un'unica pagina: ogni passaggio con l'errore da evitare e il consiglio pratico, più il glossario con la ricerca.</p>
+      <a class="go" href="guida.html">Apri la guida →</a>
+    </article>
+  </section>
+
+  <section class="labs" aria-label="Scegli il simulatore">
+
+    <article class="lab soc" id="lab-social">
+      <span class="plat">Meta Ads · Facebook e Instagram</span>
+      <span class="time">Circa 20–30 minuti</span>
+      <div class="name"><b>Social<i>Lab</i></b></div>
+      <p>Inserzioni con immagini e video che compaiono nei feed, nelle storie e nei reels mentre le persone scorrono.</p>
+      <details class="more"><summary>Cosa impari e i clienti</summary><div class="more-b">
+      <span class="lbl">Cosa impari</span>
+      <ul>
+        <li>Campagna, gruppo di inserzioni e inserzione</li>
+        <li>Obiettivi, luogo della conversione e pixel</li>
+        <li>Pubblico Advantage+, pubblici personalizzati e remarketing</li>
+        <li>Creatività, formati e posizionamenti</li>
+        <li>Copertura, frequenza, costo per risultato e ROAS</li>
+      </ul>
+      <span class="lbl">I clienti</span>
+      <div class="clients"><span>Studio di pilates a Bologna</span><span>Negozio di bici a Padova</span><span>Agriturismo in Val d'Orcia</span><span>E-commerce di cosmetici</span><span>Il reel della classe (progetto)</span></div></div></details>
+      <a class="go" href="social-lab.html">Apri Social Lab →</a>
+    </article>
+
+    <article class="lab clip" id="lab-clip">
+      <span class="plat">TikTok Ads</span>
+      <span class="time">Circa 20–30 minuti</span>
+      <div class="name"><b>Clip<i>Lab</i></b></div>
+      <p>Video verticali a schermo intero che compaiono nel feed "Per te" mentre le persone scorrono.</p>
+      <details class="more"><summary>Cosa impari e i clienti</summary><div class="more-b">
+      <span class="lbl">Cosa impari</span>
+      <ul>
+        <li>Obiettivi, budget minimi e ritmo di spesa</li>
+        <li>Modulo istantaneo, pixel ed eventi</li>
+        <li>Targeting automatico, età e pubblici personalizzati</li>
+        <li>Video nativi, gancio iniziale, musica e Spark Ads</li>
+        <li>Visualizzazioni da 2 e 6 secondi, costo per risultato e ROAS</li>
+      </ul>
+      <span class="lbl">I clienti</span>
+      <div class="clients"><span>Palestra di boxe a Torino</span><span>Festival di musica a Bologna</span><span>Accademia di design a Milano</span><span>Brand di streetwear</span><span>Il reel della classe (progetto)</span></div></div></details>
+      <a class="go" href="clip-lab.html">Apri Clip Lab →</a>
+    </article>
+    <article class="lab" id="lab-ads">
+      <span class="plat">Google Ads · Rete di Ricerca</span>
+      <span class="time">Circa 30–45 minuti · il più impegnativo</span>
+      <div class="name"><b>Ads<i>Lab</i></b></div>
+      <p>Annunci di testo che compaiono su Google quando qualcuno cerca un prodotto o un servizio.</p>
+      <details class="more"><summary>Cosa impari e i clienti</summary><div class="more-b">
+      <span class="lbl">Cosa impari</span>
+      <ul>
+        <li>Obiettivo, reti, località e lingue</li>
+        <li>Budget giornaliero e strategie di offerta</li>
+        <li>Parole chiave, tipi di corrispondenza e negative</li>
+        <li>Annunci adattabili e asset</li>
+        <li>Punteggio di qualità e report dei termini di ricerca</li>
+      </ul>
+      <span class="lbl">I clienti</span>
+      <div class="clients"><span>Pizzeria a Milano</span><span>E-commerce di scarpe da running</span><span>Studio dentistico a Torino</span><span>Scuola di inglese online</span></div></div></details>
+      <a class="go" href="ads-lab.html">Apri Ads Lab →</a>
+    </article>
+  </section>
+
+  <section class="how">
+    <h2>Come funziona</h2>
+    <ol class="steps">
+      <li><b>Scegli un cliente</b>Leggi con attenzione il brief: obiettivo, zona, budget e dettagli tecnici.</li>
+      <li><b>Crea la campagna</b>Segui i passaggi. Accanto a ognuno trovi la spiegazione e l'errore da evitare.</li>
+      <li><b>Pubblica</b>Ottieni un punteggio su 100, i risultati simulati e le cose da sistemare.</li>
+      <li><b>Migliora e consegna</b>Correggi e ripubblica. Alla fine premi "Copia il report" e invialo alla docente.</li>
+    </ol>
+    <div class="tips">
+      <div><b>Computer o telefono</b>Funziona su entrambi. Per scrivere annunci e testi lunghi il computer resta più comodo.</div>
+      <div><b>I progressi restano salvati</b>Nel browser che stai usando. Cambiando computer o browser si riparte da capo.</div>
+      <div><b>È una simulazione</b>I numeri servono a capire cause ed effetti, non sono previsioni reali.</div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 <b>Azzurra Curcio</b> · Campagna Zero · Materiale didattico.</p>
+    <p>Opera distribuita con licenza <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.it" target="_blank" rel="noopener">Creative Commons Attribuzione – Non commerciale – Non opere derivate 4.0 Internazionale (CC BY-NC-ND 4.0)</a>: puoi usarla e condividerla citando l'autrice, senza scopi commerciali e senza modificarla.</p>
+    <p>Simulatori didattici indipendenti, non affiliati né approvati da Google, Meta o TikTok. Google Ads è un marchio di Google LLC. Meta, Facebook, Instagram, Messenger e WhatsApp sono marchi di Meta Platforms, Inc. TikTok è un marchio di ByteDance Ltd. Clienti, marchi, creator, siti e numeri di telefono degli scenari sono di fantasia: ogni riferimento a realtà esistenti è casuale. I simulatori non raccolgono dati personali: i progressi restano solo nel browser di chi li usa. Il sito è ospitato da GitHub Pages: GitHub registra l'indirizzo IP dei visitatori per motivi di sicurezza, come spiegato nella sua <a href="https://docs.github.com/it/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">informativa sulla privacy</a>.</p>
+  </footer>
+</div>
+<script>
+(function(){var wide=window.matchMedia('(min-width:821px)');function sync(){document.querySelectorAll('.more').forEach(function(d){d.open=wide.matches})}
+if(wide.addEventListener)wide.addEventListener('change',sync);sync()})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clip Lab simulatore TikTok Ads</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+/* Layout: stepper a sinistra · lavoro al centro · spiegazioni a destra (famiglia Ads Lab / Social Lab, accento indaco) */
+:root{
+  --paper:#f3f4f6; --surface:#ffffff; --ink:#1a1b22; --muted:#5d6170; --line:#dfe1e7;
+  --accent:#4338ca; --accent-ink:#ffffff; --accent-soft:#e8e7fb; --mark:#f3c94b; --mark-soft:#fdf3d2;
+  --good:#2b7a4b; --warn:#a96300; --bad:#bf3a2b; --good-soft:#e3f2e8; --warn-soft:#fbefdc; --bad-soft:#f8e3df;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#141113; --surface:#1e1a1c; --ink:#eee8eb; --muted:#a89da2; --line:#352e31;
+    --accent:#9d9af7; --accent-ink:#13123a; --accent-soft:#25244a; --mark:#e8bd3c; --mark-soft:#332b14;
+    --good:#5cc489; --warn:#e3a243; --bad:#ef7a69; --good-soft:#18301f; --warn-soft:#33270f; --bad-soft:#3a1d18;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141113; --surface:#1e1a1c; --ink:#eee8eb; --muted:#a89da2; --line:#352e31;
+  --accent:#9d9af7; --accent-ink:#13123a; --accent-soft:#25244a; --mark:#e8bd3c; --mark-soft:#332b14;
+  --good:#5cc489; --warn:#e3a243; --bad:#ef7a69; --good-soft:#18301f; --warn-soft:#33270f; --bad-soft:#3a1d18;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--f-body)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.2;text-wrap:balance;margin:0}
+h2{font-size:26px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.top{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand b.logo{font-family:var(--f-display);font-size:22px;letter-spacing:-.01em}
+.brand b.logo i{font-style:normal;background:var(--mark);color:#1c1a10;padding:0 5px;border-radius:4px;margin-left:2px}
+.brand span{color:var(--muted);font-size:13px}
+.brand span b{color:var(--ink);font-weight:600}
+.top .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.app{display:grid;grid-template-columns:220px minmax(0,1fr) 300px;gap:24px;padding:24px 20px 60px;max-width:1440px;margin:0 auto}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:sticky;top:84px;align-self:start}
+.steps .lvl{font:600 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 10px 2px}
+.steps button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--muted)}
+.steps button .n{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:500 12px var(--f-mono)}
+.steps button.done .n{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.steps button.cur{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--line)}
+.steps button.cur .n{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.steps button:disabled{cursor:not-allowed;opacity:.5}
+main{min-width:0;display:flex;flex-direction:column;gap:18px}
+.help{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 100px);overflow:auto}
+.help .box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.help .box h3{font-size:15px}
+.help .lab{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.help .err{background:var(--bad-soft);border-color:transparent}
+.help .tip{background:var(--mark-soft);border-color:transparent}
+.help ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card > header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card > header h3{flex:1}
+.lead{color:var(--muted);max-width:68ch}
+.field{display:flex;flex-direction:column;gap:6px}
+.field > label, .lbl{font-weight:600;font-size:14px}
+.hint{font-size:13px;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=url],select,textarea{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:9px 11px}
+textarea{resize:vertical;min-height:44px}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.cnt{font:12px var(--f-mono);color:var(--muted);text-align:right}
+.cnt.over{color:var(--warn);font-weight:600}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row > *{flex:1;min-width:150px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.opt{position:relative;display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:var(--surface)}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:4px;accent-color:var(--accent)}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt.off{opacity:.5;cursor:not-allowed}
+.opt b{display:block;font-size:14px}
+.opt small{display:block;color:var(--muted);font-size:13px;line-height:1.4}
+.list{display:flex;flex-direction:column;gap:8px}
+.scen{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.sc{border:1.5px solid var(--line);border-radius:12px;padding:16px;background:var(--surface);display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left}
+.sc:hover{border-color:var(--accent)}
+.sc.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sc .k{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.sc h3{font-size:18px}
+.sc p{font-size:14px;color:var(--muted)}
+.sc .lv{font-size:12px;color:var(--muted)}
+.brief{border-left:4px solid var(--mark);background:var(--mark-soft);border-radius:0 10px 10px 0;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.brief dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0;font-size:14px}
+.brief dt{color:var(--muted)}
+.brief dd{margin:0;font-weight:500}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.nav{display:flex;justify-content:space-between;gap:10px}
+.al{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;font-size:14px}
+.al.ok{background:var(--good-soft)} .al.warn{background:var(--warn-soft)} .al.bad{background:var(--bad-soft)} .al.info{background:var(--accent-soft)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:6px}
+.dot.ok{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)} .dot.info{background:var(--accent)}
+/* audience gauge */
+.gauge{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--paper)}
+.gauge .trk{position:relative;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--warn) 0 22%,var(--good) 22% 78%,var(--warn) 78%)}
+.gauge .pin{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:var(--ink);transform:translateX(-2px)}
+.gauge .ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.gauge b{font:500 18px var(--f-mono)}
+/* media library */
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.med{border:2px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;background:var(--surface);display:flex;flex-direction:column;text-align:left;padding:0}
+.med.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.med .th{position:relative;display:grid;place-items:center;color:#fff;font:700 13px var(--f-body);text-align:center;padding:8px;aspect-ratio:1/1;overflow:hidden}
+.med .th em{position:absolute;left:6px;top:6px;font:600 10px var(--f-mono);font-style:normal;background:rgba(0,0,0,.55);padding:2px 6px;border-radius:4px}
+.med .th .ck{position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.35);display:grid;place-items:center;font-size:13px}
+.med.on .th .ck{background:var(--accent)}
+.med .cap{padding:8px 10px;font-size:12.5px;line-height:1.35}
+/* previews */
+.pv{display:grid;grid-template-columns:minmax(0,340px) 200px;gap:16px;align-items:start}
+.post{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;font-family:Helvetica, Arial, sans-serif}
+.post .hd{display:flex;gap:8px;align-items:center;padding:10px 12px;font-size:13px}
+.post .av{width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700}
+.post .hd small{display:block;color:var(--muted);font-size:11px}
+.post .tx{padding:0 12px 10px;font-size:13.5px;white-space:pre-wrap;word-break:break-word}
+.post .tx i{color:var(--muted);font-style:normal}
+.post .md{display:grid;place-items:center;color:#fff;font-weight:700;text-align:center;padding:12px;aspect-ratio:1/1}
+.post .car{display:flex;gap:6px;overflow-x:auto;padding:0 0 0 12px}
+.post .car .md{flex:0 0 72%;border-radius:8px}
+.post .ft{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper)}
+.post .ft div{flex:1;min-width:0}
+.post .ft small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase}
+.post .ft b{display:block;font-size:14px}
+.post .ft span{font-size:12px;color:var(--muted)}
+.post .cta{border:0;background:var(--line);color:var(--ink);border-radius:6px;padding:7px 10px;font-weight:600;font-size:13px;white-space:nowrap}
+.story{border-radius:14px;aspect-ratio:9/16;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;font:700 13px Helvetica,Arial,sans-serif;text-align:center;padding:10px}
+.story .s-top{position:absolute;top:8px;left:10px;right:10px;display:flex;gap:6px;align-items:center;font-size:11px;font-weight:600}
+.story .s-top i{width:18px;height:18px;border-radius:50%;background:#fff;display:inline-block}
+.story .s-cta{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#fff;color:#111;border-radius:999px;padding:5px 12px;font-size:12px;white-space:nowrap}
+.story .crop{position:absolute;inset:0;display:grid;place-items:center}
+.story .bars{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 100%)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tw{overflow-x:auto}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+.ring{--p:0;width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%), var(--line) 0);display:grid;place-items:center}
+.ring > div{width:104px;height:104px;border-radius:50%;background:var(--surface);display:grid;place-items:center;text-align:center}
+.ring b{font:700 36px var(--f-display);line-height:1}
+.ring small{font-size:12px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--paper)}
+.kpi.hi{border-color:var(--accent);background:var(--accent-soft)}
+.kpi span{display:block;font-size:12px;color:var(--muted)}
+.kpi b{font:500 21px var(--f-mono);font-variant-numeric:tabular-nums}
+.stack{display:flex;height:28px;border-radius:8px;overflow:hidden;background:var(--line)}
+.stack > div{height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.cat{display:flex;flex-direction:column;gap:8px}
+.cat > header{display:flex;align-items:center;gap:10px}
+.cat > header h3{flex:1;font-size:16px}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.pts{font:500 13px var(--f-mono);color:var(--muted);white-space:nowrap}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.tag.ok{background:var(--good-soft);color:var(--good)} .tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.warn{background:var(--warn-soft);color:var(--warn)} .tag.mut{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+.fine{font-size:12px;color:var(--muted)}
+.top3{counter-reset:t;display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.top3 li{counter-increment:t;display:grid;grid-template-columns:28px 1fr;gap:8px;font-size:14px}
+.top3 li::before{content:counter(t);width:24px;height:24px;border-radius:50%;background:var(--mark);color:#1c1a10;display:grid;place-items:center;font:700 12px var(--f-mono)}
+.ov{position:fixed;inset:0;background:rgba(14,10,12,.5);display:none;place-items:center;z-index:20;padding:16px}
+.ov.on{display:grid}
+.modal{background:var(--surface);border-radius:14px;max-width:720px;width:100%;max-height:85vh;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:14px}
+.modal dl{margin:0;display:flex;flex-direction:column;gap:10px}
+.modal dt{font-weight:600}
+.modal dd{margin:0;color:var(--muted);font-size:14px}
+.modal textarea{min-height:240px;font:13px var(--f-mono)}
+.struct{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}
+.struct span{padding:4px 10px;border-radius:6px;background:var(--paper);border:1px solid var(--line)}
+.struct span.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+.pv{grid-template-columns:260px minmax(0,1fr)}
+#phone{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.med .th{aspect-ratio:auto!important;height:170px}
+.phone{position:relative;width:240px;aspect-ratio:9/16;border-radius:22px;overflow:hidden;background:#000;color:#fff;font:13px/1.35 Helvetica,Arial,sans-serif;box-shadow:0 0 0 6px var(--ink)}
+.phone .ph-bg{position:absolute;inset:0}
+.phone .ph-mid{position:absolute;left:0;right:0;top:50%;transform:translateY(-60%);display:grid;place-items:center;font-weight:700;font-size:11px;text-align:center;padding:6px}
+.phone .ph-empty{position:absolute;inset:0;display:grid;place-items:center;color:#aaa;font-size:12px;padding:20px;text-align:center}
+.phone .ph-side{position:absolute;right:8px;bottom:110px;display:flex;flex-direction:column;gap:14px}
+.phone .ph-side i{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.85)}
+.phone .ph-bot{position:absolute;left:10px;right:48px;bottom:10px;display:flex;flex-direction:column;gap:3px;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.phone .ph-bot p{margin:0;font-size:12px}
+.phone .ph-bot small{font-size:11px;opacity:.9}
+.phone .ph-sp{font-size:10px;opacity:.85}
+.phone .ph-cta{margin-top:6px;background:var(--accent);color:#fff;border-radius:4px;padding:6px 8px;font-weight:700;font-size:12px;text-align:center;text-shadow:none}
+@media (max-width:1180px){
+  .app{grid-template-columns:200px minmax(0,1fr)}
+  .help{grid-column:2;position:static;max-height:none}
+}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;padding:16px}
+  .steps{flex-direction:row;overflow-x:auto;position:static;gap:4px}
+  .steps .lvl{display:none}
+  .steps button{white-space:nowrap}
+  .help{grid-column:1}
+  .pv,.grid2,.hero{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){.bar i,.stack > div{transition:width .5s ease}}
+
+/* ===== Ritocchi di visualizzazione: aiuto richiudibile, navigazione sempre visibile, mobile compatto ===== */
+.cred-m{display:none}
+.helpm{display:none;background:var(--mark-soft);border-radius:12px;padding:0}
+.helpm summary{cursor:pointer;list-style:none;padding:12px 16px;display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}
+.helpm summary::-webkit-details-marker{display:none}
+.helpm summary::before{content:"?";width:22px;height:22px;flex:none;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:600 12px var(--f-mono)}
+.helpm summary::after{content:"Apri";margin-left:auto;font:500 12px var(--f-mono);color:var(--muted)}
+.helpm[open] summary::after{content:"Chiudi"}
+.helpm .hb{padding:0 16px 16px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.helpm .hb ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.helpm .hb table{font-size:13px}
+.helpm .hx{border-radius:8px;padding:10px 12px;font-size:14px}
+.helpm .hx.e{background:var(--bad-soft)} .helpm .hx.t{background:var(--surface)}
+.helpm .hx b{display:block;font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.nav{position:sticky;bottom:0;z-index:3;padding:16px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--paper) 40%)}
+.nav .btn{box-shadow:0 1px 2px rgba(0,0,0,.06)}
+@media (max-width:1180px){
+  .help{display:none}
+  .helpm{display:block}
+  .app{grid-template-columns:200px minmax(0,1fr)}
+}
+@media (max-width:820px){
+  .top{position:static;padding:10px 16px;gap:8px 10px}
+  .brand > span:not(.cred-m){display:none}
+  .cred-m{display:inline;font-size:12px;color:var(--muted)}
+  .top .sp{flex-basis:100%;height:0}
+  #scChip{flex:1;min-width:0}
+  #scChip .chip{max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;text-align:left}
+  .app{grid-template-columns:1fr;padding:0 16px 24px;gap:14px}
+  .steps{position:sticky;top:0;z-index:4;background:var(--paper);margin:0 -16px;padding:8px 16px;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .steps::-webkit-scrollbar{display:none}
+  .steps button{padding:6px 10px}
+  main{gap:14px}
+  .card{padding:16px;border-radius:12px;gap:12px}
+  h2{font-size:22px}
+  .lead{font-size:14px}
+  table{font-size:13px}
+  th,td{padding:7px 8px}
+  .hero{justify-items:start;gap:14px}
+  .ring{width:112px;height:112px}.ring > div{width:88px;height:88px}.ring b{font-size:30px}
+  .kpi b{font-size:18px}
+  .nav .btn{flex:1;padding:12px}
+  .nav .btn[style*="hidden"]{flex:0;padding:0;border:0;width:0}
+  #phone{align-items:center!important;width:100%}
+  .modal{padding:18px;max-height:90vh}
+}
+.top a.btn{white-space:nowrap}
+@media (max-width:820px){#scChip{flex:1 1 100%}}
+.term{text-decoration:underline dotted;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:help;border-radius:3px}
+.term:focus-visible{outline:2px solid var(--mark)}
+#tip{position:absolute;z-index:40;display:none;background:var(--ink);color:var(--paper);font:13px/1.45 var(--f-body);padding:8px 11px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.18);pointer-events:none}
+.exbox{flex-direction:row;align-items:center;gap:14px;background:var(--mark-soft);border-color:transparent}
+.exbox > div{flex:1}
+@media (max-width:820px){.exbox{flex-direction:column;align-items:stretch}}
+</style>
+
+</head>
+<body>
+<div class="top">
+  <div class="brand"><b class="logo">Clip<i>Lab</i></b><span>Simulatore didattico di campagne TikTok Ads · creato da <b>Azzurra Curcio</b></span><span class="cred-m">di Azzurra Curcio</span></div>
+  <span class="sp"></span>
+  <span id="scChip"></span>
+  <a class="btn sm" href="index.html" style="text-decoration:none;color:inherit">← Campagna Zero</a>
+  <button class="btn sm" id="bGloss" type="button">Glossario</button>
+  <button class="btn sm ghost" id="bReset" type="button">Ricomincia</button>
+</div>
+<div class="app">
+  <ol class="steps" id="steps"></ol>
+  <main id="view"></main>
+  <aside class="help" id="help"></aside>
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<script>
+/* ================= DATI GENERALI ================= */
+const OBJ=[
+ {id:'copertura',t:'Copertura',d:'Mostrare le inserzioni al maggior numero di persone.',g:'Notorietà'},
+ {id:'traffico',t:'Traffico',d:'Portare persone sul sito del cliente.',g:'Considerazione'},
+ {id:'visualizzazioni',t:'Visualizzazioni video',d:'Far guardare i video a più persone possibile.',g:'Considerazione'},
+ {id:'community',t:'Interazione con la community',d:'Ottenere follower e visite al profilo.',g:'Considerazione'},
+ {id:'app',t:'Promozione dell\'app',d:'Il cliente non ha un\'app.',off:true,g:'Considerazione'},
+ {id:'lead',t:'Generazione di lead',d:'Raccogliere contatti con un modulo istantaneo o sul sito.',g:'Conversione'},
+ {id:'vendite',t:'Vendite',d:'Ottenere acquisti sul sito.',g:'Conversione'}
+];
+const CL={sito:'Sito web',moduli:'Modulo istantaneo'};
+const CLD={sito:'Le persone vanno sul sito del cliente. Per ottimizzare serve il pixel di TikTok.',moduli:'Le persone compilano un modulo dentro TikTok, senza uscire dall\'app.'};
+const CONVLOC={copertura:[],visualizzazioni:[],community:[],traffico:['sito'],lead:['moduli','sito'],vendite:['sito']};
+const GL={reach:'Copertura','6s':'Visualizzazioni da 6 secondi','2s':'Visualizzazioni da 2 secondi',follower:'Follower',profilo:'Visite al profilo',lpv:'Visualizzazioni della pagina di destinazione',clic:'Clic',lead:'Lead (moduli inviati)',convs:'Conversioni',value:'Valore'};
+const GOPTS=(o,l)=>({copertura:['reach'],visualizzazioni:['6s','2s'],community:['follower','profilo']}[o])||({traffico:{sito:['lpv','clic']},lead:{moduli:['lead'],sito:['convs','lpv','clic']},vendite:{sito:['convs','value','lpv','clic']}}[o]||{})[l]||[];
+const GCAT={reach:'reach','2s':'reach','6s':'eng',follower:'eng',profilo:'eng',lpv:'click',clic:'click',lead:'conv',convs:'conv',value:'conv'};
+const EVENTS=[['pagamento','Completa pagamento'],['ordine','Effettua ordine'],['carrello','Aggiungi al carrello'],['contenuto','Visualizza contenuto'],['modulo','Invia modulo'],['registrazione','Completa registrazione'],['contatto','Contatto']];
+const BIDS=[
+ {id:'max',t:'Massimo rilascio',d:'Il sistema cerca di ottenere più risultati possibile spendendo tutto il budget.'},
+ {id:'costcap',t:'Limite di costo',d:'Indichi il costo medio per risultato da non superare.'},
+ {id:'bidcap',t:'Limite di offerta',d:'Imposti l\'offerta massima in ogni asta. Per utenti esperti.'},
+ {id:'value',t:'Valore più alto',d:'Cerca gli acquisti di valore più alto. Solo per vendite con valore degli ordini.'}
+];
+const CTAS=[['scopri','Scopri di più'],['acquista','Acquista ora'],['iscriviti','Iscriviti'],['prenota','Prenota ora'],['contattaci','Contattaci'],['candidati','Candidati ora'],['guarda','Guarda ora'],['ordina','Ordina ora'],['richiedi','Richiedi preventivo'],['scarica','Scarica']];
+const LOCS=[
+ {id:'italia',t:'Italia',pop:20e6},
+ {id:'lombardia',t:'Lombardia',pop:3.4e6},
+ {id:'milano30',t:'Milano + 30 km',pop:1.6e6},
+ {id:'piemonte',t:'Piemonte',pop:1.4e6},
+ {id:'torino30',t:'Torino + 30 km',pop:900e3},
+ {id:'torino10',t:'Torino + 10 km',pop:600e3},
+ {id:'emilia',t:'Emilia-Romagna',pop:1.5e6},
+ {id:'bologna50',t:'Bologna + 50 km',pop:800e3},
+ {id:'citta_corso',t:'Pisa + 30 km',pop:350e3},
+ {id:'regione_corso',t:'Toscana',pop:1.3e6}
+];
+const COURSE_LOCS=['citta_corso','regione_corso'];
+const locsFor=sc=>sc.locList?LOCS.filter(l=>sc.locList.includes(l.id)):LOCS.filter(l=>!COURSE_LOCS.includes(l.id));
+const AGES=[['13-17',0],['18-24',.2],['25-34',.27],['35-44',.22],['45-54',.17],['55+',.14]];
+const PL=[['tiktok','TikTok',.88],['pangle','Pangle (app di terze parti)',.12]];
+const POLICY=/(dimagr|perd[ie]re? (peso|chili|kg)|\b\d+\s?(kg|chili)\b|brucia(re)? (i )?(grass|calori|la pancia|pancetta)|pancetta|pancia piatta|corpo perfetto|addominali scolpiti|\b(hai|sei|soffri)\b[^.?!\n]{0,40}\b(sovrappes|grass|chili|ansia|ansios|depress|acne|brufol))/i;
+const AUD={cml:'Brano della libreria musicale commerciale',own:'Brano con diritti ceduti al cliente',voce:'Voce e suoni originali',trend:'Hit di tendenza non autorizzata',none:'Nessun audio'};
+
+/* ================= SCENARI ================= */
+const SC={
+ boxe:{id:'boxe',k:'Attività locale',name:'Round Zero – palestra di boxe',lv:'Livello: base',
+  short:'Palestra di boxe a Torino: contatti per la lezione di prova gratuita.',
+  facts:[['Cosa fa','Palestra di boxe e preparazione atletica, con corsi per principianti'],['Dove','Torino, San Salvario. I clienti arrivano dalla città e dintorni (circa 10 km)'],['Pubblico','Ragazze e ragazzi 18–34 anni che vogliono iniziare uno sport'],['Obiettivo','Contatti (nome e telefono) per la lezione di prova gratuita: lo staff li richiama'],['Budget','20 € al giorno, continuativo'],['Sito','www.roundzero-boxe.it — il pixel di TikTok NON è installato. Informativa privacy: /privacy'],['Account TikTok','@roundzero.torino, 8.000 follower. Il video "La mia prima lezione" ha 120.000 visualizzazioni'],['Telefono','011 456 7890']],
+  kpi:'lead',kpiL:'Lead',kpiQ:'Lead di qualità',
+  objIdeal:['lead'],objPart:{traffico:3,community:2,visualizzazioni:2,copertura:1,vendite:1},
+  convIdeal:['moduli'],convOk:{sito:1},goalIdeal:['lead'],goalOk:{convs:1,lpv:2,clic:2,'6s':1,follower:1,profilo:1,reach:0},
+  pixel:false,event:null,
+  budget:{type:'daily',amount:20,lo:20,hi:23,olo:20,ohi:30},days:30,
+  bidOk:{max:3,costcap:1,bidcap:1,value:0},
+  cpm:5,ctr:.009,rate:{moduli:.12,moduliH:.07,sito:.015},qual:{moduli:.45,moduliH:.8,sito:.8},
+  loc:{torino10:[.92,6],torino30:[.65,4],piemonte:[.15,1],italia:[.01,0]},
+  ageIdeal:['18-24','25-34'],ageOk:['35-44'],gender:{all:[1,2],f:[.5,1],m:[.5,1]},
+  interests:[['Sport e fitness',1],['Arti marziali e sport da combattimento',1],['Ha interagito con video di fitness',1],['Salute e benessere',.7],['Videogiochi',0],['Bellezza e cura personale',.2],['Cucina',0],['Viaggi',.2]],
+  custom:[{id:'eng',t:'Hanno interagito con i video del profilo (180 giorni)',size:25000,warm:1.6},{id:'lal',t:'Pubblico simile a chi ha interagito con i video',size:900000,warm:1.1,lal:true},{id:'vis',t:'Visitatori del sito (non disponibile: manca il pixel)',size:0,warm:1,off:true}],
+  formatFit:{video:[1,4],spark:[1.05,4],carousel:[.6,1]},
+  media:[
+   {id:'v1',kind:'video',t:'Video 15 s girato col telefono: allenamento di gruppo, si apre con "Mai tirato un pugno?"',ratio:'9:16',hook:1,native:1,audio:'cml',q:.95,c:['#d1495b','#2d1e2f']},
+   {id:'v2',kind:'video',t:'Spot 30 s orizzontale con voce fuori campo, girato da un\'agenzia',ratio:'16:9',hook:0,native:0,audio:'voce',q:.45,c:['#5b6c7d','#1f2933'],note:'orizzontale e poco nativo: su TikTok si scorre via'},
+   {id:'v3',kind:'video',t:'Video 9:16 con una hit rap del momento in sottofondo',ratio:'9:16',hook:1,native:1,audio:'trend',q:.85,c:['#f4a259','#5b3758'],note:'musica non autorizzata per la pubblicità'},
+   {id:'v4',kind:'video',t:'Video 9:16 muto con la scritta "Iscriviti ora"',ratio:'9:16',hook:0,native:0,audio:'none',q:.4,c:['#e5e5e5','#8a8a8a'],note:'senza audio: su TikTok si guarda con l\'audio attivo'},
+   {id:'i1',kind:'img',t:'Foto: sacchi da boxe nella palestra vuota',ratio:'1:1',q:.35,c:['#8d8d8d','#3b3b3b']},
+   {id:'i2',kind:'img',t:'Foto: istruttore che spiega la guardia',ratio:'9:16',q:.65,c:['#c97c5d','#3e2a20']},
+   {id:'s1',kind:'spark',t:'Post "La mia prima lezione" (120.000 visualizzazioni)',ratio:'9:16',hook:1,native:1,audio:'cml',q:1,c:['#ef476f','#26547c']},
+   {id:'s2',kind:'spark',t:'Post "Allenamento con la hit dell\'estate" (45.000 visualizzazioni)',ratio:'9:16',hook:1,native:1,audio:'trend',q:.9,c:['#ffd166','#06d6a0'],note:'usa musica non autorizzata: non si può promuovere'}],
+  offer:['prov','gratuit','gratis','prima lezione','omaggio','senza impegno'],benefit:['boxe','allenament','principiant','energi','sfog','gruppo','san salvario','torino','istruttor','tecnica','sport','paura','ring'],
+  ctaGood:['iscriviti','prenota'],ctaOk:['scopri','contattaci'],domain:'roundzero-boxe.it',paths:['/prova','/corsi','/privacy']},
+ festival:{id:'festival',k:'Evento',name:'Onde Sonore Festival',lv:'Livello: base',
+  short:'Festival di musica a Bologna: far conoscere la line-up a chi vive in zona.',
+  facts:[['Cosa fa','Festival di musica indipendente: 2 serate, 12 artisti italiani'],['Dove e quando','Bologna, 19 e 20 dicembre 2026. Il pubblico arriva da Bologna e dall\'Emilia-Romagna'],['Pubblico','18–34 anni'],['Obiettivo','Far conoscere il festival e la line-up al maggior numero di persone in zona. I biglietti si comprano su una piattaforma esterna (nessun pixel)'],['Budget','500 € in totale, dal 28 novembre al 18 dicembre 2026'],['Musica','Il festival ha i diritti per la promozione dei brani degli artisti in line-up'],['Sito','www.ondesonore-festival.it — pagine: /lineup, /biglietti'],['Account TikTok','@ondesonore.fest, 15.000 follower. L\'aftermovie organico ha 60.000 visualizzazioni']],
+  kpi:'reach',kpiL:'Persone raggiunte in zona',
+  objIdeal:['copertura','visualizzazioni'],objPart:{traffico:3,community:2,lead:1,vendite:1},
+  convIdeal:[],convOk:{sito:3},goalIdeal:['reach','6s'],goalOk:{'2s':3,follower:2,profilo:2,lpv:2,clic:2},
+  pixel:false,event:null,
+  budget:{type:'total',amount:500,lo:470,hi:530,olo:380,ohi:620,start:'2026-11-28',end:'2026-12-18'},days:21,
+  bidOk:{max:3,costcap:1,bidcap:1,value:0},
+  cpm:3,ctr:.007,rate:{},qual:{},
+  loc:{bologna50:[.95,6],emilia:[.8,5],italia:[.08,1],lombardia:[.03,0],milano30:[.03,0],piemonte:[.02,0],torino30:[.02,0],torino10:[.02,0]},
+  ageIdeal:['18-24','25-34'],ageOk:[],gender:{all:[1,2],f:[.55,1],m:[.55,1]},
+  interests:[['Musica',1],['Ha interagito con video di concerti e festival',1],['Musica indie e alternativa',1],['Vita notturna',.7],['Finanza',0],['Genitorialità',0],['Cucina',.1],['Sport',.1]],
+  custom:[{id:'eng',t:'Hanno interagito con i video del profilo (180 giorni)',size:40000,warm:1.4},{id:'lal',t:'Pubblico simile a chi ha interagito con i video',size:900000,warm:1.05,lal:true}],
+  formatFit:{video:[1,4],spark:[1.05,4],carousel:[.75,2]},
+  media:[
+   {id:'v1',kind:'video',t:'Aftermovie 20 s dell\'edizione scorsa, con il brano di un artista in line-up',ratio:'9:16',hook:1,native:1,audio:'own',q:.95,c:['#7b2cbf','#ff6d00']},
+   {id:'v2',kind:'video',t:'Annuncio della line-up: i volti degli artisti a tempo di musica',ratio:'9:16',hook:1,native:1,audio:'own',q:.85,c:['#3a0ca3','#4cc9f0']},
+   {id:'v3',kind:'video',t:'Ripresa orizzontale dal palco',ratio:'16:9',hook:0,native:1,audio:'own',q:.5,c:['#22223b','#9a8c98'],note:'orizzontale: su TikTok appare piccolo con bande nere'},
+   {id:'v4',kind:'video',t:'Montaggio con una hit internazionale di tendenza',ratio:'9:16',hook:1,native:1,audio:'trend',q:.85,c:['#f72585','#4361ee'],note:'musica non autorizzata per la pubblicità'},
+   {id:'i1',kind:'img',t:'Locandina con tutti i nomi scritti in piccolo',ratio:'1:1',q:.35,c:['#f1faee','#a8dadc'],txt:'ONDE SONORE · 19-20 DIC · 12 ARTISTI',note:'troppo testo, illeggibile da telefono'},
+   {id:'i2',kind:'img',t:'Foto: pubblico sotto il palco',ratio:'9:16',q:.65,c:['#ff006e','#3a0ca3']},
+   {id:'s1',kind:'spark',t:'Aftermovie organico (60.000 visualizzazioni)',ratio:'9:16',hook:1,native:1,audio:'own',q:1,c:['#9d4edd','#ff9e00']}],
+  offer:['19','20 dicembre','dicembre','bigliett','line up','lineup','festival','2 serate','due serate'],benefit:['bologna','indie','music','live','artist','concert','dal vivo','palco'],
+  ctaGood:['scopri','acquista'],ctaOk:['guarda'],domain:'ondesonore-festival.it',paths:['/lineup','/biglietti']},
+ accademia:{id:'accademia',k:'Formazione',name:'Studio Forma Academy',lv:'Livello: intermedio',
+  short:'Accademia di design a Milano: registrazioni all\'open day.',
+  facts:[['Cosa fa','Accademia di grafica e design: corsi biennali di graphic design, illustrazione e motion design'],['Dove','Milano. Gli studenti arrivano soprattutto dalla Lombardia'],['Evento','Open day sabato 16 gennaio 2027, ingresso su registrazione'],['Pubblico','Diplomandi e neodiplomati (18–24 anni) e giovani che vogliono cambiare percorso (25–34). Sono interessati anche molti studenti di 17 anni'],['Obiettivo','Registrazioni all\'open day'],['Budget','25 € al giorno, fino al 15 gennaio 2027'],['Sito','www.studioforma-academy.it — pixel di TikTok installato con l\'evento "Completa registrazione" sulla pagina /open-day. Informativa privacy: /privacy'],['Account TikTok','@studioforma.academy, 3.000 follower, pochi video organici']],
+  kpi:'lead',kpiL:'Registrazioni',kpiQ:'Registrazioni di qualità',
+  objIdeal:['lead'],objPart:{traffico:3,visualizzazioni:2,community:2,copertura:1,vendite:1},
+  convIdeal:['moduli','sito'],convOk:{},goalIdeal:['lead','convs'],goalOk:{lpv:2,clic:2},
+  pixel:true,event:'registrazione',
+  budget:{type:'daily',amount:25,lo:23,hi:27,olo:20,ohi:35,end:'2027-01-15'},days:30,
+  bidOk:{max:3,costcap:1,bidcap:1,value:0},
+  cpm:4.5,ctr:.01,rate:{moduli:.1,moduliH:.06,sito:.04},qual:{moduli:.5,moduliH:.8,sito:.85},
+  loc:{lombardia:[.9,6],milano30:[.7,5],italia:[.25,2],piemonte:[.1,1],emilia:[.05,0],bologna50:[.03,0],torino30:[.05,0],torino10:[.05,0]},
+  ageIdeal:['18-24','25-34'],ageOk:[],gender:{all:[1,2],f:[.6,1],m:[.5,1]},
+  interests:[['Arte e design',1],['Istruzione',1],['Ha interagito con video di illustrazione e grafica',1],['Fotografia',.7],['Videogiochi',.3],['Sport',0],['Cucina',0],['Finanza',0]],
+  custom:[{id:'eng',t:'Hanno interagito con i video del profilo (180 giorni)',size:6000,warm:1.5},{id:'vis',t:'Visitatori del sito (60 giorni)',size:12000,warm:2.2},{id:'reg',t:'Già registrati all\'open day',size:300,warm:1,buyers:true},{id:'lal',t:'Pubblico simile ai visitatori del sito',size:1100000,warm:1.1,lal:true}],
+  formatFit:{video:[1,4],carousel:[.85,2],spark:[.8,2]},
+  media:[
+   {id:'v1',kind:'video',t:'Tour del laboratorio raccontato da una studentessa, 25 s',ratio:'9:16',hook:1,native:1,audio:'voce',q:.95,c:['#06d6a0','#073b4c']},
+   {id:'v2',kind:'video',t:'Lavori degli studenti montati a ritmo, con brano della libreria commerciale',ratio:'9:16',hook:1,native:1,audio:'cml',q:.85,c:['#ffbe0b','#fb5607']},
+   {id:'v3',kind:'video',t:'Spot istituzionale orizzontale con il direttore',ratio:'16:9',hook:0,native:0,audio:'voce',q:.4,c:['#495057','#212529'],note:'orizzontale e poco nativo'},
+   {id:'v4',kind:'video',t:'Video con una hit pop del momento',ratio:'9:16',hook:1,native:1,audio:'trend',q:.85,c:['#ff70a6','#70d6ff'],note:'musica non autorizzata per la pubblicità'},
+   {id:'i1',kind:'img',t:'Locandina dell\'open day piena di testo',ratio:'1:1',q:.3,c:['#ffffff','#cfcfcf'],txt:'OPEN DAY · 16/01 · ORARI · PROGRAMMA · INFO',note:'troppo testo, illeggibile da telefono'},
+   {id:'i2',kind:'img',t:'Foto: studenti al lavoro in aula',ratio:'4:5',q:.6,c:['#8ecae6','#219ebc']},
+   {id:'i3',kind:'img',t:'Foto: un poster disegnato da uno studente',ratio:'4:5',q:.6,c:['#e76f51','#264653']},
+   {id:'s1',kind:'spark',t:'Post "Un giorno in accademia" (2.500 visualizzazioni)',ratio:'9:16',hook:1,native:1,audio:'voce',q:.7,c:['#b5e48c','#1e6091']}],
+  offer:['open day','16 gennaio','gennaio','gratuit','registr','iscriv','visita','posti limitati','prenota'],benefit:['grafica','design','illustrazion','motion','portfolio','laborator','docent','stage','milano','professionist','creativ'],
+  ctaGood:['iscriviti','prenota'],ctaOk:['scopri','candidati'],domain:'studioforma-academy.it',paths:['/open-day','/corsi','/privacy']},
+ streetwear:{id:'streetwear',k:'E-commerce',name:'Nebbia Studio',lv:'Livello: avanzato',
+  short:'Brand di streetwear: vendite online con creator e Spark Ads.',
+  facts:[['Cosa fa','Brand di streetwear: felpe, t-shirt e cappellini prodotti in Italia'],['Dove','E-commerce con spedizione in tutta Italia'],['Pubblico','18–34 anni, uomini e donne'],['Offerta','Spedizione e reso gratuiti entro 30 giorni'],['Obiettivo','Vendite online con ROAS (valore vendite ÷ spesa) di almeno 2,5'],['Dati','Pixel di TikTok e API Eventi attivi da un anno: circa 400 ordini al mese, scontrino medio 55 €. Lista clienti di 9.000 email'],['Creator','Due creator hanno pubblicato video con i prodotti e hanno fornito il codice di autorizzazione per le Spark Ads'],['Indicazione del cliente','Un gruppo di annunci per nuovi clienti e uno di remarketing (visitatori e carrelli abbandonati)'],['Budget','70 € al giorno, continuativo'],['Sito','www.nebbiastudio.it — pagine: /felpe, /nuovi-arrivi']],
+  kpi:'acquisti',kpiL:'Acquisti',
+  objIdeal:['vendite'],objPart:{traffico:2,lead:1,visualizzazioni:1,community:1},
+  convIdeal:['sito'],convOk:{},goalIdeal:['convs','value'],goalOk:{lpv:2,clic:1},
+  pixel:true,event:'pagamento',
+  budget:{type:'daily',amount:70,lo:65,hi:75,olo:55,ohi:85},days:30,
+  bidOk:{max:4,costcap:3,bidcap:1,value:4},
+  cpm:7,ctr:.012,cr:.045,aov:55,rate:{},qual:{},
+  loc:{italia:[1,6],lombardia:[1,2],milano30:[1,1],piemonte:[1,1],torino30:[1,1],torino10:[1,0],emilia:[1,1],bologna50:[1,1]},
+  ageIdeal:['18-24','25-34'],ageOk:['35-44'],gender:{all:[1,2],f:[.6,1],m:[.6,1]},
+  interests:[['Moda e abbigliamento',1],['Streetwear',1],['Ha interagito con video di moda',1],['Sneakers',.8],['Musica',.5],['Finanza',0],['Genitorialità',0],['Giardinaggio',0]],
+  custom:[{id:'vis30',t:'Visitatori del sito (30 giorni)',size:40000,warm:2.4,rt:true},{id:'cart7',t:'Hanno aggiunto al carrello (7 giorni)',size:4000,warm:3.5,rt:true},{id:'buy30',t:'Acquirenti (30 giorni)',size:400,warm:1.2,buyers:true},{id:'clienti',t:'Lista clienti (9.000 email)',size:9000,warm:1.4,buyers:true},{id:'lal',t:'Pubblico simile agli acquirenti',size:1500000,warm:1.2,lal:true},{id:'eng',t:'Hanno interagito con i video (180 giorni)',size:60000,warm:1.5}],
+  formatFit:{spark:[1.1,4],video:[1,3],carousel:[.85,2]},
+  media:[
+   {id:'s1',kind:'spark',t:'Creator @giulia.outfit prova la felpa (480.000 visualizzazioni)',ratio:'9:16',hook:1,native:1,audio:'cml',q:1,c:['#f28482','#84a59d']},
+   {id:'s2',kind:'spark',t:'Creator @marco.fits: 3 outfit con una felpa (120.000 visualizzazioni)',ratio:'9:16',hook:1,native:1,audio:'cml',q:.95,c:['#6d597a','#e56b6f']},
+   {id:'v1',kind:'video',t:'Video 9:16: la felpa su sfondo bianco che ruota',ratio:'9:16',hook:0,native:0,audio:'cml',q:.55,c:['#f8f9fa','#adb5bd'],note:'poco nativo: sembra una scheda prodotto'},
+   {id:'v2',kind:'video',t:'Video 9:16 dal magazzino: "Ecco come prepariamo il tuo ordine"',ratio:'9:16',hook:1,native:1,audio:'voce',q:.85,c:['#bc6c25','#283618']},
+   {id:'v3',kind:'video',t:'Spot moda orizzontale in stile TV',ratio:'16:9',hook:0,native:0,audio:'cml',q:.4,c:['#212529','#6c757d'],note:'orizzontale e poco nativo'},
+   {id:'i1',kind:'img',t:'Foto prodotto: felpa nera indossata',ratio:'4:5',q:.6,c:['#343a40','#adb5bd']},
+   {id:'i2',kind:'img',t:'Foto prodotto: t-shirt bianca indossata',ratio:'4:5',q:.6,c:['#e9ecef','#868e96']},
+   {id:'i3',kind:'img',t:'Grafica "SALDI -80%!!!"',ratio:'1:1',q:.25,c:['#d00000','#ffba08'],txt:'SALDI -80%!!!',note:'promessa falsa (non ci sono saldi) e troppo testo'}],
+  offer:['spedizion','gratuit','gratis','reso','30 giorni','nuov','drop'],benefit:['felp','t shirt','tshirt','maglie','streetwear','made in italy','prodott in italia','cotone','outfit','oversize','qualita'],
+  ctaGood:['acquista'],ctaOk:['scopri','ordina'],domain:'nebbiastudio.it',paths:['/felpe','/nuovi-arrivi']},
+ reel:{id:'reel',k:'Il progetto della classe',name:'Il reel del corso IFTS VIP',lv:'Progetto: sponsorizza il vostro reel',
+  short:'Sponsorizza su TikTok il reel girato dalla classe su un evento del corso.',
+  facts:[['Cosa promuovi','Un reel realizzato dalla classe che racconta un episodio verosimile della vita del corso IFTS VIP (Videomaking, Innovazione, Pubblicità), per far conoscere il corso e attirare nuovi iscritti'],['Il contenuto','Video verticale 9:16 di 45 secondi, già pubblicato sul profilo TikTok del corso, con dialoghi originali, sottotitoli e un brano della libreria musicale commerciale'],['Pubblico','Ragazze e ragazzi 18–29 anni che vivono a Pisa e dintorni (il corso si svolge a Pisa)'],['Obiettivo','Far guardare il video al maggior numero di persone in target e far crescere il profilo del corso'],['Budget','150 € in totale per 7 giorni (attenzione ai budget minimi di TikTok Ads Manager)'],['Account TikTok','@corso.ifts.vip, account Business'],['Sito','www.corso-ifts-vip.it — pagina /iscrizioni (sito di fantasia per l\'esercizio). Pixel non installato']],
+  kpi:'video',kpiL:'Visualizzazioni da 6 secondi',kpiQ:'Visite al profilo stimate',
+  objIdeal:['visualizzazioni','community'],objPart:{copertura:5,traffico:3,lead:1,vendite:0},
+  convIdeal:[],convOk:{sito:2},goalIdeal:['6s','profilo','follower'],goalOk:{'2s':3,reach:4,lpv:2,clic:2,lead:0,convs:0},
+  pixel:false,event:null,
+  budget:{type:'total',amount:150,lo:140,hi:160,olo:140,ohi:200,days:7},days:7,
+  bidOk:{max:3,costcap:1,bidcap:1,value:0},
+  cpm:4,ctr:.008,rate:{},qual:{},
+  locList:['citta_corso','regione_corso','italia'],loc:{citta_corso:[.92,6],regione_corso:[.6,5],italia:[.08,1]},
+  ageIdeal:['18-24','25-34'],ageOk:[],gender:{all:[1,2],f:[.55,1],m:[.55,1]},
+  interests:[['Film e video',1],['Ha interagito con video di storytelling e mini-serie',1],['Social media e creator',1],['Fotografia',.8],['Istruzione',.7],['Finanza',0],['Giardinaggio',0],['Automobili',0]],
+  custom:[{id:'eng',t:'Hanno interagito con i video del profilo del corso (180 giorni)',size:3000,warm:1.3},{id:'lal',t:'Pubblico simile a chi ha interagito con i video',size:500000,warm:1.05,lal:true}],
+  formatFit:{spark:[1.1,4],video:[1,3],carousel:[.6,1]},
+  media:[
+   {id:'s1',kind:'spark',t:'Il vostro reel pubblicato sul profilo del corso',ratio:'9:16',hook:1,native:1,audio:'cml',q:1,c:['#3d348b','#f18701']},
+   {id:'s2',kind:'spark',t:'Versione pubblicata con una hit famosa come colonna sonora',ratio:'9:16',hook:1,native:1,audio:'trend',q:.9,c:['#f72585','#480ca8'],note:'musica non autorizzata: non si può promuovere'},
+   {id:'v1',kind:'video',t:'File del reel 9:16 caricato direttamente in Ads Manager',ratio:'9:16',hook:1,native:1,audio:'cml',q:.95,c:['#3d348b','#7678ed']},
+   {id:'v2',kind:'video',t:'Versione orizzontale 16:9 montata per YouTube',ratio:'16:9',hook:0,native:1,audio:'cml',q:.45,c:['#264653','#2a9d8f'],note:'orizzontale: su TikTok appare piccola con bande nere'},
+   {id:'v3',kind:'video',t:'Versione del reel senza sottotitoli',ratio:'9:16',hook:1,native:1,audio:'cml',q:.7,c:['#6d6875','#b5838d'],note:'senza sottotitoli: chi guarda senza audio perde la storia'},
+   {id:'i1',kind:'img',t:'Locandina del corso con molto testo',ratio:'1:1',q:.3,c:['#ffffff','#d0d0d0'],txt:'CORSO IFTS VIP · ISCRIZIONI APERTE',note:'troppo testo, illeggibile da telefono'},
+   {id:'i2',kind:'img',t:'Foto di backstage dal set',ratio:'9:16',q:.6,c:['#e9c46a','#e76f51']}],
+  offer:['corso','iscrizion','ifts','videomaking','prossima edizione','candid','gratuit','biennal','posti'],benefit:['video','story','storia','set','regia','montaggio','creativ','pubblicit','social','reel','lavoro','professione'],
+  ctaGood:['scopri'],ctaOk:['iscriviti','candidati','guarda'],domain:'corso-ifts-vip.it',paths:['/iscrizioni']}
+};
+
+/* ================= TESTI DI AIUTO ================= */
+const STEPS=[['Scenario',''],['Campagna','Campagna'],['Budget e programmazione','Campagna'],['Ottimizzazione','Gruppo di annunci'],['Pubblico e posizionamenti','Gruppo di annunci'],['Annuncio','Annuncio'],['Riepilogo',''],['Risultati','']];
+const HELP=[
+ {t:'Il brief del cliente',b:'<p>Su TikTok le persone non cercano il prodotto: scorrono video a schermo intero, con l\'audio attivo. Vince chi sembra un contenuto di TikTok e non una pubblicità.</p><p>Nel brief cerca: obiettivo, zona, budget, età del pubblico, video disponibili, diritti sulla musica e dati (pixel, liste clienti).</p>',e:'Ignorare i dettagli su musica e pixel: su TikTok cambiano cosa si può pubblicare e come ottimizzare.',p:'Rileggi il brief quando vuoi dal pulsante con il nome del cliente in alto.'},
+ {t:'Livello campagna',b:'<p>Una campagna TikTok ha 3 livelli: <b>Campagna</b> (obiettivo) → <b>Gruppo di annunci</b> (budget, pubblico, posizionamenti, ottimizzazione) → <b>Annuncio</b> (video, testo, pulsante).</p><p>Gli obiettivi sono divisi in tre famiglie: <b>Notorietà</b>, <b>Considerazione</b>, <b>Conversione</b>.</p><p>L\'<b>ottimizzazione del budget della campagna</b> usa un unico budget per tutti i gruppi. Richiede un budget più alto (indicativamente almeno 50 € al giorno).</p>',e:'Scegliere "Visualizzazioni video" quando il cliente vuole contatti o vendite.',p:'Chiediti quale azione deve compiere la persona perché il cliente sia soddisfatto.'},
+ {t:'Budget e programmazione',b:'<p><b>Budget giornaliero</b>: spesa media al giorno, per campagne continuative. <b>Budget totale</b>: una cifra da spendere tra due date, ideale per eventi.</p><p>TikTok ha dei <b>budget minimi</b>: indicativamente 50 € al giorno a livello di campagna e 20 € al giorno per gruppo di annunci (per il budget totale: 20 € × numero di giorni).</p><p>Il <b>ritmo di spesa</b> "Standard" distribuisce il budget nel tempo, "Accelerato" lo spende il più in fretta possibile.</p>',e:'Attivare il budget di campagna con 20 € al giorno: è sotto il minimo e la campagna non parte.',p:'Per iniziare: "Massimo rilascio" e ritmo "Standard".'},
+ {t:'Ottimizzazione e tracciamento',b:'<p>Scegli <b>dove avviene il risultato</b> (modulo istantaneo o sito) e <b>cosa ottimizzare</b>.</p><p>Per ottimizzare le conversioni sul sito serve il <b>pixel di TikTok</b> con l\'<b>evento</b> giusto (es. "Completa pagamento" per un e-commerce).</p><p>I gruppi di annunci attraversano una <b>fase di apprendimento</b>: servono circa <b>50 conversioni a settimana</b> per uscirne.</p>',e:'Scegliere il sito web quando il pixel non è installato: TikTok non vede i risultati.',p:'Il modulo istantaneo si compila senza uscire da TikTok: è comodo per attività locali senza pixel.'},
+ {t:'Pubblico e posizionamenti',b:'<p><b>Targeting automatico</b>: TikTok trova il pubblico da solo in base ai video e ai dati. Funziona bene e, per chi inizia, è spesso la scelta migliore.</p><p><b>Targeting personalizzato</b>: scegli età, genere, interessi e comportamenti (con quali video interagiscono le persone).</p><p><b>Minori</b>: in Europa le inserzioni personalizzate non possono raggiungere chi ha meno di 18 anni.</p><p><b>Posizionamenti</b>: TikTok e Pangle (rete di app di terze parti, spesso di qualità più bassa).</p>',e:'Pubblico troppo ristretto o fascia 13–17: costa di più o non viene raggiunto affatto.',p:'Per il remarketing usa i pubblici personalizzati ed escludi chi ha già acquistato o si è registrato.'},
+ {t:'L\'annuncio',b:'<ul><li><b>Verticale 9:16</b>, a schermo intero.</li><li><b>Gancio nei primi 2 secondi</b>: una domanda, un movimento, una faccia.</li><li><b>Contenuto nativo</b>: girato col telefono, persone vere. Gli spot TV vengono scrollati via.</li><li><b>Audio</b>: solo brani della libreria musicale commerciale o con i diritti. Le hit di tendenza non sono autorizzate per la pubblicità.</li><li><b>Spark Ads</b>: promuovono un post esistente del cliente o di un creator (con codice di autorizzazione) e mantengono like e commenti.</li><li><b>Testo dell\'annuncio</b>: massimo 100 caratteri.</li></ul><p>Le norme vietano promesse sul peso e sul corpo ("perdi 10 kg", "pancia piatta").</p>',e:'Usare una canzone famosa senza licenza: l\'annuncio viene rifiutato.',p:'Prova 2–3 video diversi: su TikTok la creatività si "consuma" in fretta.'},
+ {t:'Controllo finale',b:'<p>Ricontrolla i tre livelli: campagna, gruppi di annunci e annunci. Quando pubblichi, il simulatore stima i risultati e assegna un punteggio su 100.</p>',e:'Pubblicare con un annuncio senza video o con musica non autorizzata.',p:'Puoi modificare e ripubblicare quante volte vuoi.'},
+ {t:'Leggere i risultati',b:'<ul><li><b>Copertura</b> e <b>frequenza</b>: quante persone e quante volte.</li><li><b>CPM</b>: costo per 1.000 impressioni.</li><li><b>Visualizzazioni da 2 e 6 secondi</b>: quanto il video trattiene. Se sono basse, manca il gancio.</li><li><b>Tasso di visualizzazione completa</b>: chi arriva alla fine.</li><li><b>CTR</b> e <b>CPC</b>: clic e costo per clic.</li><li><b>Costo per risultato</b> e <b>ROAS</b>.</li></ul>',e:'Giudicare una campagna di copertura dai clic.',p:'Se le visualizzazioni da 6 secondi sono basse, cambia i primi secondi del video, non il pubblico.'}
+];
+const GLOSS=[
+ ['TikTok Ads Manager','Lo strumento di TikTok per creare e gestire le campagne pubblicitarie.'],
+ ['Campagna · Gruppo di annunci · Annuncio','I tre livelli: obiettivo; budget, pubblico e ottimizzazione; video e testi.'],
+ ['Pixel di TikTok / API Eventi','Strumenti che comunicano a TikTok cosa fanno le persone sul sito (acquisti, registrazioni).'],
+ ['Modulo istantaneo','Modulo che si apre dentro TikTok, già precompilato con alcuni dati della persona.'],
+ ['Spark Ads','Annunci che promuovono un post organico esistente (del cliente o di un creator autorizzato) mantenendo like, commenti e condivisioni.'],
+ ['Codice di autorizzazione','Codice che un creator genera per permettere a un brand di usare il suo video come Spark Ad.'],
+ ['Libreria musicale commerciale','Brani che le aziende possono usare legalmente nei contenuti pubblicitari su TikTok.'],
+ ['Targeting automatico','TikTok sceglie da solo a chi mostrare gli annunci in base ai dati.'],
+ ['Comportamenti','Targeting basato sui tipi di video con cui le persone hanno interagito.'],
+ ['Pangle','Rete di app di terze parti dove possono comparire gli annunci TikTok.'],
+ ['Gancio (hook)','I primi 1–2 secondi del video, che decidono se la persona continua a guardare.'],
+ ['Visualizzazioni da 2 e 6 secondi','Quante volte il video è stato guardato per almeno 2 o 6 secondi.'],
+ ['Copertura e frequenza','Persone diverse raggiunte e numero medio di volte in cui hanno visto l\'annuncio.'],
+ ['CPM, CPC, CTR','Costo per 1.000 impressioni, costo per clic, percentuale di clic.'],
+ ['ROAS','Ritorno sulla spesa: valore delle vendite diviso spesa.'],
+ ['Fase di apprendimento','Periodo iniziale in cui il sistema sperimenta. Servono circa 50 conversioni a settimana per gruppo di annunci.']
+];
+
+/* ================= STATO ================= */
+const KEY='cliplab-v1';
+const newAd=()=>({identity:'tiktok',format:'video',media:[],texts:Array(3).fill(''),cta:'',url:'',utm:'',formType:'',fNome:true,fEmail:false,fTel:false,privacy:''});
+const newSet=n=>({name:n,convLoc:'',goal:'',event:'',budget:'',auto:true,loc:'italia',ages:['18-24','25-34','35-44','45-54','55+'],gender:'all',interests:[],inc:[],exc:[],pl:'auto',plm:{tiktok:true,pangle:true},ad:newAd()});
+function fresh(){return{scenario:null,step:0,maxStep:0,attempts:0,history:[],
+ c:{name:'',obj:'',cbo:false,btype:'daily',budget:'',start:'',end:'',bid:'max',costcap:'',bidcap:'',pacing:'standard'},
+ sets:[newSet('Gruppo di annunci 1')],ui:{tab:0},result:null,saved:{}}}
+let S=fresh();
+try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o&&o.c&&o.sets)S=Object.assign(fresh(),o)}}catch(e){}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},300)}
+const PER_SC=['c','sets','attempts','history','result','maxStep'];
+function switchScenario(id){
+ if(S.scenario===id)return;
+ S.saved=S.saved||{};
+ if(S.scenario)S.saved[S.scenario]=JSON.parse(JSON.stringify(Object.fromEntries(PER_SC.map(k=>[k,S[k]]))));
+ const f=fresh(),snap=S.saved[id];
+ PER_SC.forEach(k=>S[k]=snap&&snap[k]!==undefined?snap[k]:f[k]);
+ S.scenario=id;S.ui={tab:0};
+}
+
+/* ================= UTILITÀ ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9%]+/g,' ').trim();
+const hasTerm=(t,terms)=>{const p=' '+t+' ',ws=t.split(' ');return terms.some(x=>x.includes(' ')?p.includes(' '+norm(x)):ws.some(w=>w.startsWith(norm(x))))};
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
+const eur=(v,d=2)=>v.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:'always'})+' €';
+const int=v=>Math.round(v).toLocaleString('it-IT',{useGrouping:'always'});
+const pct=(v,d=2)=>(v*100).toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const dec=(v,d=1)=>v.toLocaleString('it-IT',{maximumFractionDigits:d});
+const get=p=>p.split('.').reduce((o,k)=>o?.[k],S);
+function set(p,v){const ks=p.split('.');let o=S;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks.at(-1)]=v}
+const objT=id=>(OBJ.find(o=>o.id===id)||{}).t;
+const daysBetween=(a,b)=>{const x=Date.parse(a),y=Date.parse(b);return isFinite(x)&&isFinite(y)?Math.round((y-x)/864e5)+1:0};
+const locOf=id=>LOCS.find(l=>l.id===id)||LOCS[0];
+const mediaOf=(sc,id)=>sc.media.find(m=>m.id===id);
+const kindFor=f=>f==='spark'?'spark':f==='carousel'?'img':'video';
+
+/* ================= ANALISI ================= */
+function ageInfo(s,sc){const sel=s.ages.filter(a=>a!=='13-17');const W=a=>(AGES.find(x=>x[0]===a)||[0,0])[1];
+ const share=sel.reduce((t,a)=>t+W(a),0);const inI=sel.filter(a=>sc.ageIdeal.includes(a)).reduce((t,a)=>t+W(a),0)+sel.filter(a=>sc.ageOk.includes(a)).reduce((t,a)=>t+W(a)*.5,0);
+ const cov=sc.ageIdeal.filter(a=>sel.includes(a)).length/sc.ageIdeal.length;
+ return{share,prec:share?inI/share:0,cov,minors:s.ages.includes('13-17'),sel}}
+function audience(s,sc){
+ const L=locOf(s.loc),lf=(sc.loc[s.loc]||[0,0])[0];const ai=ageInfo(s,sc);const g=sc.gender[s.gender]||[1,0];
+ const inc=s.inc.map(id=>sc.custom.find(c=>c.id===id)).filter(c=>c&&!c.off);
+ let N,fitI,warm=1,rt=false;
+ if(inc.length){N=inc.reduce((t,c)=>t+(c.lal?c.size*Math.min(1,L.pop/20e6):c.size*Math.min(1,lf+.05)),0)*Math.max(ai.share,.05);warm=inc.reduce((t,c)=>t+c.warm*c.size,0)/Math.max(1,inc.reduce((t,c)=>t+c.size,0));rt=inc.some(c=>c.rt);fitI=.95}
+ else if(s.auto){N=L.pop*Math.max(ai.share,.05);fitI=sc.kpi==='reach'?.85:.93}
+ else{const sel=sc.interests.filter(x=>s.interests.includes(x[0]));N=L.pop*ai.share*(s.gender==='all'?1:.5)*(sel.length?Math.min(1,.12*sel.length+.04):1);
+  fitI=sel.length?.45+.55*sel.reduce((t,x)=>t+x[1],0)/sel.length:.8}
+ const ageFit=ai.share?.4+.6*ai.prec:0;const gFit=s.auto||inc.length?Math.max(g[0],.9):g[0];
+ let tgt=lf*ageFit*gFit;
+ const excBuyers=s.exc.some(id=>(sc.custom.find(c=>c.id===id)||{}).buyers);
+ if(sc.custom.some(c=>c.buyers)&&!rt&&!excBuyers)tgt*=.95;
+ return{N:Math.max(ai.share?200:0,Math.round(N)),fitI,warm,rt,tgt,lf,ai,inc,excBuyers}}
+function adInfo(s,sc){
+ const a=s.ad;const k=kindFor(a.format);const M=a.media.map(id=>mediaOf(sc,id)).filter(m=>m&&m.kind===k);
+ const T=a.texts.map(x=>x.trim()).filter(Boolean);const all=T.join(' \n ');
+ const policy=POLICY.test(all)||POLICY.test(norm(all));
+ const music=M.some(m=>m.audio==='trend');
+ const sparkNoId=a.format==='spark'&&a.identity!=='tiktok';
+ const offer=T.some(t=>hasTerm(norm(t),sc.offer)),benefit=hasTerm(norm(all),sc.benefit);
+ const shouty=/\b[A-ZÀ-Ù]{5,}\b/.test(all)||/!{2,}/.test(all);const tooLong=T.some(t=>t.length>100);
+ const q=M.length?M.reduce((t,m)=>t+m.q,0)/M.length:0;
+ const vids=M.filter(m=>m.kind!=='img');
+ const hook=vids.length?vids.reduce((t,m)=>t+m.hook,0)/vids.length:0;
+ const native=vids.length?vids.reduce((t,m)=>t+m.native,0)/vids.length:(M.length?.5:0);
+ const vert=M.length?M.filter(m=>m.ratio==='9:16').length/M.length:0;
+ const muted=vids.some(m=>m.audio==='none');
+ const ff=(sc.formatFit[a.format]||[.8,1])[0]*((a.format==='carousel'&&M.length<2)?.6:1);
+ const textQ=T.length?.65+(offer?.15:0)+(benefit?.1:0)+(T.length>=2?.05:0)-(shouty?.1:0):0;
+ const ctaF=sc.ctaGood.includes(a.cta)?1.06:sc.ctaOk.includes(a.cta)?1:a.cta?.82:.9;
+ const reasons=[];if(policy)reasons.push('testo con promesse sul corpo o riferimenti a caratteristiche personali');if(music)reasons.push('musica non autorizzata per la pubblicità');if(sparkNoId)reasons.push('le Spark Ads richiedono l\'account TikTok, non un\'identità personalizzata');if(tooLong)reasons.push('testo oltre i 100 caratteri');
+ const ready=M.length>0&&T.length>0&&!reasons.length;
+ return{M,T,policy,music,sparkNoId,offer,benefit,shouty,tooLong,q,hook,native,vert,muted,ff,textQ,ctaF,ready,reasons,vids}}
+
+/* ================= SIMULAZIONE ================= */
+function simulate(){
+ const sc=SC[S.scenario],c=S.c;
+ let D=sc.days;
+ if(c.btype==='total'){const d=daysBetween(c.start,c.end);D=d>0?d:30}
+ else if(c.end&&c.start){const d=daysBetween(c.start,c.end);if(d>0&&d<30)D=d}
+ const info=S.sets.map(s=>({s,au:audience(s,sc),ad:adInfo(s,sc)}));
+ const minOk=budgetMinOk();
+ let alloc;
+ if(c.cbo){const tot=c.btype==='daily'?num(c.budget)*D:num(c.budget);const w=info.map(x=>x.ad.ready&&x.au.N>0?Math.sqrt(x.au.N)*(.5+x.ad.q):0);const W=w.reduce((a,b)=>a+b,0)||1;alloc=w.map(v=>minOk.camp?tot*v/W:0)}
+ else alloc=info.map((x,i)=>x.ad.ready&&x.au.N>0&&minOk.sets[i]?(c.btype==='daily'?num(x.s.budget)*D:num(x.s.budget)):0);
+ const bidVol={max:1,costcap:.75,bidcap:.6,value:1}[c.bid]||1;
+ const rows=info.map((x,i)=>{
+  const{s,au,ad}=x;let spend=Math.max(0,alloc[i])*bidVol;if(c.bid==='value'&&s.goal!=='value')spend*=.2;
+  if(c.pacing==='accelerated'&&spend>0)spend*=1;
+  const base={name:s.name,ready:ad.ready,ad,au,spend:0,impr:0,reach:0,clicks:0,res:0,qual:0,value:0,out:0,sat:0,pang:0,useful:0,v2:0,v6:0,vfull:0,limited:false,pl:[]};
+  if(!ad.ready||spend<=0||au.N<=0)return base;
+  const cat=GCAT[s.goal]||'click';
+  const plOn=PL.filter(p=>s.pl==='auto'||s.plm[p[0]]);if(!plOn.length)return base;
+  const onlyP=plOn.every(p=>p[0]==='pangle');
+  const sizeF=au.N<20e3?1.8:au.N<60e3?1.4:au.N<150e3?1.15:1;
+  const cpm=sc.cpm*{reach:.6,click:.9,eng:.75,conv:1.2}[cat]*(s.pl==='auto'?.9:onlyP?.5:1)*sizeF*(c.pacing==='accelerated'?1.15:1);
+  const impr=spend/cpm*1000;
+  const reach=Math.min(au.N,au.N*(1-Math.exp(-impr/(au.N*(cat==='reach'?1.15:1.7)))));
+  const freq=impr/Math.max(1,reach);const fOk=1.5+D/12;const sat=clamp((freq-fOk)/freq,0,.75);
+  const crea=Math.pow(ad.q,.8)*(.55+.45*ad.native)*(.6+.4*ad.vert)*(ad.muted?.75:1);
+  let ctr=sc.ctr*crea*ad.ff*ad.textQ*ad.ctaF*Math.sqrt(au.fitI)*{click:1.3,conv:1,eng:.8,reach:.7}[cat]*(onlyP?.6:1);
+  const iIn=impr*au.tgt,iOut=impr*(1-au.tgt);
+  const clicksIn=iIn*(1-sat)*ctr+iIn*sat*ctr*.3,clicksOut=iOut*ctr*.5;
+  const clicks=clicksIn+clicksOut;
+  const hasVid=ad.vids.length>0;
+  const v2=hasVid?impr*(.18+.3*ad.hook)*(.6+.4*ad.vert)*(ad.muted?.7:1)*(cat==='eng'&&s.goal==='6s'?1.25:cat==='reach'&&s.goal==='2s'?1.3:1):0;
+  const v6=v2*(.2+.2*ad.native+.1*ad.hook);const vfull=v6*(.35+.2*ad.native);
+  let res=0,qual=0,value=0;
+  const mm={conv:1,click:.5,eng:.25,reach:.12}[cat];
+  if(sc.kpi==='reach'){res=reach*au.tgt}
+  else if(sc.kpi==='video'){res=v6*au.tgt*(1-sat*.5)*(s.goal==='6s'?1.15:1);qual=clicksIn*(s.goal==='profilo'?1.4:s.goal==='follower'?1.1:.8)+v6*.01}
+  else{
+   const L=s.convLoc||'sito';let key=L;if(L==='moduli'&&s.ad.formType==='intento')key='moduliH';
+   let rate,ql=1;
+   if(sc.kpi==='acquisti'){rate=sc.cr;if(cat==='conv'&&s.event&&s.event!==sc.event)rate*=.55}
+   else{rate=sc.rate[key]??sc.rate[L]??.01;ql=sc.qual[key]??sc.qual[L]??.5}
+   let m=mm;if(L==='sito'&&cat==='conv'&&!sc.pixel)m*=.45;if(L==='sito'&&cat==='conv'&&sc.pixel&&!s.event)m*=.5;
+   res=clicksIn*rate*m*au.warm+clicksOut*rate*.05;
+   if(cat==='conv'&&res/(D/7)<50)res*=.92;
+   qual=res*ql;if(sc.kpi==='acquisti')value=res*sc.aov*(s.goal==='value'?1.12:1);
+  }
+  const limited=cat==='conv'&&sc.kpi!=='reach'&&res/(D/7)<50;
+  const plW=plOn.reduce((t,p)=>t+p[2],0);const pShare=plOn.some(p=>p[0]==='pangle')?.12/plW:0;
+  const out=spend*(1-au.tgt),satS=spend*au.tgt*sat,pang=spend*au.tgt*(1-sat)*pShare*(s.pl==='auto'?.25:.6),useful=spend-out-satS-pang;
+  const pl=plOn.map(p=>({id:p[0],t:p[1],impr:impr*p[2]/plW,spend:spend*p[2]/plW,clicks:clicks*(p[2]/plW)*(p[0]==='pangle'?.6:1)/(1-.4*pShare)}));
+  return{...base,spend,impr,reach,clicks,res,qual,value,out,sat:satS,pang,useful,v2,v6,vfull,limited,cat,pl,cpm}});
+ const tot=rows.reduce((t,r)=>{['spend','impr','reach','clicks','res','qual','value','out','sat','pang','useful','v2','v6','vfull'].forEach(k=>t[k]+=r[k]||0);return t},{spend:0,impr:0,reach:0,clicks:0,res:0,qual:0,value:0,out:0,sat:0,pang:0,useful:0,v2:0,v6:0,vfull:0});
+ tot.reach=Math.min(tot.reach,rows.reduce((m,r)=>Math.max(m,r.reach),0)+rows.reduce((t,r)=>t+r.reach,0)*.15);
+ const plMap={};rows.forEach(r=>(r.pl||[]).forEach(p=>{const x=plMap[p.id]||(plMap[p.id]={t:p.t,impr:0,clicks:0,spend:0});x.impr+=p.impr;x.clicks+=p.clicks;x.spend+=p.spend}));
+ return{rows,tot,D,pl:Object.values(plMap)}}
+function budgetMinOk(){const c=S.c;const d=c.btype==='total'?Math.max(1,daysBetween(c.start,c.end)):1;
+ const perDay=v=>c.btype==='daily'?num(v):num(v)/d;
+ return{camp:!c.cbo||perDay(c.budget)>=50,sets:S.sets.map(s=>c.cbo||perDay(s.budget)>=20),perDay}}
+
+/* ================= VALUTAZIONE ================= */
+function grade(R){
+ const sc=SC[S.scenario],c=S.c,cats=[];const it=(lvl,t,msg,pts,max)=>({lvl,t,msg,pts,max});
+ const sets=S.sets,n=sets.length;const info=sets.map(s=>({s,au:audience(s,sc),ad:adInfo(s,sc)}));
+ const nm=s=>n>1?`"${s.name||'Gruppo'}": `:'';const avgOf=a=>a.reduce((t,x)=>t+x,0)/n;
+ // 1 Campagna (12)
+ let I=[];
+ if(!c.obj)I.push(it('bad','Obiettivo','Non hai scelto l\'obiettivo della campagna.',0,8));
+ else if(sc.objIdeal.includes(c.obj))I.push(it('ok','Obiettivo',`"${objT(c.obj)}" è l'obiettivo giusto per questo brief.`,8,8));
+ else{const p=sc.objPart[c.obj]||0;I.push(it(p>=3?'warn':'bad','Obiettivo',`"${objT(c.obj)}" non cerca il risultato che vuole il cliente. Meglio "${objT(sc.objIdeal[0])}"${sc.objIdeal[1]?` (o "${objT(sc.objIdeal[1])}")`:''}.`,p,8))}
+ const cn=c.name.trim();
+ I.push(!cn?it('bad','Nome campagna','Manca il nome. Usa uno schema come "Obiettivo – Prodotto – Zona – Mese".',0,2):(cn.length<8||/^(nuova campagna|campagna|test|prova)\s*[#\d]*$/i.test(cn))?it('warn','Nome campagna',`"${cn}" è poco descrittivo. Esempio: "${NAMEX()}".`,1,2):it('ok','Nome campagna','Nome descrittivo.',2,2));
+ const mo=budgetMinOk();
+ if(c.cbo)I.push(mo.camp?it('ok','Ottimizzazione del budget della campagna',n>1?'Attiva: TikTok sposta il budget sul gruppo che rende di più.':'Attiva e sopra il minimo di campagna.',2,2):it('bad','Ottimizzazione del budget della campagna','Attiva, ma il budget è sotto il minimo di campagna (circa 50 € al giorno): la campagna non può partire. Disattivala e imposta il budget nel gruppo di annunci.',0,2));
+ else I.push(it(n>1?'warn':'ok','Ottimizzazione del budget della campagna',n>1?'Disattiva con più gruppi: devi bilanciare tu i budget.':'Disattiva: con un solo gruppo e un budget piccolo è la scelta corretta.',n>1?1.5:2,2));
+ cats.push({t:'Campagna',items:I});
+ // 2 Budget (13)
+ I=[];const B=sc.budget;const daily=c.cbo?num(c.budget):sets.reduce((t,s)=>t+num(s.budget),0);const where=c.cbo?'':' (somma dei gruppi)';
+ if(!daily)I.push(it('bad','Budget','Manca il budget: la campagna non può partire.',0,8));
+ else if(B.type==='daily'){
+  if(c.btype==='total'){const d=daysBetween(c.start,c.end);const eq=d>0?daily/d:0;I.push(it('warn','Budget',`Il brief indica ${B.amount} € al giorno: usa un budget giornaliero. ${eq?`Il tuo totale equivale a circa ${eur(eq)} al giorno.`:'Manca anche il periodo.'}`,eq>=B.olo&&eq<=B.ohi?4:2,8))}
+  else{const inR=daily>=B.lo&&daily<=B.hi,okR=daily>=B.olo&&daily<=B.ohi;let p=inR?8:okR?4:1;let msg=inR?`${eur(daily)} al giorno${where}, come da brief.`:`${eur(daily)} al giorno${where}, ma il brief dice ${B.amount} € al giorno.${daily>B.amount*5?' Forse hai inserito il budget mensile nel campo giornaliero?':''}`;
+   if(B.end){if(c.end===B.end)msg+=` Data di fine ${B.end}: corretta, la campagna si ferma prima dell'evento.`;else{p=Math.max(1,p-2);msg+=` Imposta la data di fine al ${B.end}: dopo l'open day la campagna non serve più.`}}
+   I.push(it(p>=8?'ok':p>=4?'warn':'bad','Budget',msg,p,8))}
+ }else{
+  const dd=daysBetween(c.start,c.end);const datesOk=B.days?dd===B.days:(c.start===B.start&&c.end===B.end);const datesNear=B.days?(dd>0&&Math.abs(dd-B.days)<=1):(dd>0&&Math.abs(Date.parse(c.end)-Date.parse(B.end))<=864e5&&Math.abs(Date.parse(c.start)-Date.parse(B.start))<=2*864e5);
+  if(c.btype==='total'){const amtOk=daily>=B.lo&&daily<=B.hi;
+   if(amtOk&&(datesOk||datesNear))I.push(it('ok','Budget e date',`Budget totale di ${eur(daily,0)} dal ${c.start} al ${c.end}: perfetto per una promozione con una durata precisa.`,8,8));
+   else I.push(it('warn','Budget e date',`${amtOk?'':`Il brief prevede ${B.amount} € in totale (hai ${eur(daily,0)}). `}${(datesOk||datesNear)?'':(B.days?`Imposta date di inizio e fine per ${B.days} giorni.`:`Le date devono andare dal ${B.start} al ${B.end}.`)}`,amtOk||datesOk||datesNear?5:2,8))}
+  else{const per=daysBetween(c.start,c.end)>0?daily*daysBetween(c.start,c.end):0;I.push(it(c.end?'warn':'bad','Budget e date',c.end?`Budget giornaliero con data di fine: funziona (${eur(per,0)} in totale), ma per un evento con una cifra fissa è più semplice il budget totale.`:'Budget giornaliero senza data di fine: dopo l\'evento la campagna continuerebbe a spendere. Usa un budget totale con le date del brief.',c.end&&per>=B.olo&&per<=B.ohi?6:c.end?4:1,8))}
+ }
+ const under=!c.cbo&&mo.sets.some(x=>!x);
+ if(under)I.unshift(it('bad','Budget minimo','Un gruppo di annunci è sotto il minimo di TikTok (circa 20 € al giorno, o 20 € × giorni con il budget totale): non viene pubblicato.',0,0));
+ const bp=sc.bidOk[c.bid]??0;
+ const bm={max:'"Massimo rilascio" è la strategia consigliata per iniziare.',costcap:sc.id==='streetwear'?'Il limite di costo funziona con uno storico come questo, ma se è basso la spesa si ferma.':'Il limite di costo richiede uno storico di risultati che il cliente non ha: rischi che la campagna non spenda.',bidcap:'Il limite di offerta è per utenti esperti: se è basso gli annunci non vengono mostrati.',value:sc.id==='streetwear'?(sets.every(s=>s.goal==='value')?'"Valore più alto" è coerente con un e-commerce con valore degli ordini tracciato.':'"Valore più alto" funziona solo con l\'ottimizzazione "Valore".'):'"Valore più alto" serve solo per vendite con valore degli ordini: non è adatta a questo cliente.'}[c.bid];
+ let bpts=bp;if(c.bid==='value'&&sc.id==='streetwear'&&!sets.every(s=>s.goal==='value'))bpts=1;
+ I.push(it(bpts>=3?'ok':bpts>=2?'warn':'bad','Strategia di offerta',bm||'Scegli una strategia di offerta.',Math.min(3,bpts),3));
+ I.push(c.pacing==='standard'?it('ok','Ritmo di spesa','"Standard": il budget viene distribuito in modo uniforme nel periodo.',2,2):it('warn','Ritmo di spesa','"Accelerato" spende il budget il più in fretta possibile, a costi più alti. Si usa per lanci di poche ore, non qui.',0,2));
+ cats.push({t:'Budget e programmazione',items:I});
+ // 3 Ottimizzazione (15)
+ I=[];
+ const noLoc=['copertura','visualizzazioni','community'].includes(c.obj);
+ const cl=info.map(({s})=>{if(noLoc)return[sc.objIdeal.some(o=>['copertura','visualizzazioni','community'].includes(o))?6:2,'nessun luogo della conversione per questo obiettivo'];if(!s.convLoc)return[0,'luogo della conversione non scelto'];
+  if(sc.convIdeal.includes(s.convLoc))return[6,`"${CL[s.convLoc]}" è la scelta giusta`];const p=sc.convOk[s.convLoc]??0;
+  return[p,`"${CL[s.convLoc]}" non è l'ideale${sc.id==='boxe'&&s.convLoc==='sito'?': senza pixel TikTok non vede chi compila il modulo sul sito':''}`]});
+ let avg=avgOf(cl.map(x=>x[0]));
+ I.push(it(avg>=6?'ok':avg>=3?'warn':'bad','Luogo della conversione',sets.map((s,i)=>nm(s)+cl[i][1]).join(' · ')+'.',avg,6));
+ const gp=info.map(({s})=>{if(!s.goal)return[0,'ottimizzazione non scelta'];if(sc.goalIdeal.includes(s.goal))return[5,`"${GL[s.goal]}" è corretta`];const p=sc.goalOk[s.goal]??0;return[p,`"${GL[s.goal]}" ottimizza per un risultato diverso da quello del cliente`]});
+ avg=avgOf(gp.map(x=>x[0]));I.push(it(avg>=5?'ok':avg>=3?'warn':'bad','Obiettivo di ottimizzazione',sets.map((s,i)=>nm(s)+gp[i][1]).join(' · ')+'.',avg,5));
+ const su=info.map(({s})=>{const L=s.convLoc,cat=GCAT[s.goal];
+  if(noLoc)return[4,'nessun tracciamento necessario'];if(!L)return[0,'—'];
+  if(L==='sito'&&cat==='conv'){if(!sc.pixel)return[0,'il pixel non è installato: TikTok non può misurare le conversioni'];if(!s.event)return[1,'manca l\'evento di ottimizzazione'];if(s.event!==sc.event)return[1,`l'evento giusto è "${(EVENTS.find(e=>e[0]===sc.event)||[])[1]}"`];return[4,'pixel ed evento corretti']}
+  if(L==='sito')return[2,'ottimizzi per clic o visite, non per conversioni'];
+  if(L==='moduli')return s.ad.formType?[4,s.ad.formType==='intento'?'modulo "Intento più elevato": meno contatti, più seri':'modulo "Volume più elevato": tanti contatti, qualità variabile']:[2,'scegli il tipo di modulo nel passaggio Annuncio'];
+  return[2,'impostazione accettabile']});
+ avg=avgOf(su.map(x=>x[0]));I.push(it(avg>=4?'ok':avg>=2?'warn':'bad','Tracciamento',sets.map((s,i)=>nm(s)+su[i][1]).join(' · ')+'.',avg,4));
+ cats.push({t:'Ottimizzazione',items:I});
+ // 4 Pubblico (20)
+ I=[];
+ const lp=info.map(({s,au})=>{const p=(sc.loc[s.loc]||[0,0])[1];return au.rt?Math.max(p,5):p});avg=avgOf(lp);
+ I.push(it(avg>=6?'ok':avg>=4?'warn':'bad','Località',avg>=6?'La zona corrisponde a dove si trovano i clienti.':sets.map(s=>`${nm(s)}"${locOf(s.loc).t}"`).join(' · ')+(sc.id==='streetwear'?' — il brand spedisce in tutta Italia: non restringere la zona.':' — il brief indica un\'area diversa.'),avg,6));
+ const ap=info.map(({s,au})=>{const ai=au.ai;if(!ai.sel.length)return 0;let p=ai.cov>=1&&ai.prec>=.7?6:ai.cov>=.5&&ai.prec>=.5?4:ai.cov>0?2:1;if(ai.minors)p=Math.max(0,p-3);return p});avg=avgOf(ap);
+ const minors=info.some(x=>x.au.ai.minors);
+ I.push(it(minors?'bad':avg>=6?'ok':avg>=3?'warn':'bad','Età',(minors?'Hai incluso la fascia 13–17: in Europa le inserzioni personalizzate non possono raggiungere i minori (Digital Services Act). Quella fascia non viene raggiunta e il tentativo di includerla è un errore. ':'')+(avg>=6&&!minors?'Fasce d\'età coerenti con il brief.':`Il brief indica ${sc.ageIdeal.join(' e ')}${sc.ageOk.length?` (accettabile anche ${sc.ageOk.join(', ')})`:''}.`),avg,6));
+ const gpp=info.map(({s,au})=>(s.auto||au.inc.length)?2:(sc.gender[s.gender]||[0,0])[1]);avg=avgOf(gpp);
+ I.push(it(avg>=2?'ok':'warn','Genere',avg>=2?'Scelta coerente.':'Il brief si rivolge a tutti i generi: non escluderne uno.',avg,2));
+ if(sc.custom.some(x=>x.rt)){
+  const rtSet=info.find(x=>x.au.rt);const pros=info.filter(x=>!x.au.rt);let p=0;const m=[];
+  if(rtSet){p+=2;m.push('remarketing presente')}else m.push('manca un gruppo di remarketing (visitatori del sito o carrelli)');
+  if(pros.length&&pros.every(x=>x.au.excBuyers)){p+=1.5;m.push('clienti esclusi dai nuovi clienti')}else if(pros.length)m.push('escludi acquirenti o lista clienti dal gruppo per nuovi clienti');
+  if(pros.some(x=>x.s.auto||x.s.inc.some(id=>(sc.custom.find(c=>c.id===id)||{}).lal)||x.s.interests.length)){p+=1.5;m.push('gruppo per nuovi clienti ben impostato')}
+  if(rtSet&&rtSet.au.excBuyers){p+=1;m.push('acquirenti esclusi anche dal remarketing')}else if(rtSet)m.push('nel remarketing escludi chi ha già acquistato');
+  I.push(it(p>=6?'ok':p>=3?'warn':'bad','Targeting e pubblici personalizzati',m.join(' · ')+'.',p,6));
+ }else{
+  const tp=info.map(({s,au})=>{if(au.inc.length)return[au.N<15e3?4:5,'pubblico personalizzato'];if(s.auto)return[6,'targeting automatico: TikTok trova il pubblico'];const sel=sc.interests.filter(x=>s.interests.includes(x[0]));if(!sel.length)return[4,'nessun interesse: pubblico ampio'];const bad=sel.filter(x=>x[1]<.3).map(x=>x[0]);const r=sel.reduce((t,x)=>t+x[1],0)/sel.length;return[bad.length?1:r>=.8?5:4,bad.length?`interessi non pertinenti: ${bad.join(', ')}`:'interessi e comportamenti pertinenti']});
+  let ex='';if(sc.id==='accademia'){const e=info.every(x=>x.s.exc.includes('reg'));ex=e?' · già registrati esclusi':' · escludi chi si è già registrato all\'open day';if(!e)tp.forEach(x=>x[0]=Math.max(0,x[0]-1))}
+  avg=avgOf(tp.map(x=>x[0]));I.push(it(avg>=5?'ok':avg>=3?'warn':'bad','Targeting',sets.map((s,i)=>nm(s)+tp[i][1]).join(' · ')+ex+'.',avg,6));
+ }
+ cats.push({t:'Pubblico',items:I});
+ // 5 Posizionamenti (5)
+ I=[];const pp=sets.map(s=>{if(s.pl==='auto')return[5,'posizionamento automatico'];if(s.plm.tiktok&&!s.plm.pangle)return[5,'solo TikTok: massimo controllo sulla qualità'];if(s.plm.tiktok)return[4,'TikTok e Pangle'];if(s.plm.pangle)return[0,'solo Pangle: app di terze parti, pubblico di bassa qualità'];return[0,'nessun posizionamento']});
+ avg=avgOf(pp.map(x=>x[0]));I.push(it(avg>=5?'ok':avg>=3?'warn':'bad','Posizionamenti',sets.map((s,i)=>nm(s)+pp[i][1]).join(' · ')+'.',avg,5));
+ cats.push({t:'Posizionamenti',items:I});
+ // 6 Annuncio (35)
+ I=[];const af=f=>info.reduce((t,x)=>t+f(x),0)/n;
+ avg=af(x=>x.s.ad.identity==='tiktok'?3:1);
+ I.push(it(avg>=3?'ok':'warn','Identità',avg>=3?'Usi l\'account TikTok del cliente: chi vede l\'annuncio può visitare il profilo e seguirlo.':'Con un\'identità personalizzata le persone non possono visitare il profilo né seguirlo: usa l\'account TikTok del cliente.',avg,3));
+ avg=af(x=>{const f=sc.formatFit[x.s.ad.format]||[0,1];return x.s.ad.format==='carousel'&&x.ad.M.length<2?1:f[1]});
+ I.push(it(avg>=4?'ok':avg>=2?'warn':'bad','Formato',avg>=4?'Formato adatto al cliente.':sc.formatFit.spark&&sc.formatFit.spark[1]>=4?'Il cliente ha video organici che funzionano: le Spark Ads li promuovono mantenendo like e commenti.':'Su TikTok il video verticale rende di più delle immagini.',avg,4));
+ const badM=[...new Set(info.flatMap(x=>x.ad.M.filter(m=>m.note&&m.audio!=='trend')))];
+ avg=af(x=>x.ad.M.length?8*x.ad.q*(.6+.4*x.ad.native):0);
+ I.push(it(avg>=6.5?'ok':avg>=4?'warn':'bad','Creatività',(info.some(x=>!x.ad.M.length)?'Un annuncio non ha contenuti (controlla che il formato corrisponda ai contenuti scelti). ':'')+(badM.length?'Da evitare: '+badM.map(m=>`"${m.t}" (${m.note})`).join('; ')+'. ':'')+(avg>=6.5?'Video nativi, con gancio nei primi secondi.':'Preferisci video girati col telefono, con persone vere e un gancio iniziale.'),avg,8));
+ avg=af(x=>x.ad.M.length?3*x.ad.vert:0);
+ I.push(it(avg>=3?'ok':avg>=1.5?'warn':'bad','Formato verticale',avg>=3?'Tutti i contenuti sono verticali 9:16.':'Alcuni contenuti non sono 9:16: su TikTok appaiono piccoli o con bande.',avg,3));
+ const mus=info.filter(x=>x.ad.music);
+ avg=af(x=>x.ad.music?0:!x.ad.vids.length?3:x.ad.muted?1:5);
+ I.push(it(mus.length?'bad':avg>=5?'ok':'warn','Audio e musica',mus.length?'ANNUNCIO RIFIUTATO: usi una canzone di tendenza senza licenza commerciale. Nelle inserzioni si possono usare solo brani della libreria musicale commerciale o con i diritti.':avg>=5?'Audio corretto: libreria commerciale, brani con diritti o voce originale.':info.some(x=>x.ad.muted)?'Video senza audio: su TikTok si guarda con l\'audio attivo, aggiungi voce o musica.':'Con le sole immagini perdi la forza dell\'audio.',avg,5));
+ const tm=[];if(info.some(x=>x.ad.policy))tm.push('ANNUNCIO RIFIUTATO: il testo contiene promesse sul peso o sul corpo, oppure allude a caratteristiche personali. Le norme lo vietano');
+ if(info.some(x=>x.ad.tooLong))tm.push('il testo supera i 100 caratteri consentiti');if(info.some(x=>!x.ad.T.length))tm.push('manca il testo dell\'annuncio');
+ if(info.some(x=>x.ad.T.length&&!x.ad.offer))tm.push('inserisci l\'offerta o l\'evento');if(info.some(x=>x.ad.T.length&&!x.ad.benefit))tm.push('aggiungi un punto di forza del cliente');
+ if(info.some(x=>x.ad.T.length===1))tm.push('scrivi almeno 2 varianti');if(info.some(x=>x.ad.shouty))tm.push('evita MAIUSCOLO e punti esclamativi multipli');
+ avg=af(x=>{const a=x.ad;if(a.policy||a.tooLong||!a.T.length)return 0;return(a.offer?2.5:0)+(a.benefit?1.5:0)+(a.T.length>=2?1:0)+(a.shouty?0:1)});
+ I.push(it(info.some(x=>x.ad.policy)?'bad':avg>=5.5?'ok':avg>=3?'warn':'bad','Testo dell\'annuncio',tm.length?tm.join('; ')+'.':'Testo breve, con offerta e varianti.',avg,6));
+ const cp=sets.map(s=>sc.ctaGood.includes(s.ad.cta)?3:sc.ctaOk.includes(s.ad.cta)?2:0);avg=avgOf(cp);
+ I.push(it(avg>=3?'ok':avg>=2?'warn':'bad','Pulsante di invito all\'azione',avg>=3?'Il pulsante corrisponde all\'azione richiesta.':`Il pulsante più adatto è "${(CTAS.find(x=>x[0]===sc.ctaGood[0])||[])[1]}".`,avg,3));
+ const urlOk=u=>{try{const x=new URL(/^https?:/i.test(u)?u:'https://'+u);const h=x.hostname.replace(/^www\./,'');return h===sc.domain||h.endsWith('.'+sc.domain)}catch(e){return false}};
+ const dp=info.map(({s})=>{const a=s.ad,L=noLoc?'':s.convLoc;
+  if(L==='moduli'){let p=0;const m=[];const needTel=sc.id==='boxe';if(!needTel||a.fTel)p+=1;else m.push('aggiungi il campo telefono: lo staff deve richiamare');if(urlOk(a.privacy))p+=1;else m.push('serve il link all\'informativa privacy del cliente');if(sc.id==='accademia'&&!a.fEmail)m.push('per l\'open day serve anche l\'email per la conferma');else p+=1;return[p,m.join('; ')||'modulo ben configurato']}
+  if(!a.url.trim())return[noLoc?1.5:0,noLoc?'aggiungi il link alla pagina del sito':'manca l\'URL del sito'];
+  if(!urlOk(a.url))return[0,'URL non valido o di un altro dominio ('+sc.domain+')'];
+  return[a.utm.trim()?3:2,a.utm.trim()?'URL corretto con parametri UTM':'URL corretto: aggiungi i parametri UTM per riconoscere il traffico in Google Analytics']});
+ avg=avgOf(dp.map(x=>x[0]));I.push(it(avg>=3?'ok':avg>=1.5?'warn':'bad','Destinazione',sets.map((s,i)=>nm(s)+dp[i][1]).join(' · ')+'.',avg,3));
+ cats.push({t:'Annuncio',items:I});
+ cats.forEach(k=>{k.pts=k.items.reduce((s,x)=>s+x.pts,0);k.max=k.items.reduce((s,x)=>s+x.max,0)});
+ let total=Math.round(cats.reduce((s,k)=>s+k.pts,0));
+ if(!R.rows.some(r=>r.spend>0)){total=Math.min(total,20);cats[0].items.unshift(it('bad','Pubblicazione','Nessun annuncio è stato pubblicato (contenuti o testo mancanti, annuncio rifiutato o budget sotto il minimo): la campagna non ha prodotto risultati. Punteggio massimo 20.',0,0))}
+ return{cats,total}}
+
+const NAMEX=()=>({boxe:'Lead – Prova gratuita – Torino – Nov',festival:'Copertura – Line-up – Bologna – Dic',accademia:'Lead – Open day – Lombardia – Gen',streetwear:'Vendite – Spark creator – Italia',reel:'Visualizzazioni – Reel IFTS VIP – Pisa'})[S.scenario]||'Obiettivo – Prodotto – Zona – Mese';
+/* ================= RENDER ================= */
+function render(){S.maxStep=Math.max(S.maxStep,S.step);renderSteps();renderHelp();renderChip();
+ $('#view').innerHTML=[rScenario,rCampaign,rBudget,rOpt,rAud,rAd,rSummary,rResults][S.step]();afterRender();save()}
+function renderSteps(){let last='';$('#steps').innerHTML=STEPS.map(([t,l],i)=>{const dis=(i>0&&!S.scenario)||(i===7&&!S.result);let h='';if(l&&l!==last)h=`<li class="lvl">${l}</li>`;last=l;const done=i<S.maxStep&&i!==S.step;
+ return h+`<li><button type="button" data-go="${i}" class="${i===S.step?'cur':''} ${done?'done':''}" ${dis?'disabled':''}><span class="n">${done?'✓':i+1}</span>${t}</button></li>`}).join('')}
+function renderHelp(){const h=HELP[S.step];$('#help').innerHTML=`<div class="box"><span class="lab">Cos'è questo passaggio</span><h3>${h.t}</h3>${h.b}</div><div class="box err"><span class="lab">Errore comune</span><p>${h.e}</p></div><div class="box tip"><span class="lab">Consiglio</span><p>${h.p}</p></div>`}
+function renderChip(){const sc=SC[S.scenario];$('#scChip').innerHTML=sc?`<button type="button" class="chip btn sm" id="bBrief">Cliente: <b>${esc(sc.name)}</b></button>`:''}
+const briefHTML=sc=>`<div class="brief"><b>${esc(sc.name)} · brief del cliente</b><dl>${sc.facts.map(f=>`<dt>${f[0]}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></div>`;
+const nav=(next='Avanti',dis=false)=>`<div class="nav"><button class="btn" type="button" data-go="${S.step-1}" ${S.step===0?'style="visibility:hidden"':''}>← Indietro</button><button class="btn pri" type="button" data-go="${S.step+1}" ${dis?'disabled':''}>${next} →</button></div>`;
+const radio=(b,val,cur,t,d,extra='')=>`<label class="opt ${cur===val?'on':''} ${extra}"><input type="radio" name="${b}" data-b="${b}" value="${val}" ${cur===val?'checked':''} ${extra?'disabled':''}><span><b>${t}</b>${d?`<small>${d}</small>`:''}</span></label>`;
+const check=(b,on,t,d)=>`<label class="opt ${on?'on':''}"><input type="checkbox" data-b="${b}" ${on?'checked':''}><span><b>${t}</b>${d?`<small>${d}</small>`:''}</span></label>`;
+const struct=lvl=>`<div class="struct">${['Campagna','Gruppo di annunci','Annuncio'].map(x=>`<span class="${x===lvl?'on':''}">${x}</span>`).join('<span style="border:0;background:none;padding:0">→</span>')}</div>`;
+function setTabs(){if(S.sets.length<2)return'';const i=S.ui.tab;return`<div class="tabs"><span class="hint">Gruppo di annunci:</span>${S.sets.map((s,j)=>`<button type="button" data-tab="${j}" class="${j===i?'on':''}">${esc(s.name||'Gruppo '+(j+1))}</button>`).join('')}</div>`}
+
+function rScenario(){const sc=SC[S.scenario];
+ return`<div class="card"><h2>Scegli il cliente</h2><p class="lead">Ogni scenario è un cliente con un brief. Creerai la campagna su TikTok seguendo i tre livelli di TikTok Ads Manager. Alla fine vedrai i risultati simulati e un punteggio su 100 con i consigli per migliorare.</p>
+ <div class="scen">${Object.values(SC).map(s=>`<button type="button" class="sc ${S.scenario===s.id?'on':''}" data-sc="${s.id}"><span class="k">${s.k}</span><h3>${esc(s.name)}</h3><p>${esc(s.short)}</p><span class="lv">${s.lv}</span></button>`).join('')}</div></div>
+ ${sc?`<div class="card">${briefHTML(sc)}<p class="hint">Leggi bene il brief: su TikTok contano anche i diritti sulla musica e l'età del pubblico.</p></div>`:''}
+ ${exampleCard('20–30')}
+ ${nav('Inizia a creare la campagna',!sc)}
+ <p class="fine">© 2026 Azzurra Curcio · Campagna Zero · Materiale didattico. Opera distribuita con licenza <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.it" target="_blank" rel="noopener">Creative Commons Attribuzione – Non commerciale – Non opere derivate 4.0 Internazionale (CC BY-NC-ND 4.0)</a>: puoi usarla e condividerla citando l'autrice, senza scopi commerciali e senza modificarla. Simulatore didattico indipendente, non affiliato né approvato da TikTok. TikTok è un marchio di ByteDance Ltd. Clienti, marchi, creator, siti e numeri di telefono degli scenari sono di fantasia: ogni riferimento a realtà esistenti è casuale. I risultati sono stime di un modello semplificato.</p>`}
+
+function rCampaign(){const c=S.c;const groups=['Notorietà','Considerazione','Conversione'];
+ return`<div class="card">${struct('Campagna')}<h2>Scegli l'obiettivo della campagna</h2>
+ ${groups.map(g=>`<span class="lbl">${g}</span><div class="opts">${OBJ.filter(o=>o.g===g).map(o=>radio('c.obj',o.id,c.obj,o.t,o.d,o.off?'off':'')).join('')}</div>`).join('')}</div>
+ <div class="card"><div class="field"><label for="cname">Nome della campagna</label><input type="text" id="cname" data-b="c.name" value="${esc(c.name)}" placeholder="Es. ${esc(NAMEX())}"><span class="hint">Lo vedi solo tu. Uno schema fisso ti aiuta a ritrovare le campagne.</span></div></div>
+ <div class="card"><h3>Ottimizzazione del budget della campagna</h3>${check('c.cbo',c.cbo,'Attiva l\'ottimizzazione del budget della campagna','Un unico budget per tutti i gruppi di annunci. Richiede un budget di campagna di almeno 50 € al giorno circa.')}</div>
+ ${nav()}`}
+
+function rBudget(){const c=S.c;const per=daysBetween(c.start,c.end);
+ return`<div class="card">${struct(c.cbo?'Campagna':'Gruppo di annunci')}<h2>Budget e programmazione</h2>
+ <div class="opts">${radio('c.btype','daily',c.btype,'Budget giornaliero','Spesa media al giorno, fino a quando la fermi o fino alla data di fine.')}${radio('c.btype','total',c.btype,'Budget totale','Una cifra da spendere tra una data di inizio e una di fine.')}</div>
+ ${c.cbo?`<div class="field" style="max-width:340px"><label for="bud">${c.btype==='daily'?'Budget giornaliero della campagna (€)':'Budget totale della campagna (€)'}</label><input type="number" min="0" step="1" id="bud" data-b="c.budget" value="${esc(c.budget)}"><span class="hint" id="budh"></span></div>`:S.sets.map((s,i)=>`<div class="field" style="max-width:340px"><label for="sb${i}">${esc(s.name||'Gruppo '+(i+1))} · ${c.btype==='daily'?'budget giornaliero (€)':'budget totale (€)'}</label><input type="number" min="0" step="1" id="sb${i}" data-b="sets.${i}.budget" value="${esc(s.budget)}"></div>`).join('')+'<p class="hint">Il budget si imposta in ogni gruppo di annunci (minimo circa 20 € al giorno per gruppo).</p>'}
+ <div class="row"><div class="field"><label for="ds">Data di inizio</label><input type="date" id="ds" data-b="c.start" value="${esc(c.start)}"></div><div class="field"><label for="de">Data di fine ${c.btype==='daily'?'<span class="hint">(facoltativa)</span>':''}</label><input type="date" id="de" data-b="c.end" value="${esc(c.end)}"></div></div>
+ ${per>0?`<p class="hint">Durata: ${per} giorni.</p>`:''}</div>
+ <div class="card"><h3>Strategia di offerta</h3><div class="list">${BIDS.map(b=>radio('c.bid',b.id,c.bid,b.t,b.d)).join('')}</div>
+ ${c.bid==='costcap'?`<div class="field" style="max-width:300px"><label for="cc">Costo per risultato massimo (€)</label><input type="number" id="cc" data-b="c.costcap" value="${esc(c.costcap)}"></div>`:''}
+ ${c.bid==='bidcap'?`<div class="field" style="max-width:300px"><label for="bc">Offerta massima (€)</label><input type="number" id="bc" data-b="c.bidcap" value="${esc(c.bidcap)}"></div>`:''}</div>
+ <div class="card"><h3>Ritmo di spesa</h3><div class="opts">${radio('c.pacing','standard',c.pacing,'Standard','Distribuisce il budget in modo uniforme.')}${radio('c.pacing','accelerated',c.pacing,'Accelerato','Spende il budget il più in fretta possibile.')}</div></div>
+ ${nav()}`}
+
+function rOpt(){const c=S.c,sc=SC[S.scenario];const i=Math.min(S.ui.tab,S.sets.length-1);S.ui.tab=i;const s=S.sets[i];const P=`sets.${i}`;
+ const locs=CONVLOC[c.obj]||[];const goals=GOPTS(c.obj,s.convLoc);const noLoc=['copertura','visualizzazioni','community'].includes(c.obj);
+ return`<div class="card">${struct('Gruppo di annunci')}<h2>Gruppi di annunci: ottimizzazione</h2><p class="lead">Ogni gruppo di annunci ha il suo pubblico e i suoi annunci. Per molti clienti ne basta uno; usane due se servono pubblici diversi (es. nuovi clienti e remarketing).</p>
+ <div class="tabs">${S.sets.map((x,j)=>`<button type="button" data-tab="${j}" class="${j===i?'on':''}">${esc(x.name||'Gruppo '+(j+1))}</button>`).join('')}${S.sets.length<3?`<button type="button" id="addSet">+ Aggiungi gruppo</button>`:''}</div></div>
+ <div class="card"><header><h3>${esc(s.name||'Gruppo')}</h3>${S.sets.length>1?`<button type="button" class="btn sm ghost" data-del="${i}">Elimina gruppo</button>`:''}</header>
+ <div class="field"><label for="sn">Nome del gruppo di annunci</label><input type="text" id="sn" data-b="${P}.name" value="${esc(s.name)}" placeholder="Es. Nuovi clienti – Italia – automatico"></div>
+ ${!c.obj?'<div class="al warn"><span class="dot warn"></span><span>Scegli prima l\'obiettivo della campagna.</span></div>':''}
+ ${c.obj&&!noLoc?`<span class="lbl">Luogo dell'ottimizzazione</span><div class="opts">${locs.map(l=>radio(P+'.convLoc',l,s.convLoc,CL[l],CLD[l])).join('')}</div>`:''}
+ ${noLoc||s.convLoc?`<span class="lbl">Obiettivo di ottimizzazione</span><div class="list">${goals.map(g=>radio(P+'.goal',g,s.goal,GL[g],'')).join('')}</div>`:''}
+ ${s.convLoc==='sito'&&GCAT[s.goal]==='conv'?`<div class="field" style="max-width:380px"><label for="ev">Evento di ottimizzazione (pixel)</label>${sc.pixel?`<select id="ev" data-b="${P}.event"><option value="">— scegli —</option>${EVENTS.map(([id,t])=>`<option value="${id}" ${s.event===id?'selected':''}>${t}</option>`).join('')}</select>`:'<div class="al bad"><span class="dot bad"></span><span>Nessun pixel disponibile: il pixel di TikTok non è installato sul sito del cliente.</span></div>'}</div>`:''}
+ </div>${nav()}`}
+
+function rAud(){const sc=SC[S.scenario];const i=Math.min(S.ui.tab,S.sets.length-1);S.ui.tab=i;const s=S.sets[i];const P=`sets.${i}`;
+ return`<div class="card">${struct('Gruppo di annunci')}<h2>Pubblico e posizionamenti</h2>${setTabs()}</div>
+ <div class="card"><h3>Posizionamenti</h3><div class="list">${radio(P+'.pl','auto',s.pl,'Posizionamento automatico','TikTok mostra gli annunci dove probabilmente rendono di più.')}${radio(P+'.pl','select',s.pl,'Seleziona posizionamento','Scegli tu dove mostrare gli annunci.')}</div>
+ ${s.pl==='select'?`<div class="opts">${PL.map(p=>`<label class="opt ${s.plm[p[0]]?'on':''}"><input type="checkbox" data-b="${P}.plm.${p[0]}" ${s.plm[p[0]]?'checked':''}><span><b>${p[1]}</b></span></label>`).join('')}</div>`:''}</div>
+ <div class="card"><h3>Pubblici personalizzati</h3><p class="hint">Persone che conoscono già il cliente. Includile per il remarketing, escludile se hanno già acquistato o si sono registrate.</p>
+ <div class="tw"><table><thead><tr><th>Pubblico</th><th class="num">Persone</th><th>Includi</th><th>Escludi</th></tr></thead><tbody>${sc.custom.map(cu=>`<tr style="${cu.off?'opacity:.5':''}"><td>${esc(cu.t)}</td><td class="num">${cu.off?'—':int(cu.size)}</td><td><input type="checkbox" aria-label="Includi" data-arr="${P}.inc" value="${cu.id}" ${s.inc.includes(cu.id)?'checked':''} ${cu.off?'disabled':''}></td><td><input type="checkbox" aria-label="Escludi" data-arr="${P}.exc" value="${cu.id}" ${s.exc.includes(cu.id)?'checked':''} ${cu.off?'disabled':''}></td></tr>`).join('')}</tbody></table></div></div>
+ <div class="card"><h3>Dati demografici</h3><span class="lbl">Località</span><div class="opts">${locsFor(sc).map(l=>radio(P+'.loc',l.id,s.loc,l.t,'')).join('')}</div>
+ <span class="lbl">Età</span><div class="opts">${AGES.map(([a])=>`<label class="opt ${s.ages.includes(a)?'on':''}"><input type="checkbox" data-arr="${P}.ages" value="${a}" ${s.ages.includes(a)?'checked':''}><span><b>${a}</b>${a==='13-17'?'<small>Minorenni</small>':''}</span></label>`).join('')}</div>
+ <span class="lbl">Genere</span><div class="opts">${radio(P+'.gender','all',s.gender,'Tutti','')}${radio(P+'.gender','f',s.gender,'Donne','')}${radio(P+'.gender','m',s.gender,'Uomini','')}</div></div>
+ <div class="card"><h3>Interessi e comportamenti</h3><div class="list">${radio(P+'.mode','auto',s.auto?'auto':'custom','Targeting automatico','TikTok trova le persone giuste in base ai dati e ai video. Interessi e comportamenti non servono.')}${radio(P+'.mode','custom',s.auto?'auto':'custom','Targeting personalizzato','Scegli tu interessi e comportamenti.')}</div>
+ ${!s.auto?`<div class="opts">${sc.interests.map(([t])=>`<label class="opt ${s.interests.includes(t)?'on':''}"><input type="checkbox" data-arr="${P}.interests" value="${esc(t)}" ${s.interests.includes(t)?'checked':''}><span><b>${esc(t)}</b></span></label>`).join('')}</div>`:''}
+ <div class="gauge" id="gauge"></div></div>
+ ${nav()}`}
+
+function thumb(m){const light=/^#(f|e|d)/i.test(m.c[0]);return`<div class="th" style="background:linear-gradient(160deg,${m.c[0]},${m.c[1]});aspect-ratio:${m.ratio==='16:9'?'16/9':m.ratio==='1:1'?'1/1':m.ratio==='4:5'?'4/5':'9/16'}"><em>${m.kind==='img'?'FOTO':m.kind==='spark'?'POST':'▶ VIDEO'} ${m.ratio}</em><span class="ck">✓</span><span style="${light?'color:#222':''}">${m.txt?esc(m.txt):''}</span></div>`}
+function rAd(){const sc=SC[S.scenario],c=S.c;const i=Math.min(S.ui.tab,S.sets.length-1);S.ui.tab=i;const s=S.sets[i],a=s.ad;const P=`sets.${i}.ad`;
+ const noLoc=['copertura','visualizzazioni','community'].includes(c.obj);const L=noLoc?'':s.convLoc;const k=kindFor(a.format);const lib=sc.media.filter(m=>m.kind===k);
+ return`<div class="card">${struct('Annuncio')}<h2>Annuncio</h2>${setTabs()}</div>
+ <div class="pv"><div id="phone"></div><div class="card" style="gap:10px"><h3>Identità</h3><div class="list">${radio(P+'.identity','tiktok',a.identity,'Usa l\'account TikTok del cliente','Le persone possono visitare il profilo e seguirlo. Obbligatorio per le Spark Ads.')}${radio(P+'.identity','custom',a.identity,'Identità personalizzata','Nome e immagine scelti da te, senza collegamento al profilo.')}</div></div></div>
+ <div class="card"><h3>Formato</h3><div class="opts">${radio(P+'.format','video',a.format,'Video singolo','Un video caricato dal cliente.')}${radio(P+'.format','spark',a.format,'Spark Ads','Promuovi un post TikTok esistente, del cliente o di un creator autorizzato.')}${radio(P+'.format','carousel',a.format,'Carosello di immagini','Da 2 a 35 immagini scorrevoli, con musica.')}</div></div>
+ <div class="card"><header><h3>${a.format==='spark'?'Post TikTok disponibili':'Contenuti del cliente'}</h3><span class="hint">clicca per selezionare</span></header>
+ <div class="lib">${lib.map(m=>`<button type="button" class="med ${a.media.includes(m.id)?'on':''}" data-med="${m.id}">${thumb(m)}<span class="cap">${esc(m.t)}${m.kind!=='img'?`<br><span class="hint">♪ ${AUD[m.audio]}</span>`:''}</span></button>`).join('')||'<p class="hint">Nessun contenuto di questo tipo.</p>'}</div>
+ <p class="hint">${a.format==='carousel'?'Scegli almeno 2 immagini.':a.format==='spark'?'Scegli il post da promuovere (puoi sceglierne più di uno: diventano annunci diversi).':'Puoi scegliere più video: TikTok li alterna e mostra quello che funziona meglio.'}</p></div>
+ <div class="card"><header><h3>Testo dell'annuncio</h3><span class="hint">fino a 3 varianti · massimo 100 caratteri</span></header>${a.texts.map((t,j)=>`<div class="field"><label class="hint" for="tx${j}">Variante ${j+1}${j===0?' *':''}</label><input type="text" id="tx${j}" data-b="${P}.texts.${j}" value="${esc(t)}"><span class="cnt ${t.length>100?'over':''}" data-max="100">${t.length}/100</span></div>`).join('')}</div>
+ <div class="card"><h3>Pulsante e destinazione</h3><div class="field" style="max-width:340px"><label for="cta">Invito all'azione</label><select id="cta" data-b="${P}.cta"><option value="">— scegli —</option>${CTAS.map(([id,t])=>`<option value="${id}" ${a.cta===id?'selected':''}>${t}</option>`).join('')}</select></div>
+ ${L==='moduli'?`<span class="lbl">Modulo istantaneo · tipo</span><div class="opts">${radio(P+'.formType','volume',a.formType,'Volume più elevato','Modulo rapido: più contatti, qualità variabile.')}${radio(P+'.formType','intento',a.formType,'Intento più elevato','Aggiunge una schermata di conferma: meno contatti, più seri.')}</div>
+  <span class="lbl">Domande del modulo</span><div class="opts">${check(P+'.fNome',a.fNome,'Nome e cognome','')}${check(P+'.fEmail',a.fEmail,'Email','')}${check(P+'.fTel',a.fTel,'Numero di telefono','')}</div>
+  <div class="field"><label for="prv">Link all'informativa sulla privacy (obbligatorio)</label><input type="url" id="prv" data-b="${P}.privacy" value="${esc(a.privacy)}" placeholder="https://"></div>`:`<div class="field"><label for="url">URL di destinazione</label><input type="url" id="url" data-b="${P}.url" value="${esc(a.url)}" placeholder="https://www.${sc.domain}${sc.paths[0]}"></div><div class="field"><label for="utm">Parametri URL (UTM)</label><input type="text" id="utm" data-b="${P}.utm" value="${esc(a.utm)}" placeholder="utm_source=tiktok&utm_medium=paid&utm_campaign=..."></div>`}
+ </div>${nav()}`}
+
+function rSummary(){const sc=SC[S.scenario],c=S.c;const blk=[];const mo=budgetMinOk();
+ if(!c.obj)blk.push('Scegli l\'obiettivo della campagna.');
+ if(c.cbo&&!num(c.budget))blk.push('Inserisci il budget della campagna.');
+ if(c.cbo&&num(c.budget)&&!mo.camp)blk.push('Il budget della campagna è sotto il minimo (circa 50 € al giorno).');
+ if(!c.cbo)S.sets.forEach((s,i)=>{if(!num(s.budget))blk.push(`"${s.name||'Gruppo'}": manca il budget.`);else if(!mo.sets[i])blk.push(`"${s.name||'Gruppo'}": budget sotto il minimo (circa 20 € al giorno).`)});
+ if(c.btype==='total'&&daysBetween(c.start,c.end)<=0)blk.push('Con il budget totale servono data di inizio e di fine.');
+ const noLoc=['copertura','visualizzazioni','community'].includes(c.obj);
+ S.sets.forEach(s=>{const a=adInfo(s,sc);const n=s.name||'Gruppo';if(c.obj&&!noLoc&&!s.convLoc)blk.push(`"${n}": manca il luogo dell'ottimizzazione.`);if(!s.goal)blk.push(`"${n}": manca l'obiettivo di ottimizzazione.`);if(!a.M.length)blk.push(`"${n}": l'annuncio non ha contenuti del formato scelto.`);if(!a.T.length)blk.push(`"${n}": manca il testo dell'annuncio.`);if(a.tooLong)blk.push(`"${n}": il testo supera i 100 caratteri.`);if(!ageInfo(s,sc).sel.length)blk.push(`"${n}": nessuna fascia d'età maggiorenne selezionata.`)});
+ const row=(k,v)=>`<tr><th style="width:36%">${k}</th><td>${v}</td></tr>`;const miss='<span class="tag bad">mancante</span>';
+ return`<div class="card"><h2>Riepilogo</h2><div class="tw"><table>
+ ${row('Cliente',esc(sc.name))}${row('Campagna',(esc(c.name)||miss)+' · '+(objT(c.obj)||miss))}
+ ${row('Budget',c.cbo?(num(c.budget)?`${eur(num(c.budget))} ${c.btype==='daily'?'al giorno':'in totale'} · ottimizzazione del budget della campagna`:miss):S.sets.map(s=>`${esc(s.name||'Gruppo')}: ${num(s.budget)?eur(num(s.budget))+(c.btype==='daily'?'/giorno':' in totale'):'—'}`).join(' · '))}
+ ${row('Date',(c.start||'—')+' → '+(c.end||'nessuna fine'))}${row('Offerta e ritmo',BIDS.find(b=>b.id===c.bid).t+' · '+(c.pacing==='standard'?'Standard':'Accelerato'))}
+ ${S.sets.map(s=>{const au=audience(s,sc);return row(esc(s.name||'Gruppo'),`${s.convLoc?CL[s.convLoc]+' · ':''}${GL[s.goal]||miss}<br>${locOf(s.loc).t} · ${s.ages.join(', ')||'nessuna età'} · ${s.auto?'targeting automatico':'targeting personalizzato'}${s.inc.length?' · '+s.inc.length+' pubblici personalizzati':''} · ≈ ${int(au.N)} persone<br>${s.pl==='auto'?'Posizionamento automatico':'Posizionamenti scelti'} · ${({video:'Video',spark:'Spark Ads',carousel:'Carosello'})[s.ad.format]} · ${adInfo(s,sc).M.length} contenuti · pulsante ${(CTAS.find(x=>x[0]===s.ad.cta)||['','—'])[1]}`)}).join('')}
+ </table></div></div>
+ <div class="card"><h3>Controlli prima della pubblicazione</h3>${blk.length?blk.map(b=>`<div class="al bad"><span class="dot bad"></span><span>${esc(b)}</span></div>`).join('')+'<p class="hint">Puoi pubblicare comunque e vedere l\'effetto di questi problemi.</p>':'<div class="al ok"><span class="dot ok"></span><span>Nessun blocco: la campagna può essere pubblicata.</span></div>'}</div>
+ <div class="nav"><button class="btn" type="button" data-go="5">← Indietro</button><button class="btn pri" type="button" id="publish">Pubblica e simula →</button></div>`}
+
+function rResults(){const R=S.result;if(!R)return'<div class="card">Nessun risultato.</div>';
+ const sc=SC[S.scenario],t=R.tot;const col=R.total>=85?'var(--good)':R.total>=70?'var(--accent)':R.total>=50?'var(--warn)':'var(--bad)';
+ const verdict=R.total>=85?'Campagna pronta per il cliente':R.total>=70?'Buona base, da rifinire':R.total>=50?'Da rivedere prima di spendere':'Non ancora pronta';
+ const prev=S.history.length>1?S.history[S.history.length-2]:null;
+ const spend=[{k:'Pubblico in target',v:t.useful,c:'var(--good)'},{k:'Fuori target (zona, età, già clienti)',v:t.out,c:'var(--bad)'},{k:'Saturazione (frequenza troppo alta)',v:t.sat,c:'var(--warn)'},{k:'Pangle a bassa resa',v:t.pang,c:'var(--muted)'}];const sum=spend.reduce((a,b)=>a+b.v,0)||1;
+ const fixes=R.cats.flatMap(k=>k.items.filter(x=>x.lvl!=='ok'&&x.max>0).map(x=>({...x,cat:k.t}))).sort((a,b)=>(b.max-b.pts)-(a.max-a.pts)).slice(0,3);
+ const kpi=(k,v,hi)=>`<div class="kpi ${hi?'hi':''}"><span>${k}</span><b>${v}</b></div>`;const isReach=sc.kpi==='reach';
+ const resTiles=isReach?kpi(sc.kpiL,int(t.res),1)+kpi('Costo per 1.000 persone',t.res?eur(t.spend/t.res*1000):'—',1):sc.kpi==='acquisti'?kpi('Acquisti',dec(t.res),1)+kpi('Costo per acquisto',t.res>=.5?eur(t.spend/t.res):'—',1)+kpi('Valore vendite',eur(t.value,0),1)+kpi('ROAS',t.spend?dec(t.value/t.spend,2):'—',1):sc.kpi==='video'?kpi(sc.kpiL,int(t.res),1)+kpi('Costo per visualizzazione',t.res>=1?eur(t.spend/t.res,3):'—',1)+kpi(sc.kpiQ,int(t.qual),1):kpi(sc.kpiL,dec(t.res),1)+kpi('Costo per risultato',t.res>=.5?eur(t.spend/t.res):'—',1)+kpi(sc.kpiQ,dec(t.qual),1);
+ return`<div class="card"><div class="hero"><div class="ring" style="--p:${R.total};--c:${col}"><div><span><b>${R.total}</b><br><small>su 100</small></span></div></div>
+ <div style="display:flex;flex-direction:column;gap:8px"><span class="hint">Tentativo n° ${S.attempts} · ${esc(sc.name)}</span><h2>${verdict}</h2>
+ ${prev!=null?`<p>${R.total>prev?`Hai migliorato di <b>${R.total-prev} punti</b> rispetto al tentativo precedente (${prev}).`:R.total<prev?`Il punteggio è sceso di ${prev-R.total} punti rispetto al tentativo precedente (${prev}).`:'Stesso punteggio del tentativo precedente.'}</p>`:''}
+ <div class="row" style="flex:none"><button class="btn pri" type="button" data-go="1" style="flex:none">Modifica la campagna</button><button class="btn" type="button" id="copyRep" style="flex:none">Copia il report</button>${getName()?`<button class="btn ghost" type="button" id="chName" style="flex:none">Nome: ${esc(getName())} · cambia</button>`:''}<button class="btn ghost" type="button" data-go="0" style="flex:none">Cambia scenario</button></div></div></div></div>
+ ${R.rejected.map(r=>`<div class="al bad"><span class="dot bad"></span><span><b>Annuncio rifiutato</b> in "${esc(r.name)}": ${esc(r.why)}. Quel gruppo non ha speso nulla.</span></div>`).join('')}
+ ${fixes.length?`<div class="card"><h3>Le prime cose da sistemare</h3><ol class="top3">${fixes.map(f=>`<li><span><b>${f.cat} · ${f.t}</b> — ${esc(f.msg)}</span></li>`).join('')}</ol></div>`:''}
+ <div class="card"><header><h3>Risultati simulati · ${R.D} giorni</h3>${R.rows.some(r=>r.limited)?'<span class="tag warn">Apprendimento limitato</span>':''}</header>
+ <div class="kpis">${resTiles}${kpi('Copertura',int(t.reach))}${kpi('Impressioni',int(t.impr))}${kpi('Frequenza',t.reach?dec(t.impr/t.reach,2):'—')}${kpi('CPM',t.impr?eur(t.spend/t.impr*1000):'—')}${kpi('Visual. 2 s',int(t.v2))}${kpi('Visual. 6 s',int(t.v6))}${kpi('Visual. complete',t.impr?pct(t.vfull/t.impr):'—')}${kpi('Clic',int(t.clicks))}${kpi('CTR',t.impr?pct(t.clicks/t.impr):'—')}${kpi('CPC',t.clicks?eur(t.spend/t.clicks):'—')}${kpi('Importo speso',eur(t.spend,0))}</div>
+ <div class="field"><span class="lbl">Dove sono andati i soldi</span><div class="stack">${spend.map(s=>`<div style="width:${s.v/sum*100}%;background:${s.c}" title="${s.k}"></div>`).join('')}</div><div class="legend">${spend.map(s=>`<span><i style="background:${s.c}"></i>${s.k}: <b class="mono">${eur(s.v,0)}</b> (${Math.round(s.v/sum*100)}%)</span>`).join('')}</div></div>
+ <p class="fine">Simulazione didattica: numeri stimati con un modello semplificato, utili per capire cause ed effetti. Non sono previsioni reali di TikTok. Clip Lab è stato creato da Azzurra Curcio.</p></div>
+ <div class="card"><h3>Valutazione per area</h3>${R.cats.map(k=>`<div class="cat"><header><h3>${k.t}</h3><span class="pts">${dec(k.pts)} / ${k.max}</span></header><div class="bar"><i style="width:${k.max?k.pts/k.max*100:0}%"></i></div>${k.items.map(x=>`<div class="al ${x.lvl}"><span class="dot ${x.lvl}"></span><span><b>${x.t}</b> · ${esc(x.msg)} ${x.max?`<span class="pts">(${dec(x.pts)}/${x.max})</span>`:''}</span></div>`).join('')}</div>`).join('<hr style="border:0;border-top:1px solid var(--line);width:100%">')}</div>
+ <div class="card"><h3>Gruppi di annunci</h3><div class="tw"><table><thead><tr><th>Gruppo</th><th>Stato</th><th class="num">Pubblico</th><th class="num">Spesa</th><th class="num">Copertura</th><th class="num">Freq.</th><th class="num">Visual. 6 s</th><th class="num">CTR</th><th class="num">${esc(isReach?'Raggiunti in zona':sc.kpiL)}</th><th class="num">Costo/ris.</th></tr></thead><tbody>
+ ${R.rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${!r.ready?'<span class="tag bad">Non pubblicato</span>':!r.spend?'<span class="tag bad">Non spende</span>':r.limited?'<span class="tag warn">Apprendimento limitato</span>':'<span class="tag ok">Attivo</span>'}</td><td class="num">${int(r.N)}</td><td class="num">${eur(r.spend,0)}</td><td class="num">${int(r.reach)}</td><td class="num">${r.reach?dec(r.impr/r.reach,2):'—'}</td><td class="num">${int(r.v6)}</td><td class="num">${r.impr?pct(r.clicks/r.impr):'—'}</td><td class="num">${isReach?int(r.res):dec(r.res)}</td><td class="num">${r.res>=.5?eur(r.spend/r.res*(isReach?1000:1))+(isReach?' /1000':''):'—'}</td></tr>`).join('')}
+ </tbody></table></div><p class="hint">"Apprendimento limitato": il gruppo ottiene meno di circa 50 conversioni a settimana, quindi TikTok fatica a ottimizzare. Con budget piccoli è normale: evita di dividere il budget in troppi gruppi.</p></div>
+ <div class="card"><h3>Ripartizione per posizionamento</h3><div class="tw"><table><thead><tr><th>Posizionamento</th><th class="num">Impressioni</th><th class="num">Clic</th><th class="num">CTR</th><th class="num">Spesa</th></tr></thead><tbody>
+ ${R.pl.map(p=>`<tr><td>${esc(p.t)}</td><td class="num">${int(p.impr)}</td><td class="num">${int(p.clicks)}</td><td class="num">${p.impr?pct(p.clicks/p.impr):'—'}</td><td class="num">${eur(p.spend,0)}</td></tr>`).join('')||'<tr><td colspan="5">Nessun dato.</td></tr>'}
+ </tbody></table></div></div>`}
+
+/* ================= LIVE ================= */
+function afterRender(){setTimeout(markTerms,0);addHelpM();centerStep();if(S.step===2)budHint();if(S.step===4)gauge();if(S.step===5)preview()}
+function budHint(){const el=$('#budh');if(!el)return;const c=S.c,v=num(c.budget);const d=daysBetween(c.start,c.end);el.textContent=!v?'Minimo di campagna: circa 50 € al giorno.':c.btype==='daily'?`≈ ${eur(v*30.4,0)} al mese${v<50?' · sotto il minimo di campagna (50 € al giorno)':''}`:(d>0?`≈ ${eur(v/d)} al giorno per ${d} giorni${v/d<50?' · sotto il minimo di campagna (50 € al giorno)':''}`:'Imposta le date per vedere la spesa giornaliera.')}
+function gauge(){const el=$('#gauge');if(!el)return;const sc=SC[S.scenario],s=S.sets[S.ui.tab];const au=audience(s,sc);
+ if(!au.N){el.innerHTML='<span class="lbl">Dimensione stimata del pubblico</span><b>0</b><span class="hint">Nessuna fascia d\'età maggiorenne selezionata.</span>';return}
+ const pos=clamp((Math.log10(au.N)-3.5)/(7.4-3.5),0,1)*100;const lab=au.N<30e3?'Specifico':au.N>1e7?'Ampio':'Adeguato';
+ el.innerHTML=`<span class="lbl">Dimensione stimata del pubblico</span><b>${int(au.N*.85)} – ${int(au.N*1.15)}</b><div class="trk"><span class="pin" style="left:${pos}%"></span></div><div class="ends"><span>Specifico</span><span>${lab}</span><span>Ampio</span></div>${au.ai.minors?'<span class="hint" style="color:var(--bad)">La fascia 13–17 non viene raggiunta: in UE niente inserzioni personalizzate ai minori.</span>':''}${au.N<30e3&&!au.inc.length?'<span class="hint">Pubblico molto ristretto: costi più alti e frequenza elevata.</span>':''}`}
+function preview(){const sc=SC[S.scenario],s=S.sets[S.ui.tab],a=s.ad;const k=kindFor(a.format);const M=a.media.map(id=>mediaOf(sc,id)).filter(m=>m&&m.kind===k);const m=M[0];
+ const T=a.texts.map(x=>x.trim()).filter(Boolean)[0]||'Qui comparirà il testo dell\'annuncio.';const ctaT=(CTAS.find(x=>x[0]===a.cta)||['',''])[1];
+ const handle=a.identity==='tiktok'?'@'+sc.name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z]+/g,'.').replace(/^\.|\.$/g,''):sc.name;
+ const inner=!m?'<div class="ph-empty">Nessun contenuto selezionato</div>':m.ratio==='9:16'?`<div class="ph-bg" style="background:linear-gradient(160deg,${m.c[0]},${m.c[1]})"></div>`:`<div class="ph-bg" style="background:#000"></div><div class="ph-mid" style="background:linear-gradient(160deg,${m.c[0]},${m.c[1]});aspect-ratio:${m.ratio==='16:9'?'16/9':m.ratio==='1:1'?'1/1':'4/5'}">${m.txt?esc(m.txt):''}</div>`;
+ $('#phone').innerHTML=`<span class="hint">Anteprima nel feed</span><div class="phone">${inner}<div class="ph-side"><i></i><i></i><i></i><i></i></div><div class="ph-bot"><b>${esc(handle)}</b><span class="ph-sp">Sponsorizzato</span><p>${esc(T.slice(0,100))}</p>${m&&m.kind!=='img'?`<small>♪ ${esc(AUD[m.audio])}</small>`:''}${ctaT?`<span class="ph-cta">${esc(ctaT)}</span>`:''}</div></div>${m&&m.ratio!=='9:16'?'<span class="hint" style="color:var(--warn)">Contenuto non verticale: appare piccolo con bande nere.</span>':''}${m&&m.audio==='trend'?'<span class="hint" style="color:var(--bad)">Musica non autorizzata: l\'annuncio verrebbe rifiutato.</span>':''}`}
+function updCnt(el){const c=el.parentElement.querySelector('.cnt');if(!c)return;const mx=+c.dataset.max;c.textContent=el.value.length+'/'+mx;c.classList.toggle('over',el.value.length>mx)}
+
+
+function addHelpM(){const h=HELP[S.step];if(!h)return;const v=document.querySelector('#view');
+ v.insertAdjacentHTML('afterbegin',`<details class="helpm"><summary>Cos'è questo passaggio? · ${h.t}</summary><div class="hb">${h.b}<div class="hx e"><b>Errore comune</b>${h.e}</div><div class="hx t"><b>Consiglio</b>${h.p}</div></div></details>`)}
+function centerStep(){const st=document.querySelector('#steps'),cur=st&&st.querySelector('.cur');if(!cur||st.scrollWidth<=st.clientWidth)return;st.scrollLeft=cur.offsetLeft-st.clientWidth/2+cur.offsetWidth/2}
+/* ================= EVENTI ================= */
+$('#view').addEventListener('input',e=>{const el=e.target,b=el.dataset.b;if(!b||el.type==='checkbox'||el.type==='radio'||el.tagName==='SELECT')return;set(b,el.value);updCnt(el);save();if(S.step===2)budHint();if(S.step===5)preview()});
+$('#view').addEventListener('change',e=>{const el=e.target;
+ if(el.dataset.arr){const p=el.dataset.arr;const arr=get(p);const v=el.value;set(p,el.checked?[...new Set([...arr,v])]:arr.filter(x=>x!==v));
+  if(/\.inc$/.test(p)&&el.checked){const q=p.replace(/inc$/,'exc');set(q,get(q).filter(x=>x!==v))}
+  if(/\.exc$/.test(p)&&el.checked){const q=p.replace(/exc$/,'inc');set(q,get(q).filter(x=>x!==v))}
+  render();return}
+ const b=el.dataset.b;if(!b)return;
+ if(el.type==='checkbox'){set(b,el.checked);render();return}
+ if(el.type==='radio'){const m=b.match(/^sets\.(\d+)\.mode$/);if(m){S.sets[+m[1]].auto=el.value==='auto';render();return}
+  set(b,el.value);if(b==='c.obj')S.sets.forEach(s=>{s.convLoc='';s.goal='';s.event=''});
+  const m2=b.match(/^sets\.(\d+)\.convLoc$/);if(m2){const s=S.sets[+m2[1]];s.goal='';s.event=''}
+  const m3=b.match(/^sets\.(\d+)\.ad\.format$/);if(m3){S.sets[+m3[1]].ad.media=[]}
+  render();return}
+ if(el.tagName==='SELECT'){set(b,el.value);save();if(S.step===5)preview();return}
+ if(el.type==='date'){set(b,el.value);save();if(S.step===2)render()}
+});
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.dataset.go!=null){const s=+t.dataset.go;if(s<0)return;if(s>0&&!S.scenario)return;if(s===7&&!S.result)return;S.step=s;render();window.scrollTo({top:0});return}
+ if(t.dataset.sc){switchScenario(t.dataset.sc);render();return}
+ if(t.id==='addSet'){S.sets.push(newSet('Gruppo di annunci '+(S.sets.length+1)));S.ui.tab=S.sets.length-1;render();return}
+ if(t.dataset.del!=null){S.sets.splice(+t.dataset.del,1);S.ui.tab=0;render();return}
+ if(t.dataset.tab!=null){S.ui.tab=+t.dataset.tab;render();return}
+ if(t.dataset.med){const a=S.sets[S.ui.tab].ad;const id=t.dataset.med;a.media=a.media.includes(id)?a.media.filter(x=>x!==id):[...a.media,id];render();return}
+ if(t.id==='publish'){publish();return}
+ if(t.id==='copyRep'){copyReport();return}
+ if(t.id==='bGloss'){openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Glossario</h2><button class="btn sm" type="button" data-close>Chiudi</button></header><dl>${GLOSS.map(g=>`<div><dt>${g[0]}</dt><dd>${g[1]}</dd></div>`).join('')}</dl>`);return}
+ if(t.id==='bBrief'){openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Brief del cliente</h2><button class="btn sm" type="button" data-close>Chiudi</button></header>${briefHTML(SC[S.scenario])}`);return}
+ if(t.id==='bReset'){openModal(`<h2>Ricominciare da zero?</h2><p>Perderai le campagne e lo storico dei punteggi di tutti i clienti.</p><div class="nav"><button class="btn" type="button" data-close>Annulla</button><button class="btn pri" type="button" id="doReset">Sì, ricomincia</button></div>`);return}
+ if(t.id==='doReset'){S=fresh();closeModal();render();return}
+ if(t.dataset.close!=null){closeModal();return}
+});
+$('#ov').addEventListener('click',e=>{if(e.target.id==='ov')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+function openModal(h){$('#modal').innerHTML=h;$('#ov').classList.add('on');const b=$('#modal button');if(b)b.focus()}
+function closeModal(){$('#ov').classList.remove('on')}
+function publish(){const R=simulate(),G=grade(R);S.attempts++;S.history.push(G.total);
+ S.result={total:G.total,cats:G.cats,tot:R.tot,D:R.D,pl:R.pl,rejected:R.rows.filter(r=>r.ad.reasons.length).map(r=>({name:r.name,why:r.ad.reasons.join('; ')})),
+  rows:R.rows.map(r=>({name:r.name,ready:r.ready,limited:r.limited,N:r.au.N,spend:r.spend,reach:r.reach,impr:r.impr,clicks:r.clicks,res:r.res,v6:r.v6}))};
+ S.step=7;render();window.scrollTo({top:0})}
+function copyReport(){if(!getName()){askName(copyReport,'Salva e copia il report');return}const R=S.result,sc=SC[S.scenario],t=R.tot;
+ const res=sc.kpi==='reach'?`${int(t.res)} persone raggiunte in zona`:sc.kpi==='video'?`${int(t.res)} visualizzazioni da 6 s · ${int(t.qual)} visite al profilo stimate`:sc.kpi==='acquisti'?`${dec(t.res)} acquisti · ROAS ${t.spend?dec(t.value/t.spend,2):'—'}`:`${dec(t.res)} ${sc.kpiL.toLowerCase()} (${dec(t.qual)} di qualità)`;
+ const txt=['CLIP LAB – Report campagna TikTok Ads','Campagna Zero · simulatore creato da Azzurra Curcio',`Studente: ${getName()}`,`Cliente: ${sc.name}`,`Campagna: ${S.c.name||'(senza nome)'} · Obiettivo: ${objT(S.c.obj)||'—'}`,`Tentativo n° ${S.attempts} · Punteggio: ${R.total}/100`,'',
+ `Risultati simulati (${R.D} giorni): spesa ${eur(t.spend,0)} · copertura ${int(t.reach)} · visualizzazioni da 6 s ${int(t.v6)} · CTR ${t.impr?pct(t.clicks/t.impr):'—'} · ${res}`,'',
+ ...R.cats.flatMap(k=>[`${k.t}: ${dec(k.pts)}/${k.max}`,...k.items.filter(x=>x.lvl!=='ok').map(x=>`  - ${x.t}: ${x.msg}`)])].join('\n');
+ const fb=()=>openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Report</h2><button class="btn sm" type="button" data-close>Chiudi</button></header><p class="hint">Seleziona il testo e copialo per inviarlo alla docente.</p><textarea readonly>${esc(txt)}</textarea>`);
+ try{navigator.clipboard.writeText(txt).then(()=>{const b=$('#copyRep');if(b){b.textContent='Copiato ✓';setTimeout(()=>{const x=$('#copyRep');if(x)x.textContent='Copia il report'},2000)}},fb)}catch(e){fb()}}
+if(S.step===7&&!S.result)S.step=6;
+
+/* ===== Nome dello studente nel report ===== */
+const NAME_KEY='labadv-nome';let _nm=null;
+function getName(){if(_nm!==null)return _nm;try{_nm=localStorage.getItem(NAME_KEY)||''}catch(e){_nm=''}return _nm}
+function setName(v){_nm=v;try{localStorage.setItem(NAME_KEY,v)}catch(e){}}
+function askName(after,label){openModal(`<h2>Come ti chiami?</h2><p class="hint">Il tuo nome compare nella prima riga del report, così la docente sa chi l'ha inviato. Resta salvato solo in questo browser.</p><div class="field"><label for="nmIn">Nome e cognome</label><input type="text" id="nmIn" value="${esc(getName())}" autocomplete="name" maxlength="60"></div><p class="hint" id="nmErr" style="color:var(--bad)" hidden>Scrivi nome e cognome per continuare.</p><div class="row" style="justify-content:flex-end;flex:none"><button class="btn" type="button" data-close style="flex:none">Annulla</button><button class="btn pri" type="button" id="saveName" style="flex:none">${label||'Salva'}</button></div>`);window._afterName=after;setTimeout(()=>{const i=document.getElementById('nmIn');if(i)i.focus()},30)}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.id==='saveName'){const v=(document.getElementById('nmIn').value||'').trim().replace(/\s+/g,' ');if(v.length<3||!/\s/.test(v)){document.getElementById('nmErr').hidden=false;return}setName(v);closeModal();const f=window._afterName;window._afterName=null;if(f)f()}
+ if(t.id==='chName')askName(()=>render(),'Salva')});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){e.preventDefault();document.getElementById('saveName').click()}});
+
+/* ===== Sigle spiegate dove compaiono ===== */
+const DEFS={'CPM':'Costo per mille impressioni: quanto paghi ogni 1.000 volte che l\'annuncio viene mostrato.','CPC':'Costo per clic: quanto paghi in media per ogni clic.','CTR':'Percentuale di clic: clic diviso impressioni. Indica quanto l\'annuncio invoglia a cliccare.','CPA':'Costo per acquisizione: quanto costa in media un risultato (una vendita, un contatto).','ROAS':'Ritorno sulla spesa pubblicitaria: valore delle vendite diviso spesa. ROAS 3 = 3 € incassati per ogni euro speso.','ThruPlay':'Visualizzazione del video fino alla fine (o per almeno 15 secondi).','Advantage+':'Le automazioni di Meta: budget, pubblico o posizionamenti gestiti dall\'algoritmo.','Spark Ads':'Annunci TikTok che promuovono un post già pubblicato, mantenendo like e commenti.','pixel':'Codice installato sul sito che comunica alla piattaforma cosa fanno le persone (acquisti, contatti).','Pangle':'Rete di app di terze parti in cui TikTok può mostrare gli annunci.','UTM':'Parametri aggiunti al link per riconoscere da dove arriva il traffico in Google Analytics.','remarketing':'Mostrare annunci a chi ha già visitato il sito o interagito con il brand.','Punteggio di qualità':'Voto da 1 a 10 che Google dà a una parola chiave: più è alto, meno paghi ogni clic.','AI Max':'Funzioni di Google che ampliano le ricerche oltre le parole chiave e personalizzano titoli e link.','Frequenza':'Quante volte, in media, ogni persona ha visto l\'annuncio.','Copertura':'Numero di persone diverse che hanno visto l\'annuncio almeno una volta.','lead':'Contatto di una persona interessata: nome, telefono o email.','impressioni':'Le volte in cui l\'annuncio è stato mostrato.','Rete Display':'Banner e annunci su siti e app: li vede chi naviga, non chi sta cercando.','sitelink':'Link aggiuntivi sotto l\'annuncio che portano ad altre pagine del sito.','callout':'Brevi frasi sui punti di forza mostrate sotto l\'annuncio, es. "Consegna gratuita".','corrispondenza':'Quanto le ricerche reali possono essere diverse dalla tua parola chiave: generica, a frase o esatta.','parole chiave negative':'Termini che escludono le ricerche che non vuoi, es. "lavoro" o "ricetta".'};
+const _TK=Object.keys(DEFS).sort((a,b)=>b.length-a.length);
+const _TRX=new RegExp('(^|[^A-Za-zÀ-ÿ0-9])('+_TK.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![A-Za-zÀ-ÿ0-9])','i');
+function markTerms(){const used=new Set();const roots=[document.getElementById('view'),document.getElementById('help')].filter(Boolean);
+ const skip='input,textarea,select,option,button,script,style,.term,.serp,.post,.phone,.story,#pvFeed,#pvStory,a,h1,.brand,.kw,.mt,.tag';
+ roots.forEach(root=>{const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.trim()&&n.parentElement&&n.parentElement.offsetParent!==null&&!n.parentElement.closest(skip)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
+  const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  nodes.forEach(node=>{let txt=node.nodeValue;const frag=document.createDocumentFragment();let changed=false;
+   for(let guard=0;guard<6;guard++){const m=_TRX.exec(txt);if(!m)break;const key=_TK.find(k=>k.toLowerCase()===m[2].toLowerCase());if(used.has(key)){const cut=m.index+m[0].length;frag.appendChild(document.createTextNode(txt.slice(0,cut)));txt=txt.slice(cut);changed=true;continue}
+    used.add(key);const start=m.index+m[1].length;frag.appendChild(document.createTextNode(txt.slice(0,start)));const sp=document.createElement('span');sp.className='term';sp.tabIndex=0;sp.dataset.def=DEFS[key];sp.textContent=m[2];frag.appendChild(sp);txt=txt.slice(start+m[2].length);changed=true}
+   if(changed){frag.appendChild(document.createTextNode(txt));node.parentNode.replaceChild(frag,node)}})})}
+(function(){const tip=document.createElement('div');tip.id='tip';tip.setAttribute('role','tooltip');document.body.appendChild(tip);let cur=null;
+ let shownAt=0,lastTouch=0;document.addEventListener('touchstart',()=>{lastTouch=Date.now()},{passive:true,capture:true});const show=el=>{cur=el;shownAt=Date.now();tip.textContent=el.dataset.def;tip.style.display='block';const r=el.getBoundingClientRect();const tw=Math.min(280,window.innerWidth-24);tip.style.maxWidth=tw+'px';let x=r.left+window.scrollX;x=Math.min(x,window.scrollX+window.innerWidth-tip.offsetWidth-12);x=Math.max(window.scrollX+12,x);tip.style.left=x+'px';tip.style.top=(r.bottom+window.scrollY+6)+'px'};
+ const hide=()=>{cur=null;tip.style.display='none'};
+ document.addEventListener('mouseover',e=>{if(Date.now()-lastTouch<1000)return;const t=e.target.closest&&e.target.closest('.term');if(t)show(t)});
+ document.addEventListener('mouseout',e=>{if(Date.now()-lastTouch<1000)return;const t=e.target.closest&&e.target.closest('.term');if(t)hide()});
+ document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('term'))show(e.target)});
+ document.addEventListener('focusout',e=>{if(e.target.classList&&e.target.classList.contains('term'))hide()});
+ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.term');if(t){e.preventDefault();e.stopPropagation();if(cur===t&&Date.now()-shownAt>500)hide();else show(t)}else if(cur)hide()},true);
+ window.addEventListener('scroll',()=>{if(cur)hide()},{passive:true});})();
+
+/* ===== Campagna di esempio commentata ===== */
+function showExample(){const X=EXAMPLE;openModal(`<header style="display:flex;align-items:center;gap:10px"><h2 style="flex:1">Campagna di esempio commentata</h2><button class="btn sm" type="button" data-close>Chiudi</button></header>
+ <p class="hint">Cliente: <b>${esc(X.client)}</b>. Ecco le scelte di una campagna fatta bene e il perché di ognuna.</p>
+ <div class="tw"><table><thead><tr><th>Passaggio</th><th>Scelta</th><th>Perché</th></tr></thead><tbody>${X.rows.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td class="hint">${esc(r[2])}</td></tr>`).join('')}</tbody></table></div>
+ <div class="al warn"><span class="dot warn"></span><span>Caricare l'esempio sostituisce la campagna che stai facendo per questo cliente. Per esercitarti davvero, prova poi con un altro cliente.</span></div>
+ <div class="row" style="justify-content:flex-end;flex:none"><button class="btn" type="button" data-close style="flex:none">Chiudi</button><button class="btn pri" type="button" id="loadEx" style="flex:none">Carica l'esempio e guarda i risultati</button></div>`)}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.id==='bEx'){showExample()}if(t.id==='loadEx'){closeModal();EXAMPLE.load();window.scrollTo({top:0})}});
+const exampleCard=(mins)=>`<div class="card exbox"><div><b>Prima volta?</b> <span class="hint">Una campagna richiede circa ${mins} minuti. Puoi interrompere e riprendere quando vuoi: il lavoro resta salvato in questo browser.</span></div><button class="btn" type="button" id="bEx" style="flex:none">Guarda una campagna di esempio</button></div>`;
+const EXAMPLE={client:'Round Zero – palestra di boxe',rows:[
+ ['Obiettivo','Generazione di lead','La palestra vuole contatti da richiamare per la lezione di prova.'],
+ ['Budget','20 € al giorno nel gruppo di annunci','Come da brief. Il budget di campagna resta spento: richiederebbe almeno 50 € al giorno.'],
+ ['Strategia e ritmo','Massimo rilascio · Standard','La scelta consigliata per iniziare: spesa distribuita in modo uniforme.'],
+ ['Luogo dell\'ottimizzazione','Modulo istantaneo → Lead','Il pixel non c\'è: il modulo dentro TikTok raccoglie i contatti comunque.'],
+ ['Pubblico','Torino + 10 km, 18–34 anni, targeting automatico','Zona ed età del brief; TikTok trova da solo le persone più interessate.'],
+ ['Posizionamento','Automatico','TikTok sceglie dove l\'annuncio rende di più.'],
+ ['Formato','Spark Ads con il post "La mia prima lezione"','Un video che funziona già (120.000 visualizzazioni), con musica autorizzata: si promuove mantenendo like e commenti.'],
+ ['Identità','Account TikTok del cliente','Obbligatorio per le Spark Ads, e chi guarda può seguire il profilo.'],
+ ['Testo','Breve, con l\'offerta, 2 varianti','Sotto i 100 caratteri, nessuna promessa sul corpo.'],
+ ['Pulsante','Iscriviti','Corrisponde all\'azione: lasciare i propri dati.'],
+ ['Modulo','Intento più elevato, con telefono e privacy','Contatti più seri e il numero per richiamare.']],
+ load(){switchScenario('boxe');Object.assign(S.c,{name:'Lead – Prova gratuita – Torino – Nov',obj:'lead',cbo:false,btype:'daily',budget:'',start:'',end:'',bid:'max',pacing:'standard'});
+  const s=newSet('Torino 10 km – automatico');Object.assign(s,{budget:'20',convLoc:'moduli',goal:'lead',loc:'torino10',ages:['18-24','25-34'],auto:true,pl:'auto'});
+  Object.assign(s.ad,{identity:'tiktok',format:'spark',media:['s1'],texts:['Prima lezione di prova gratuita: boxe per principianti a San Salvario','Mai tirato un pugno? Allenamento di gruppo, prova gratis',''],cta:'iscriviti',formType:'intento',fNome:true,fEmail:false,fTel:true,privacy:'https://www.roundzero-boxe.it/privacy'});
+  S.sets=[s];S.ui={tab:0};publish()}};
+
+render();
+
+</script>
+</body>
+</html>

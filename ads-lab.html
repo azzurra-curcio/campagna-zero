@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ads Lab simulatore campagne</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+/* Layout: stepper a sinistra · lavoro al centro · spiegazioni a destra */
+:root{
+  --paper:#f4f5f1; --surface:#ffffff; --ink:#18201d; --muted:#5b6761; --line:#dce1db;
+  --accent:#0d6b5c; --accent-ink:#ffffff; --accent-soft:#e1efea; --mark:#f3c94b; --mark-soft:#fdf3d2;
+  --good:#2b7a4b; --warn:#a96300; --bad:#bf3a2b; --good-soft:#e3f2e8; --warn-soft:#fbefdc; --bad-soft:#f8e3df;
+  --link:#1a4fb4; --serp-url:#1f6b37;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#111513; --surface:#1a201d; --ink:#e7ece9; --muted:#9aa7a0; --line:#2c3631;
+    --accent:#45b89f; --accent-ink:#06201a; --accent-soft:#1b332d; --mark:#e8bd3c; --mark-soft:#332b14;
+    --good:#5cc489; --warn:#e3a243; --bad:#ef7a69; --good-soft:#18301f; --warn-soft:#33270f; --bad-soft:#3a1d18;
+    --link:#8ab4f8; --serp-url:#7fcf9a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#111513; --surface:#1a201d; --ink:#e7ece9; --muted:#9aa7a0; --line:#2c3631;
+  --accent:#45b89f; --accent-ink:#06201a; --accent-soft:#1b332d; --mark:#e8bd3c; --mark-soft:#332b14;
+  --good:#5cc489; --warn:#e3a243; --bad:#ef7a69; --good-soft:#18301f; --warn-soft:#33270f; --bad-soft:#3a1d18;
+  --link:#8ab4f8; --serp-url:#7fcf9a; color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--f-body)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.2;text-wrap:balance;margin:0}
+h2{font-size:26px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand b{font-family:var(--f-display);font-size:22px;letter-spacing:-.01em}
+.brand b i{font-style:normal;background:var(--mark);color:#1c1a10;padding:0 5px;border-radius:4px;margin-left:2px}
+.brand span{color:var(--muted);font-size:13px}
+.top .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* app grid */
+.app{display:grid;grid-template-columns:210px minmax(0,1fr) 300px;gap:24px;padding:24px 20px 60px;max-width:1440px;margin:0 auto}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:sticky;top:84px;align-self:start}
+.steps button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--muted)}
+.steps button .n{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:500 12px var(--f-mono)}
+.steps button.done .n{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.steps button.cur{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--line)}
+.steps button.cur .n{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.steps button:disabled{cursor:not-allowed;opacity:.5}
+main{min-width:0;display:flex;flex-direction:column;gap:18px}
+.help{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 100px);overflow:auto}
+.help .box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.help .box h3{font-size:15px}
+.help .lab{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.help .err{background:var(--bad-soft);border-color:transparent}
+.help .tip{background:var(--mark-soft);border-color:transparent}
+.help ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card > header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card > header h3{flex:1}
+.lead{color:var(--muted);max-width:68ch}
+.field{display:flex;flex-direction:column;gap:6px}
+.field > label, .lbl{font-weight:600;font-size:14px}
+.hint{font-size:13px;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=url],select,textarea{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:9px 11px}
+textarea{resize:vertical;min-height:44px}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.cnt{font:12px var(--f-mono);color:var(--muted);text-align:right}
+.cnt.over{color:var(--bad);font-weight:600}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row > *{flex:1;min-width:160px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.inp{position:relative}
+.inp .cnt{position:absolute;right:8px;top:50%;transform:translateY(-50%);pointer-events:none;background:var(--paper);padding-left:4px}
+.inp input{padding-right:52px}
+
+/* option tiles */
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.opt{position:relative;display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:var(--surface)}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:4px;accent-color:var(--accent)}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt b{display:block;font-size:14px}
+.opt small{display:block;color:var(--muted);font-size:13px;line-height:1.4}
+.opt.dim{opacity:.7}
+.list{display:flex;flex-direction:column;gap:8px}
+.list .opt{grid-template-columns:auto 1fr}
+
+/* scenarios */
+.scen{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.sc{border:1.5px solid var(--line);border-radius:12px;padding:16px;background:var(--surface);display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left}
+.sc:hover{border-color:var(--accent)}
+.sc.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sc .k{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.sc h3{font-size:18px}
+.sc p{font-size:14px;color:var(--muted)}
+.sc .lvl{font-size:12px;color:var(--muted)}
+.brief{border-left:4px solid var(--mark);background:var(--mark-soft);border-radius:0 10px 10px 0;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.brief dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0;font-size:14px}
+.brief dt{color:var(--muted)}
+.brief dd{margin:0;font-weight:500}
+
+/* keyword live */
+.kwlive{display:flex;flex-wrap:wrap;gap:6px}
+.kw{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:13px;background:var(--paper)}
+.mt{font:600 10px var(--f-mono);padding:1px 5px;border-radius:4px;letter-spacing:.03em}
+.mt.broad{background:var(--warn-soft);color:var(--warn)}
+.mt.phrase{background:var(--accent-soft);color:var(--accent)}
+.mt.exact{background:var(--good-soft);color:var(--good)}
+.kw.blk{text-decoration:line-through;opacity:.65}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.tw{overflow-x:auto}
+.ideas td{vertical-align:middle}
+
+/* ad preview */
+.adwrap{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:16px;align-items:start}
+.serp{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--surface);font-family:Arial, Helvetica, sans-serif;display:flex;flex-direction:column;gap:4px}
+.serp .sp1{display:flex;gap:8px;align-items:center;font-size:13px}
+.serp .sp1 b{font-weight:700}
+.serp .fav{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;font:700 12px Arial;color:var(--accent)}
+.serp .u{font-size:12px;color:var(--muted)}
+.serp .t{font-size:19px;color:var(--link);line-height:1.3}
+.serp .d{font-size:14px;color:var(--ink);opacity:.85}
+.serp .sl{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--link);margin-top:4px}
+.serp .co{font-size:13px;color:var(--muted)}
+.serp .ph{font-size:13px;color:var(--ink)}
+.strength{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.meter{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.meter i{height:8px;border-radius:4px;background:var(--line)}
+.strength ul{margin:0;padding-left:18px;font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.hl-kw{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}
+.hl-kw .y{background:var(--good-soft);color:var(--good)}
+.hl-kw .n{background:var(--paper);color:var(--muted)}
+.hl-kw span{padding:2px 8px;border-radius:999px}
+
+/* nav */
+.nav{display:flex;justify-content:space-between;gap:10px}
+
+/* alerts */
+.al{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;font-size:14px}
+.al.ok{background:var(--good-soft)} .al.warn{background:var(--warn-soft)} .al.bad{background:var(--bad-soft)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:6px}
+.dot.ok{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+
+/* results */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+.ring{--p:0;width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%), var(--line) 0);display:grid;place-items:center}
+.ring > div{width:104px;height:104px;border-radius:50%;background:var(--surface);display:grid;place-items:center;text-align:center}
+.ring b{font:700 36px var(--f-display);line-height:1}
+.ring small{font-size:12px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--paper)}
+.kpi span{display:block;font-size:12px;color:var(--muted)}
+.kpi b{font:500 21px var(--f-mono);font-variant-numeric:tabular-nums}
+.stack{display:flex;height:28px;border-radius:8px;overflow:hidden;background:var(--line)}
+.stack > div{height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.cat{display:flex;flex-direction:column;gap:8px}
+.cat > header{display:flex;align-items:center;gap:10px}
+.cat > header h3{flex:1;font-size:16px}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.pts{font:500 13px var(--f-mono);color:var(--muted);white-space:nowrap}
+.qs{display:inline-grid;place-items:center;width:26px;height:22px;border-radius:5px;font:600 12px var(--f-mono)}
+.qs.h{background:var(--good-soft);color:var(--good)} .qs.m{background:var(--warn-soft);color:var(--warn)} .qs.l{background:var(--bad-soft);color:var(--bad)}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.tag.ok{background:var(--good-soft);color:var(--good)} .tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.mut{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+.fine{font-size:12px;color:var(--muted)}
+.top3{counter-reset:t;display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.top3 li{counter-increment:t;display:grid;grid-template-columns:28px 1fr;gap:8px;font-size:14px}
+.top3 li::before{content:counter(t);width:24px;height:24px;border-radius:50%;background:var(--mark);color:#1c1a10;display:grid;place-items:center;font:700 12px var(--f-mono)}
+
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(10,14,12,.5);display:none;place-items:center;z-index:20;padding:16px}
+.ov.on{display:grid}
+.modal{background:var(--surface);border-radius:14px;max-width:720px;width:100%;max-height:85vh;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:14px}
+.modal dl{margin:0;display:flex;flex-direction:column;gap:10px}
+.modal dt{font-weight:600}
+.modal dd{margin:0;color:var(--muted);font-size:14px}
+.modal textarea{min-height:240px;font:13px var(--f-mono)}
+
+@media (max-width:1180px){
+  .app{grid-template-columns:200px minmax(0,1fr)}
+  .help{grid-column:2;position:static;max-height:none}
+}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;padding:16px}
+  .steps{flex-direction:row;overflow-x:auto;position:static;gap:4px}
+  .steps button{white-space:nowrap}
+  .help{grid-column:1}
+  .adwrap,.grid2,.hero{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){
+  .bar i,.stack > div{transition:width .5s ease}
+}
+
+/* ===== Ritocchi di visualizzazione: aiuto richiudibile, navigazione sempre visibile, mobile compatto ===== */
+.cred-m{display:none}
+.helpm{display:none;background:var(--mark-soft);border-radius:12px;padding:0}
+.helpm summary{cursor:pointer;list-style:none;padding:12px 16px;display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}
+.helpm summary::-webkit-details-marker{display:none}
+.helpm summary::before{content:"?";width:22px;height:22px;flex:none;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:600 12px var(--f-mono)}
+.helpm summary::after{content:"Apri";margin-left:auto;font:500 12px var(--f-mono);color:var(--muted)}
+.helpm[open] summary::after{content:"Chiudi"}
+.helpm .hb{padding:0 16px 16px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.helpm .hb ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.helpm .hb table{font-size:13px}
+.helpm .hx{border-radius:8px;padding:10px 12px;font-size:14px}
+.helpm .hx.e{background:var(--bad-soft)} .helpm .hx.t{background:var(--surface)}
+.helpm .hx b{display:block;font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.nav{position:sticky;bottom:0;z-index:3;padding:16px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--paper) 40%)}
+.nav .btn{box-shadow:0 1px 2px rgba(0,0,0,.06)}
+@media (max-width:1180px){
+  .help{display:none}
+  .helpm{display:block}
+  .app{grid-template-columns:200px minmax(0,1fr)}
+}
+@media (max-width:820px){
+  .top{position:static;padding:10px 16px;gap:8px 10px}
+  .brand > span:not(.cred-m){display:none}
+  .cred-m{display:inline;font-size:12px;color:var(--muted)}
+  .top .sp{flex-basis:100%;height:0}
+  #scChip{flex:1;min-width:0}
+  #scChip .chip{max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;text-align:left}
+  .app{grid-template-columns:1fr;padding:0 16px 24px;gap:14px}
+  .steps{position:sticky;top:0;z-index:4;background:var(--paper);margin:0 -16px;padding:8px 16px;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .steps::-webkit-scrollbar{display:none}
+  .steps button{padding:6px 10px}
+  main{gap:14px}
+  .card{padding:16px;border-radius:12px;gap:12px}
+  h2{font-size:22px}
+  .lead{font-size:14px}
+  table{font-size:13px}
+  th,td{padding:7px 8px}
+  .hero{justify-items:start;gap:14px}
+  .ring{width:112px;height:112px}.ring > div{width:88px;height:88px}.ring b{font-size:30px}
+  .kpi b{font-size:18px}
+  .nav .btn{flex:1;padding:12px}
+  .nav .btn[style*="hidden"]{flex:0;padding:0;border:0;width:0}
+  #phone{align-items:center!important;width:100%}
+  .modal{padding:18px;max-height:90vh}
+}
+.top a.btn{white-space:nowrap}
+@media (max-width:820px){#scChip{flex:1 1 100%}}
+.term{text-decoration:underline dotted;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:help;border-radius:3px}
+.term:focus-visible{outline:2px solid var(--mark)}
+#tip{position:absolute;z-index:40;display:none;background:var(--ink);color:var(--paper);font:13px/1.45 var(--f-body);padding:8px 11px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.18);pointer-events:none}
+.exbox{flex-direction:row;align-items:center;gap:14px;background:var(--mark-soft);border-color:transparent}
+.exbox > div{flex:1}
+@media (max-width:820px){.exbox{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand"><b>Ads<i>Lab</i></b><span>Simulatore didattico di campagne sulla Rete di Ricerca · creato da <b style="font:600 13px var(--f-body);color:var(--ink)">Azzurra Curcio</b></span><span class="cred-m">di Azzurra Curcio</span></div>
+  <span class="sp"></span>
+  <span id="scChip"></span>
+  <a class="btn sm" href="index.html" style="text-decoration:none;color:inherit">← Campagna Zero</a>
+  <button class="btn sm" id="bGloss" type="button">Glossario</button>
+  <button class="btn sm ghost" id="bReset" type="button">Ricomincia</button>
+</div>
+
+<div class="app">
+  <ol class="steps" id="steps"></ol>
+  <main id="view"></main>
+  <aside class="help" id="help"></aside>
+</div>
+
+<div class="ov" id="ov"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+
+<script>
+/* ============ DATI ============ */
+const LOCS=[
+ {id:'mondo',t:'Tutti i paesi e i territori'},
+ {id:'italia',t:'Italia'},
+ {id:'lombardia',t:'Lombardia (regione)'},
+ {id:'milano',t:'Milano (città)'},
+ {id:'milano_navigli',t:'Milano – raggio 3 km dai Navigli'},
+ {id:'piemonte',t:'Piemonte (regione)'},
+ {id:'torino',t:'Torino (città)'},
+ {id:'torino_crocetta',t:'Torino – raggio 5 km da Crocetta'}
+];
+const GOALS=[
+ {id:'vendite',t:'Vendite',d:'Ordini e acquisti online, in app, per telefono o in negozio.'},
+ {id:'lead',t:'Lead',d:'Contatti: moduli compilati, chiamate, prenotazioni, iscrizioni.'},
+ {id:'traffico',t:'Traffico al sito web',d:'Portare sul sito persone interessate.'},
+ {id:'considerazione',t:'Considerazione del prodotto e del brand',d:'Far scoprire prodotti e servizi a chi sta valutando.'},
+ {id:'notorieta',t:'Notorietà del brand e copertura',d:'Farsi conoscere da più persone possibile.'},
+ {id:'nessuno',t:'Crea una campagna senza un obiettivo',d:'Scegli tu tutte le impostazioni, senza suggerimenti.'}
+];
+const BIDS=[
+ {id:'maxclic',t:'Massimizza i clic',d:'Il sistema imposta le offerte per ottenere più clic possibile con il budget.'},
+ {id:'maxconv',t:'Massimizza le conversioni',d:'Il sistema imposta le offerte per ottenere più conversioni possibile. Serve il monitoraggio delle conversioni.'},
+ {id:'tcpa',t:'CPA target',d:'Indichi quanto vuoi spendere in media per ogni conversione.'},
+ {id:'troas',t:'ROAS target',d:'Indichi quanto valore vuoi ricavare per ogni euro speso. Serve il valore delle conversioni.'},
+ {id:'manual',t:'CPC manuale',d:'Decidi tu l\'offerta massima per ogni clic.'}
+];
+const SNIP_H=['Servizi','Tipi','Marchi','Modelli','Corsi','Quartieri','Stili','Destinazioni','Assortimento'];
+
+const SC={
+ pizzeria:{
+  id:'pizzeria',k:'Attività locale',name:'Pizzeria Da Gennaro',lvl:'Livello: base',
+  short:'Pizzeria napoletana ai Navigli di Milano: più ordini d\'asporto e a domicilio.',
+  facts:[['Cosa fa','Pizzeria napoletana, asporto e consegna a domicilio, aperta la sera'],['Dove','Milano, zona Navigli (consegna entro 3 km)'],['Obiettivo','Più ordini online e telefonici'],['Budget','circa 450 € al mese'],['Sito','www.dagennaro-pizzeria.it — pagina ordini: /ordina, menù: /menu'],['Telefono','02 1234 5678'],['Monitoraggio','Conversioni attive sul modulo ordini online. Account nuovo, nessuno storico.']],
+  goalText:'ordini (vendite) o contatti telefonici',
+  domain:'dagennaro-pizzeria.it',paths:['/ordina','/menu'],phone:true,
+  goals:['vendite','lead'],budget:{lo:12,hi:18,olo:9,ohi:23},monthly:450,
+  avgCpc:.55,ctr:.075,cr:.10,scale:.5,local:true,
+  locIdeal:['milano_navigli','milano'],locOk:['lombardia'],
+  loc:{milano_navigli:{r:1,w:0},milano:{r:1,w:.25},lombardia:{r:1,w:.6},italia:{r:1,w:.8},mondo:{r:1,w:.82},piemonte:{r:.02,w:.95},torino:{r:.02,w:.95},torino_crocetta:{r:.01,w:.95}},
+  core:['pizz','margherit','napoletan'],
+  intent:['asporto','domicilio','consegn','ordin','delivery','vicino','cena','stasera','aperta','online','prezz'],
+  geo:['milano','navigli','porta genova','ticinese','darsena'],
+  bad:['ricetta','ricette','lavoro','corso','impasto','forno','gratis','calorie','surgelata','farina'],
+  junk:['ricetta pizza napoletana fatta in casa','lavoro pizzaiolo milano','corso pizzaiolo milano','impasto pizza alta idratazione','forno per pizza elettrico','pizza gratis milano','calorie pizza margherita','pizza surgelata migliore'],
+  ideas:['pizza','pizza a domicilio milano','pizzeria navigli','pizza asporto navigli','pizzeria napoletana milano','consegna pizza milano','pizza vicino a me','ricetta pizza napoletana','lavoro pizzaiolo milano','pizzeria aperta stasera milano','forno per pizza','ordinare pizza online milano']
+ },
+ running:{
+  id:'running',k:'E-commerce',name:'PassoVeloce',lvl:'Livello: intermedio',
+  short:'Negozio online di scarpe da running: vendite in tutta Italia.',
+  facts:[['Cosa fa','E-commerce di scarpe da running dei marchi principali, uomo e donna, anche trail'],['Dove','Spedizione gratuita in 24/48 ore in tutta Italia (non all\'estero)'],['Obiettivo','Vendite online'],['Budget','circa 1.500 € al mese'],['Sito','www.passoveloce.it — categorie: /uomo, /donna, /trail'],['Telefono','nessun servizio telefonico'],['Monitoraggio','Conversioni con valore d\'acquisto attive. Account nuovo, nessuno storico.']],
+  goalText:'vendite online',
+  domain:'passoveloce.it',paths:['/uomo','/donna','/trail'],phone:false,
+  goals:['vendite'],budget:{lo:45,hi:55,olo:35,ohi:66},monthly:1500,
+  avgCpc:.8,ctr:.05,cr:.028,scale:1.6,local:false,
+  locIdeal:['italia'],locOk:[],
+  loc:{italia:{r:1,w:0},mondo:{r:1,w:.2},lombardia:{r:.18,w:0},milano:{r:.06,w:0},milano_navigli:{r:.01,w:0},piemonte:{r:.08,w:0},torino:{r:.04,w:0},torino_crocetta:{r:.01,w:0}},
+  core:['scarp','running','corsa','trail','sneaker','maratona','jogging','runner'],
+  intent:['compr','acquist','online','prezz','offert','scont','saldi','shop','negozio','uomo','donna','ammortizz'],
+  geo:[],
+  bad:['usate','usato','riparazione','lavoro','come','gratis','calcio','allacciare','fai da te'],
+  junk:['scarpe running usate','riparazione scarpe da corsa','lavoro commesso negozio scarpe','come scegliere scarpe da running','scarpe da calcio offerte','come allacciare scarpe running','scarpe running gratis test prodotto'],
+  ideas:['scarpe','scarpe running','scarpe running uomo','scarpe running donna offerte','scarpe trail running','comprare scarpe da corsa online','scarpe running usate','come scegliere scarpe da running','scarpe da calcio offerte','scarpe running ammortizzate','scarpe maratona','negozio running online']
+ },
+ dentista:{
+  id:'dentista',k:'Servizi professionali',name:'Studio Dentistico Rossi',lvl:'Livello: intermedio',
+  short:'Studio dentistico a Torino: nuovi pazienti per impianti e igiene.',
+  facts:[['Cosa fa','Studio dentistico: impianti dentali, igiene e sbiancamento'],['Dove','Torino, zona Crocetta (i pazienti arrivano dalla città)'],['Obiettivo','Prenotazioni della prima visita gratuita (modulo o telefono)'],['Budget','circa 750 € al mese'],['Sito','www.studiorossi-dentista.it — pagine: /impianti, /igiene, /prenota'],['Telefono','011 987 6543'],['Monitoraggio','Conversioni attive sul modulo di prenotazione. Account nuovo, nessuno storico.']],
+  goalText:'contatti (prenotazioni)',
+  domain:'studiorossi-dentista.it',paths:['/impianti','/igiene','/sbiancamento','/prenota'],phone:true,
+  goals:['lead'],budget:{lo:22,hi:28,olo:16,ohi:34},monthly:750,
+  avgCpc:1.9,ctr:.06,cr:.07,scale:.35,local:true,
+  locIdeal:['torino','torino_crocetta'],locOk:['piemonte'],
+  loc:{torino_crocetta:{r:.8,w:0},torino:{r:1,w:.05},piemonte:{r:1,w:.35},italia:{r:1,w:.75},mondo:{r:1,w:.78},lombardia:{r:.02,w:.95},milano:{r:.02,w:.95},milano_navigli:{r:.01,w:.95}},
+  core:['dentist','dental','denti','impiant','implant','odontoiatr','sbiancament','igiene dentale','ortodon','apparecchio'],
+  intent:['prezz','cost','prenot','visita','vicino','consulenz','urgent','miglior','gratuit','studio'],
+  geo:['torino','crocetta'],
+  bad:['universita','lavoro','corso','stipendio','asl','fai da te','bicarbonato','forum','test'],
+  junk:['universita odontoiatria torino test','lavoro assistente dentista torino','corso assistente studio dentistico torino','stipendio dentista','dentista asl torino gratuito','sbiancamento denti fai da te','sbiancamento denti con bicarbonato','impianti dentali forum opinioni'],
+  ideas:['dentista','dentista torino','impianti dentali torino','impianti dentali prezzi','studio dentistico crocetta','sbiancamento denti torino','igiene dentale torino prezzo','dentista urgente torino','corso assistente studio dentistico torino','stipendio dentista','sbiancamento denti fai da te','prima visita dentista gratuita torino']
+ },
+ inglese:{
+  id:'inglese',k:'Servizi online',name:'EnglishNow',lvl:'Livello: avanzato',
+  short:'Scuola di inglese online: iscrizioni alla lezione di prova gratuita.',
+  facts:[['Cosa fa','Lezioni individuali di inglese in videochiamata con insegnanti madrelingua, anche business english e preparazione IELTS'],['Dove','Adulti in tutta Italia'],['Obiettivo','Iscrizioni alla lezione di prova gratuita'],['Budget','circa 900 € al mese'],['Sito','www.englishnow.it — pagine: /lezione-prova, /business-english, /corsi'],['Telefono','nessun servizio telefonico'],['Monitoraggio','Conversioni attive sul modulo di iscrizione. Account nuovo, nessuno storico.']],
+  goalText:'contatti (iscrizioni alla lezione di prova)',
+  domain:'englishnow.it',paths:['/lezione-prova','/business-english','/corsi'],phone:false,
+  goals:['lead'],budget:{lo:27,hi:33,olo:20,ohi:40},monthly:900,
+  avgCpc:1.2,ctr:.055,cr:.06,scale:.8,local:false,
+  locIdeal:['italia'],locOk:[],
+  loc:{italia:{r:1,w:0},mondo:{r:1,w:.25},lombardia:{r:.18,w:0},milano:{r:.06,w:0},milano_navigli:{r:.01,w:0},piemonte:{r:.08,w:0},torino:{r:.04,w:0},torino_crocetta:{r:.01,w:0}},
+  core:['ingles','english','ielts','toefl','cambridge','madrelingua'],
+  intent:['corso','corsi','lezion','online','insegnant','imparare','scuola','certificazion','business','prova','adulti'],
+  geo:[],
+  bad:['traduttore','traduzione','tradurre','esercizi','lavoro','gratis','grammatica','film','pdf','canzoni','youtube'],
+  junk:['traduttore inglese italiano','traduzione inglese gratis','esercizi inglese pdf','lavoro insegnante inglese online','corso inglese gratis youtube','grammatica inglese verbi irregolari','film in inglese con sottotitoli'],
+  ideas:['inglese','corso inglese online','lezioni inglese online madrelingua','business english online','corso inglese per adulti','preparazione ielts online','traduttore inglese italiano','corso inglese gratis','esercizi inglese pdf','insegnante inglese online','imparare inglese velocemente','lezione di prova inglese gratuita']
+ }
+};
+
+SC.pizzeria.themes={'pizza a domicilio e asporto':['domicilio','consegn','delivery','asporto','ordin'],'pizzeria come locale':['pizzeria','ristorant','tavolo','aperta','sera']};
+SC.running.themes={'scarpe da uomo':['uomo'],'scarpe da donna':['donna'],'trail running':['trail','sterrat']};
+SC.dentista.themes={'impianti dentali':['impiant','implant'],'igiene e sbiancamento':['igiene','pulizia','sbiancament']};
+SC.inglese.themes={'business english':['business','lavoro'],'certificazioni':['ielts','toefl','cambridge','certificazion','first']};
+const STEPS=['Scenario','Obiettivo','Impostazioni','Budget e offerte','Parole chiave','Annunci','Asset','Riepilogo','Risultati'];
+
+const HELP=[
+ {t:'Il brief del cliente',b:'<p>Ogni scenario è un cliente vero e proprio. Prima di aprire Google Ads un professionista raccoglie: <b>cosa vende</b>, <b>dove</b>, <b>a chi</b>, <b>quanto può spendere</b> e <b>cosa conta come risultato</b>.</p><p>Tutte le scelte dei passaggi successivi vanno ricondotte a queste informazioni: la valutazione finale le confronta con il brief.</p>',e:'Partire a costruire la campagna senza rileggere il brief: località e budget sbagliati sono gli errori più costosi.',p:'Tieni il brief aperto: lo trovi in alto in ogni passaggio, cliccando sul nome del cliente.'},
+ {t:'Obiettivo e tipo di campagna',b:'<p>L\'<b>obiettivo</b> dice a Google che risultato ti interessa: in base a questo ti propone impostazioni e strategie di offerta.</p><p>La campagna sulla <b>Rete di Ricerca</b> mostra annunci di testo nei risultati di Google quando qualcuno cerca qualcosa di collegato alle tue parole chiave. È il tipo migliore per iniziare: intercetti chi sta già cercando.</p><p>Il <b>nome</b> serve a te: usa uno schema fisso, ad esempio <span class="mono">Search – Pizza domicilio – Milano</span>.</p>',e:'Scegliere "Traffico al sito web" quando il cliente vuole vendite o contatti: ottieni visite, non clienti.',p:'Con l\'obiettivo giusto Google ottimizza per ciò che il cliente misura davvero.'},
+ {t:'Reti, AI Max, località e lingue',b:'<p><b>Reti</b>: di base Google aggiunge la <b>Rete Display</b> (banner su siti e app) e i <b>partner di ricerca</b> (altri motori e siti di ricerca). Il Display funziona in modo molto diverso dalla ricerca: chi vede un banner non sta cercando te.</p><p><b>AI Max</b>: dal 2025–2026 è attivo di default nelle nuove campagne di ricerca. Amplia le ricerche oltre le parole chiave, personalizza i titoli e può scegliere un\'altra pagina del sito. Rende di più con offerte basate sulle conversioni e va tenuto sotto controllo con le parole chiave negative e il report dei termini di ricerca.</p><p><b>Località</b>: indica dove si trovano i clienti che puoi servire. <b>Presenza</b> = persone che si trovano lì. <b>Presenza o interesse</b> = anche persone altrove che hanno cercato quel luogo.</p><p><b>Lingue</b>: la lingua impostata dagli utenti su Google.</p>',e:'Lasciare attiva la Rete Display e la località "Italia" per un\'attività di quartiere: metà del budget va a persone che non possono diventare clienti.',p:'Per attività locali scegli il raggio o la città e l\'opzione "Presenza".'},
+ {t:'Budget e strategia di offerta',b:'<p>In Google Ads imposti un <b>budget giornaliero medio</b>. Per ottenerlo dividi il budget mensile per <b>30,4</b> (giorni medi in un mese). In un singolo giorno Google può spendere fino al doppio, ma nel mese non supera mai budget × 30,4.</p><p>La <b>strategia di offerta</b> decide quanto offrire in ogni asta:</p><ul><li><b>Massimizza i clic</b>: più visite possibile.</li><li><b>Massimizza le conversioni</b>: più risultati possibile (serve il monitoraggio).</li><li><b>CPA / ROAS target</b>: funzionano bene solo con uno storico di conversioni (indicativamente 30 in 30 giorni).</li><li><b>CPC manuale</b>: decidi tu, ma devi gestirlo ogni giorno.</li></ul>',e:'Inserire il budget mensile nel campo del budget giornaliero, o impostare un CPA target su un account nuovo.',p:'Account nuovo con conversioni monitorate: parti con "Massimizza le conversioni".'},
+ {t:'Parole chiave',b:'<p>Le <b>parole chiave</b> sono i termini per cui vuoi comparire. Il <b>tipo di corrispondenza</b> decide quanto possono essere diverse le ricerche reali:</p><table><tr><th>Scrivi</th><th>Tipo</th></tr><tr><td class="mono">pizza domicilio</td><td>Generica: anche ricerche solo correlate</td></tr><tr><td class="mono">"pizza domicilio"</td><td>A frase: ricerche che contengono il significato</td></tr><tr><td class="mono">[pizza domicilio]</td><td>Esatta: stesso significato</td></tr></table><p>Le <b>parole chiave negative</b> escludono ricerche che non vuoi (es. <span class="mono">ricetta</span>, <span class="mono">lavoro</span>).</p><p>Ogni <b>gruppo di annunci</b> raccoglie parole chiave di un solo tema (5–20) con un annuncio dedicato.</p>',e:'Usare una sola parola generica a corrispondenza generica (es. pizza): compari per ricette, offerte di lavoro, corsi…',p:'Pensa a cosa scrive chi è pronto a comprare: servizio + luogo, prodotto + "prezzo", "online", "vicino a me".'},
+ {t:'Annunci adattabili della rete di ricerca',b:'<p>Scrivi fino a <b>15 titoli</b> (max 30 caratteri) e <b>4 descrizioni</b> (max 90). Google li combina e mostra di volta in volta 2–3 titoli e 1–2 descrizioni.</p><p>Ogni titolo deve stare in piedi da solo. Alterna:</p><ul><li>la parola chiave del gruppo</li><li>benefici e punti di forza</li><li>offerte e prezzi</li><li>un invito all\'azione (Ordina, Prenota, Prova…)</li></ul><p>L\'<b>URL finale</b> è la pagina dove arriva chi clicca: deve essere la più pertinente, non per forza la home.</p>',e:'Scrivere 3 titoli quasi uguali o usare il punto esclamativo nei titoli (non è consentito dalle norme pubblicitarie).',p:'Per iniziare bastano 8 titoli diversi e 3 descrizioni: è già un\'efficacia "Buona". Puoi arrivare a 15 titoli quando hai più idee.'},
+ {t:'Asset (ex estensioni)',b:'<p>Gli <b>asset</b> aggiungono informazioni all\'annuncio, lo rendono più grande e di solito aumentano la percentuale di clic. Aggiungerli non costa nulla.</p><ul><li><b>Sitelink</b>: link ad altre pagine del sito.</li><li><b>Callout</b>: brevi frasi sui punti di forza ("Consegna gratuita").</li><li><b>Chiamata</b>: il numero di telefono, cliccabile da smartphone.</li><li><b>Snippet strutturati</b>: un elenco sotto un\'intestazione (es. Servizi: …).</li></ul>',e:'Saltare gli asset: l\'annuncio risulta più piccolo di quelli dei concorrenti.',p:'Almeno 4 sitelink e 4 callout. Per attività che ricevono telefonate, sempre l\'asset di chiamata.'},
+ {t:'Controllo finale',b:'<p>Prima di pubblicare un professionista ricontrolla: obiettivo, reti, località, budget, strategia, parole chiave, annunci e asset.</p><p>Quando pubblichi, il simulatore stima <b>30 giorni</b> di risultati e assegna un punteggio su 100 con i consigli per migliorare.</p>',e:'Pubblicare con un gruppo di annunci senza annuncio o senza parole chiave.',p:'Puoi modificare la campagna e ripubblicarla quante volte vuoi: confronta i punteggi tra un tentativo e l\'altro.'},
+ {t:'Leggere i risultati',b:'<ul><li><b>Impressioni</b>: quante volte l\'annuncio è comparso.</li><li><b>CTR</b>: clic ÷ impressioni. Nella ricerca un buon CTR è spesso sopra il 4–5%.</li><li><b>CPC medio</b>: costo medio di un clic.</li><li><b>Conversioni</b>: i risultati che contano (ordini, contatti).</li><li><b>Costo/conv.</b> (CPA): quanto costa in media un risultato.</li><li><b>Punteggio di qualità</b> (1–10): giudizio su CTR previsto, pertinenza dell\'annuncio e pagina di destinazione. Più è alto, meno paghi.</li></ul><p>Il <b>report termini di ricerca</b> mostra cosa hanno scritto davvero le persone: da qui si trovano nuove parole chiave negative.</p>',e:'Guardare solo i clic: una campagna con tanti clic e zero conversioni sta sprecando budget.',p:'Correggi un problema alla volta e ripubblica per vedere l\'effetto.'}
+];
+
+const GLOSS=[
+ ['Rete di Ricerca','Gli spazi pubblicitari nei risultati di ricerca di Google: annunci di testo mostrati a chi cerca qualcosa.'],
+ ['Rete Display','Banner e annunci illustrati su milioni di siti e app. Utile per farsi vedere, ma chi la vede non sta cercando te.'],
+ ['Parola chiave','Termine o frase per cui vuoi che il tuo annuncio compaia.'],
+ ['Termine di ricerca','Quello che una persona ha scritto davvero su Google. Può essere diverso dalla tua parola chiave.'],
+ ['Corrispondenza generica / a frase / esatta','Quanto le ricerche possono discostarsi dalla parola chiave. Generica = molto, esatta = poco. Si scrivono: parola, "parola", [parola].'],
+ ['Parola chiave negativa','Termine che esclude le ricerche che lo contengono. Esempio: "lavoro" per non comparire a chi cerca un impiego.'],
+ ['Gruppo di annunci','Contenitore di parole chiave sullo stesso tema e degli annunci che le riguardano.'],
+ ['Annuncio adattabile (RSA)','Annuncio di ricerca con più titoli e descrizioni che Google combina automaticamente.'],
+ ['Asset','Informazioni aggiuntive dell\'annuncio: sitelink, callout, chiamata, snippet strutturati, ecc.'],
+ ['Impressione','Una visualizzazione dell\'annuncio.'],
+ ['CTR','Percentuale di clic: clic diviso impressioni.'],
+ ['CPC','Costo per clic. Con le offerte automatiche il sistema decide il CPC in ogni asta.'],
+ ['Conversione','Azione di valore: un acquisto, un modulo inviato, una chiamata.'],
+ ['CPA','Costo per acquisizione: costo diviso conversioni.'],
+ ['ROAS','Ritorno sulla spesa pubblicitaria: valore delle conversioni diviso costo.'],
+ ['Punteggio di qualità','Valutazione da 1 a 10 della parola chiave: CTR previsto, pertinenza dell\'annuncio, esperienza sulla pagina di destinazione.'],
+ ['Quota impressioni','Percentuale di volte in cui il tuo annuncio è comparso sul totale delle volte in cui poteva comparire.'],
+ ['AI Max per la Rete di Ricerca','Insieme di funzioni di Google che amplia le ricerche oltre le parole chiave, personalizza i titoli e può scegliere la pagina di destinazione. Attivo di default nelle nuove campagne di ricerca.'],
+ ['Limitata dal budget','La campagna potrebbe ottenere di più, ma il budget giornaliero si esaurisce.']
+];
+
+/* ============ STATO ============ */
+const KEY='adslab-v1';
+const newGroup=n=>({name:n,kw:'',url:'',p1:'',p2:'',h:Array(15).fill(''),d:Array(4).fill('')});
+function fresh(){return{scenario:null,step:0,maxStep:0,attempts:0,history:[],
+ c:{name:'',goal:'',aimax:true,aiStm:true,aiTxt:true,aiUrl:true,display:true,partners:true,loc:'italia',locOpt:'pi',lang:['it'],budget:'',bid:'',maxCpc:'',tcpa:'',troas:'',start:'',end:''},
+ groups:[newGroup('Gruppo di annunci 1')],neg:'',
+ a:{sl:[0,1,2,3].map(()=>({t:'',d1:'',d2:'',u:''})),co:Array(6).fill(''),phone:'',snH:'',snV:''},
+ ui:{adTab:0,ideaTarget:0},result:null,saved:{}}}
+let S=fresh();
+try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o&&o.c&&o.groups)S=Object.assign(fresh(),o);}}catch(e){}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},300)}
+
+/* ============ UTILITÀ ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+const STOP=new Set(['di','a','da','in','con','su','per','tra','fra','il','lo','la','i','gli','le','un','uno','una','e','o','del','della','dei','delle','al','alla','ai','me','mi','che','the','to','for','of','and','l','d']);
+const sig=t=>t.split(' ').filter(w=>w&&!STOP.has(w));
+function hash(s){let h=2166136261;for(const ch of s){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return (h>>>0)/4294967295}
+const jit=(s,a=.3)=>1-a+2*a*hash(s);
+const hasTerm=(t,terms)=>{const p=' '+t+' ',ws=t.split(' ');return terms.some(x=>x.includes(' ')?p.includes(' '+x):ws.some(w=>w.startsWith(x)))};
+const hasWord=(t,terms)=>{const p=' '+t+' ';return terms.some(x=>p.includes(' '+x+' '))};
+const stem=w=>w.slice(0,Math.max(4,w.length-2));
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
+const eur=(v,d=2)=>v.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:'always'})+' €';
+const int=v=>Math.round(v).toLocaleString('it-IT',{useGrouping:'always'});
+const pct=v=>(v*100).toLocaleString('it-IT',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const CTA=/\b(chiam[a-z]*|ordin[a-z]*|prenot[a-z]*|scopri[a-z]*|acquist[a-z]*|compr(a|alo|ala|ali|ale|are|ate)|prov(a|alo|ala|ali|are|ate|arla|arlo)|iscriv[a-z]*|richied[a-z]*|contatt[a-z]*|visit(a|ate|ala)|scegli[a-z]*|approfitt[a-z]*|inizi(a|ate)|registr(ati|atevi|arti)|vien[a-z]*|scriv(ici|eteci|ici)|clicca|passa|ricev[a-z]*|ottien[a-z]*|risparmi[a-z]*|fiss(a|ate)|riserv(a|ate)|regal(a|ati)|sfrutt[a-z]*|cogli|non perdere)\b/;
+
+function parseKw(line){let s=line.trim();if(!s)return null;let m='broad';
+ if(/^\[.*\]$/.test(s)){m='exact';s=s.slice(1,-1)}else if(/^".*"$/.test(s)){m='phrase';s=s.slice(1,-1)}
+ const text=norm(s);if(!text)return null;return{raw:line.trim(),text,m,words:text.split(' ')}}
+function parseNeg(txt){return txt.split('\n').map(l=>{const t=norm(l.replace(/[\[\]"]/g,''));return t?{text:t,words:t.split(' ')}:null}).filter(Boolean)}
+const blocks=(neg,words)=>neg.words.every(w=>words.includes(w));
+
+function rel(t,sc){
+ if(hasWord(t,sc.bad))return 0;
+ if(!hasTerm(t,sc.core))return .15;
+ let r=.55;if(hasTerm(t,sc.intent))r+=.25;
+ if(sc.local){if(hasTerm(t,sc.geo))r+=.2}else r+=.15;
+ if(sig(t).length<=1)r*=.65;return Math.min(1,r)}
+function volume(t,sc){const wc=sig(t).length;let b=wc<=1?40000:wc==2?8000:wc==3?2500:900;let v=b*sc.scale*jit(t);if(sc.local&&hasTerm(t,sc.geo))v*=.6;return Math.max(10,Math.round(v))}
+function baseCpc(t,sc){const wc=sig(t).length;return sc.avgCpc*(wc<=1?1.3:wc==2?1.05:.9)*jit(t+'#',.2)}
+function adRel(t,hlWords){const ws=sig(t);if(!ws.length)return 0;const hit=ws.filter(w=>{const s=stem(w);return hlWords.some(h=>h.startsWith(s))}).length/ws.length;return hit>=.75?2:hit>=.34?1:0}
+function lpQ(u,sc){u=(u||'').trim();if(!u)return{l:0,m:'URL finale mancante'};
+ let x;try{x=new URL(/^https?:\/\//i.test(u)?u:'https://'+u)}catch(e){return{l:0,m:'URL non valido'}}
+ const host=x.hostname.replace(/^www\./,'');if(!host.includes('.'))return{l:0,m:'URL non valido'};
+ if(host!==sc.domain&&!host.endsWith('.'+sc.domain))return{l:0,m:'dominio diverso da quello del cliente ('+sc.domain+')'};
+ const p=x.pathname.replace(/\/+$/,'');if(!p)return{l:1,m:'homepage: meglio una pagina specifica'};
+ if(sc.paths.some(q=>p.startsWith(q)))return{l:2,m:'pagina pertinente'};
+ return{l:1,m:'pagina non presente nel brief'}}
+const LVL3=['Sotto la media','Nella media','Sopra la media'];
+
+function adStrength(H,D,kws,hl){
+ const tips=[];
+ if(H.length<3||D.length<2){return{lvl:0,label:'Incompleto',p:0,tips:['Servono almeno 3 titoli e 2 descrizioni per pubblicare l\'annuncio.']}}
+ let p=Math.min(H.length,8)/8*35+Math.min(D.length,3)/3*20;
+ if(H.length<8)tips.push(`Aggiungi titoli: ne hai ${H.length}, punta ad almeno 8.`);
+ if(D.length<3)tips.push(`Aggiungi descrizioni: ne hai ${D.length}, punta ad almeno 3.`);
+ const kf=kws.length?kws.filter(k=>adRel(k.text,hl)>0).length/kws.length:0;p+=kf*20;
+ if(!kws.length)tips.push('Questo gruppo non ha parole chiave.');else if(kf<.6)tips.push('Includi le parole chiave del gruppo nei titoli.');
+ const dup=H.length-new Set(H.map(norm)).size;p-=dup*8;if(dup)tips.push('Alcuni titoli sono uguali: rendili unici.');
+ const all=norm(H.concat(D).join(' '));if(CTA.test(all))p+=10;else tips.push('Aggiungi un invito all\'azione (Ordina, Prenota, Prova…).');
+ const short=H.some(h=>h.length<=20),long=H.some(h=>h.length>=24);if(short&&long)p+=10;else tips.push('Alterna titoli brevi e titoli più lunghi.');
+ if(new Set(D.map(norm)).size===D.length)p+=5;
+ p=clamp(p,0,100);const lvl=p<40?1:p<62?2:p<82?3:4;
+ return{lvl,label:['Incompleto','Scarsa','Media','Buona','Eccellente'][lvl],p,tips}}
+
+const aiCfg=()=>{const c=S.c,on=c.aimax!==false;const txt=on&&c.aiTxt!==false;return{on,stm:on&&c.aiStm!==false,txt,url:txt&&c.aiUrl!==false}};
+/* ============ ANALISI ============ */
+function analyze(){
+ const sc=SC[S.scenario];const negs=parseNeg(S.neg);
+ const groups=S.groups.map(g=>{
+  const kws=g.kw.split('\n').map(parseKw).filter(Boolean);
+  const H=g.h.map(x=>x.trim()).filter(Boolean),D=g.d.map(x=>x.trim()).filter(Boolean);
+  const hl=norm(H.join(' ')).split(' ').filter(Boolean);
+  const lp=lpQ(g.url,sc);
+  const items=kws.map(k=>{
+   const r=rel(k.text,sc),ar=adRel(k.text,hl);
+   const ec=r>=.9?2:r>=.6?1:0;
+   const qs=clamp(Math.round(1+[0,1.75,3.5][ec]+[0,1,2][ar]+[0,1.75,3.5][lp.l]),1,10);
+   const blockedBy=negs.find(n=>blocks(n,k.words));
+   return{...k,r,ar,ec,qs,blockedBy}});
+  return{g,kws:items,H,D,lp,str:adStrength(H,D,kws,hl),valid:H.length>=3&&D.length>=2&&kws.length>0}});
+ return{sc,negs,groups}}
+
+function junkFor(k,sc,negs){
+ let base=k.m==='exact'?.03:k.m==='phrase'?.18:.45;if(k.m==='broad'&&sig(k.text).length<=1)base+=.12;
+ const st=sig(k.text).filter(w=>!hasTerm(w,sc.geo)).map(stem);
+ const matched=sc.junk.filter(q=>{if(k.m==='exact')return false;const qw=q.split(' ');
+  if(k.m==='phrase')return(' '+q+' ').includes(' '+k.text+' ')||sig(k.text).every(w=>qw.some(x=>x.startsWith(stem(w))));
+  return qw.some(x=>st.some(s=>x.startsWith(s)))});
+ const open=matched.filter(q=>!negs.some(n=>blocks(n,q.split(' '))));
+ const share=k.r===0?1:matched.length?base*(.25+.75*open.length/matched.length):base*.4;
+ return{share,matched,open}}
+
+function simulate(A){
+ const{sc,negs}=A,c=S.c;
+ const daily=num(c.budget),monthly=daily*30.4;
+ const L=sc.loc[c.loc]||{r:1,w:0};
+ const geoW=Math.min(.96,L.w+(sc.local&&c.locOpt==='pi'?.08:(!sc.local&&c.locOpt==='pi'?.03:0)));
+ const lang=(c.lang.includes('it')||c.lang.includes('all'))?1:.08;
+ const AS=[0,.8,.9,1,1.1];
+ const a=S.a;const slN=a.sl.filter(s=>s.t.trim()&&s.u.trim()).length,coN=a.co.filter(x=>x.trim()).length;
+ const assetF=1+(slN>=2?.1:0)+(coN>=2?.05:0)+(a.phone.trim()?.04:0)+(a.snH&&a.snV.split(',').filter(x=>x.trim()).length>=3?.03:0);
+ const MM={broad:2.6,phrase:1.4,exact:1},MC={broad:1,phrase:1.1,exact:1.25},LPF=[.45,1,1.15];
+ const bid=c.bid,realCpa=sc.avgCpc/sc.cr;
+ const rows=[],terms={},other={clicks:0,cost:0,impr:0};
+ let tot={impr:0,clicks:0,cost:0,conv:0,relCost:0,junkCost:0,geoCost:0,relClicks:0};
+ A.groups.forEach((G,gi)=>{
+  if(!G.valid)return;
+  G.kws.forEach(k=>{
+   if(k.blockedBy){rows.push({k,gi,blocked:true});return}
+   const AI=aiCfg(),smart=['maxconv','tcpa','troas'].includes(bid);
+   const v=volume(k.text,sc)*lang*L.r,reach=v*MM[k.m]*(AI.stm?1.25:1);
+   const need=baseCpc(k.text,sc)*(1.5-.09*k.qs);
+   let isB=1,cpcM=1,convM=1,cpc;
+   if(bid==='maxclic'){cpcM=.95;convM=.9}
+   else if(bid==='maxconv'){isB=.95;cpcM=1.12;convM=1.15}
+   else if(bid==='tcpa'){const t=num(c.tcpa);isB=!t?.1:t<realCpa*.6?.25:.6;cpcM=1.05;convM=1.2}
+   else if(bid==='troas'){isB=c.goal==='vendite'?.3:.05;convM=1.1}
+   else if(bid==='manual'){const b=num(c.maxCpc);isB=b?clamp(Math.pow(b/need,1.5),.03,1):0}
+   else isB=0;
+   if(AI.stm)convM*=smart?1.07:.93;
+   cpc=bid==='manual'?Math.min(num(c.maxCpc)||0,need):need*cpcM;
+   const isQ=.45+.055*k.qs;
+   const base=reach*isB*isQ;
+   const J=junkFor(k,sc,negs);
+   const jS=AI.stm?Math.min(.9,J.share*(smart?1.15:1.5)+(k.m==='exact'?.05:.02)):J.share;
+   const relI=base*(1-jS),junkI=base*jS,geoI=base*geoW/(1-geoW);
+   const ctr=sc.ctr*(.5+.5*k.r)*Math.sqrt(k.qs/7)*AS[G.str.lvl]*assetF*MC[k.m]*(AI.txt?1.04:1);
+   const rc=relI*ctr,jc=junkI*ctr*.35,gc=geoI*ctr*.6;
+   const conv=rc*sc.cr*Math.max(k.r,.15)*LPF[G.lp.l]*convM*(AI.url?(G.lp.l===2?.97:1.05):1)+gc*sc.cr*.04;
+   const pf=c.partners?1.07:1;
+   const r={k,gi,impr:(relI+junkI+geoI)*pf,clicks:(rc+jc+gc)*pf,cost:(rc+jc+gc)*cpc*pf,conv:conv*(c.partners?1+.07*.7:1),relCost:rc*cpc*pf,junkCost:jc*cpc*pf,geoCost:gc*cpc*pf,relClicks:rc*pf,cpc,isB};
+   rows.push(r);
+   const t=terms[k.text]||(terms[k.text]={q:k.text,type:'ok',clicks:0,cost:0,conv:0,from:k.raw});t.clicks+=rc*pf;t.cost+=rc*cpc*pf;t.conv+=conv;
+   const toList=jc*pf*.75;J.open.forEach(q=>{const x=terms[q]||(terms[q]={q,type:'junk',clicks:0,cost:0,conv:0,from:k.raw});x.clicks+=toList/J.open.length;x.cost+=toList*cpc/J.open.length});
+   if(!J.open.length){other.clicks+=jc*pf;other.cost+=jc*cpc*pf}else{other.clicks+=jc*pf*.25;other.cost+=jc*pf*.25*cpc}
+   J.matched.filter(q=>!J.open.includes(q)).forEach(q=>{if(!terms[q])terms[q]={q,type:'blocked',clicks:0,cost:0,conv:0,from:k.raw}});
+  })});
+ let disp={cost:0,clicks:0,impr:0,conv:0};
+ if(c.display&&monthly>0){disp.cost=monthly*.3;disp.clicks=disp.cost/(sc.avgCpc*.35);disp.impr=disp.clicks/.005;disp.conv=disp.clicks*sc.cr*.08}
+ const searchBudget=monthly-disp.cost;
+ const sCost=rows.reduce((s,r)=>s+(r.cost||0),0);
+ const f=sCost>searchBudget&&sCost>0?Math.max(0,searchBudget)/sCost:1;
+ const sc2=r=>{['impr','clicks','cost','conv','relCost','junkCost','geoCost','relClicks'].forEach(x=>{if(r[x]!=null)r[x]*=f})};
+ rows.forEach(r=>{if(!r.blocked)sc2(r)});Object.values(terms).forEach(t=>{t.clicks*=f;t.cost*=f;t.conv*=f});other.clicks*=f;other.cost*=f;
+ rows.forEach(r=>{if(r.blocked)return;tot.impr+=r.impr;tot.clicks+=r.clicks;tot.cost+=r.cost;tot.conv+=r.conv;tot.relCost+=r.relCost;tot.junkCost+=r.junkCost;tot.geoCost+=r.geoCost});
+ tot.impr+=disp.impr;tot.clicks+=disp.clicks;tot.cost+=disp.cost;tot.conv+=disp.conv;
+ const termList=Object.values(terms).sort((x,y)=>(x.type==='blocked')-(y.type==='blocked')||y.cost-x.cost);
+ if(other.clicks>0.5)termList.push({q:'altre ricerche poco pertinenti (varie)',type:'junk',clicks:other.clicks,cost:other.cost,conv:0,from:'corrispondenza generica / a frase'});
+ return{rows,tot,disp,monthly,daily,limited:f<.98,f,terms:termList,geoW,assetF}}
+
+/* ============ VALUTAZIONE ============ */
+function grade(A,R){
+ const{sc,negs}=A,c=S.c,cats=[];const it=(lvl,t,msg,pts,max)=>({lvl,t,msg,pts,max});
+ const goalT=id=>(GOALS.find(x=>x.id===id)||{}).t;
+ // 1
+ let I=[];const g=c.goal;
+ if(!g)I.push(it('bad','Obiettivo','Non hai scelto un obiettivo per la campagna.',0,7));
+ else if(sc.goals.includes(g))I.push(it('ok','Obiettivo',`"${goalT(g)}" è coerente con il brief: il cliente vuole ${sc.goalText}.`,7,7));
+ else if(g==='traffico')I.push(it('warn','Obiettivo',`"Traffico al sito web" porta visite, ma il cliente vuole ${sc.goalText}. Scegli "${goalT(sc.goals[0])}".`,3,7));
+ else if(g==='nessuno')I.push(it('warn','Obiettivo',`Senza obiettivo Google non ti guida. Il cliente vuole ${sc.goalText}: scegli "${goalT(sc.goals[0])}".`,2,7));
+ else I.push(it('bad','Obiettivo',`"${goalT(g)}" serve a farsi conoscere, non a ottenere ${sc.goalText}. Scegli "${goalT(sc.goals[0])}".`,0,7));
+ const nm=c.name.trim();
+ if(!nm)I.push(it('bad','Nome campagna','Manca il nome. Usa uno schema come "Search – Servizio – Zona".',0,3));
+ else if(nm.length<8||/^(campagna|campaign|nuova campagna|test|prova)\s*[#\d]*$/i.test(nm))I.push(it('warn','Nome campagna',`"${nm}" è poco descrittivo: con tante campagne non lo ritroverai. Esempio: "Search – Servizio – Zona".`,1,3));
+ else I.push(it('ok','Nome campagna','Nome descrittivo.',3,3));
+ cats.push({t:'Obiettivo e nome',items:I});
+ // 2
+ I=[];
+ I.push(c.display?it('bad','Rete Display','Hai lasciato attiva la Rete Display: circa il 30% del budget è finito in banner su siti e app, con pochissime conversioni. In una campagna di ricerca disattivala.',0,6):it('ok','Rete Display','Disattivata: tutto il budget va alla ricerca.',6,6));
+ I.push(c.partners?it('warn','Partner di ricerca','Attivi: portano qualche clic in più ma di qualità variabile. Va bene, ma controllane i risultati.',1,2):it('ok','Partner di ricerca','Disattivati: massimo controllo sul traffico.',2,2));
+ const L=sc.loc[c.loc],locT=(LOCS.find(x=>x.id===c.loc)||{}).t;
+ if(sc.locIdeal.includes(c.loc))I.push(it('ok','Località',`"${locT}" corrisponde all'area servita dal cliente.`,8,8));
+ else if(sc.locOk.includes(c.loc))I.push(it('warn','Località',`"${locT}" è più ampia dell'area servita: parte dei clic arriva da chi non può diventare cliente.`,5,8));
+ else if(L&&L.w===0&&L.r<.5)I.push(it('warn','Località',`"${locT}" è troppo ristretta: il cliente serve ${sc.local?'un\'area più ampia':'tutta Italia'} e stai perdendo potenziali clienti.`,3,8));
+ else I.push(it('bad','Località',`"${locT}" non corrisponde al brief. ${L&&L.w>=.9?'Il cliente non opera in quella zona.':`Circa il ${Math.round(R.geoW*100)}% dei clic arriva da persone fuori dall'area servita.`}`,0,8));
+ if(c.locOpt==='p')I.push(it('ok','Opzione località','"Presenza": mostri gli annunci solo a chi si trova nella zona.',2,2));
+ else I.push(it('warn','Opzione località',sc.local?'"Presenza o interesse" mostra annunci anche a chi vive altrove ma ha cercato quella zona. Per un\'attività locale usa "Presenza".':'"Presenza o interesse" include anche persone all\'estero interessate all\'Italia, che il cliente non può servire. Meglio "Presenza".',sc.local?0:1,2));
+ I.push((c.lang.includes('it')||c.lang.includes('all'))?it('ok','Lingue','Lingua corretta per il pubblico italiano.',2,2):it('bad','Lingue','Non hai incluso l\'italiano: quasi nessun utente italiano vedrà gli annunci.',0,2));
+ {const A2=aiCfg(),smart=['maxconv','tcpa','troas'].includes(c.bid);const covAI=sc.junk.filter(q=>negs.some(n=>blocks(n,q.split(' ')))).length/sc.junk.length;
+  if(!A2.on)I.push(it('ok','AI Max','Disattivato: gli annunci compaiono solo per le tue parole chiave. Per chi inizia è una scelta prudente; con un\'offerta basata sulle conversioni e buone parole chiave negative puoi provarlo.',0,0));
+  else if(!smart)I.push(it('warn','AI Max','È attivo, ma la tua strategia di offerta non è basata sulle conversioni. Google indica che le funzioni di AI Max richiedono strategie Smart Bidding basate sulle conversioni (es. "Massimizza le conversioni"): così amplia le ricerche senza un criterio di qualità.',0,0));
+  else if(covAI<.6)I.push(it('warn','AI Max','È attivo con un\'offerta basata sulle conversioni, ma amplia le ricerche oltre le tue parole chiave: aggiungi più parole chiave negative e controlla spesso il report dei termini di ricerca.',0,0));
+  else I.push(it('ok','AI Max','Attivo con offerta basata sulle conversioni e buone parole chiave negative: configurazione corretta. Controlla comunque il report dei termini di ricerca.',0,0));}
+ cats.push({t:'Impostazioni',items:I});
+ // 3
+ I=[];const d=num(c.budget),B=sc.budget;
+ if(!d)I.push(it('bad','Budget','Manca il budget giornaliero: la campagna non può partire.',0,7));
+ else if(d>=B.lo&&d<=B.hi)I.push(it('ok','Budget',`${eur(d)} al giorno ≈ ${eur(d*30.4,0)} al mese: in linea con i ${sc.monthly} € del brief.`,7,7));
+ else{const ok=d>=B.olo&&d<=B.ohi;I.push(it(ok?'warn':'bad','Budget',`${eur(d)} al giorno ≈ ${eur(d*30.4,0)} al mese, ma il cliente ha ${sc.monthly} € al mese. Budget giornaliero corretto: ${sc.monthly} ÷ 30,4 ≈ ${eur(sc.monthly/30.4)}.`,ok?4:1,7))}
+ const realCpa=sc.avgCpc/sc.cr;
+ if(!c.bid)I.push(it('bad','Strategia di offerta','Non hai scelto una strategia di offerta.',0,8));
+ else if(c.bid==='maxconv')I.push(it('ok','Strategia di offerta','"Massimizza le conversioni" è la scelta adatta a un account nuovo con conversioni monitorate.',8,8));
+ else if(c.bid==='maxclic')I.push(it('warn','Strategia di offerta','"Massimizza i clic" porta visite ma non cerca chi converte. Va bene per i primi giorni, poi passa a "Massimizza le conversioni".',5,8));
+ else if(c.bid==='manual'){const b=num(c.maxCpc);if(!b)I.push(it('bad','Strategia di offerta','CPC manuale senza offerta massima: gli annunci non partecipano alle aste.',0,8));else if(b<sc.avgCpc*.8)I.push(it('bad','Strategia di offerta',`Offerta massima di ${eur(b)} troppo bassa: il CPC medio di questo settore è circa ${eur(sc.avgCpc)}. Compari raramente.`,2,8));else I.push(it('warn','Strategia di offerta','CPC manuale funziona, ma richiede di regolare le offerte a mano ogni giorno. Per chi inizia, meglio un\'offerta automatica.',6,8))}
+ else if(c.bid==='tcpa'){const t=num(c.tcpa);I.push(it('warn','Strategia di offerta',`Il CPA target ha bisogno di uno storico di conversioni (circa 30 in 30 giorni): su un account nuovo limita molto il volume.${t&&t<realCpa*.6?` In più ${eur(t)} è troppo basso: realisticamente servono circa ${eur(realCpa)} per conversione.`:''} Parti con "Massimizza le conversioni".`,t&&t<realCpa*.6?2:3,8))}
+ else if(c.bid==='troas')I.push(c.goal==='vendite'&&sc.id==='running'?it('warn','Strategia di offerta','Il ROAS target richiede uno storico di vendite con valore: su un account nuovo l\'algoritmo non ha dati e la campagna stenta. Parti con "Massimizza le conversioni".',2,8):it('bad','Strategia di offerta','Il ROAS target serve per vendite con un valore economico tracciato: non è adatto a questo cliente.',0,8));
+ cats.push({t:'Budget e offerte',items:I});
+ // 4
+ I=[];const all=A.groups.flatMap(G=>G.kws);const counts=A.groups.map(G=>G.kws.length);
+ if(!all.length)I.push(it('bad','Numero di parole chiave','Nessuna parola chiave: la campagna non può comparire.',0,2));
+ else if(counts.some(n=>n===0))I.push(it('bad','Numero di parole chiave','Un gruppo di annunci è vuoto. Aggiungi parole chiave o eliminalo.',.5,2));
+ else if(counts.some(n=>n<5))I.push(it('warn','Numero di parole chiave',`Alcuni gruppi hanno meno di 5 parole chiave (${counts.join(', ')}): rischi di perdere ricerche utili.`,1,2));
+ else if(counts.some(n=>n>25))I.push(it('warn','Numero di parole chiave','Più di 25 parole chiave in un gruppo: probabilmente mescoli temi diversi. Dividile in più gruppi.',1,2));
+ else I.push(it('ok','Numero di parole chiave',`Tra 5 e 25 parole chiave per gruppo (${counts.join(', ')}).`,2,2));
+ if(!all.length)I.push(it('bad','Gruppi tematici','—',0,2));
+ else{const th=sc.themes||{},mixed=[];
+  A.groups.forEach(G=>{const cnt={};G.kws.forEach(k=>{const hit=Object.keys(th).filter(n=>hasTerm(k.text,th[n]));if(hit.length===1)cnt[hit[0]]=(cnt[hit[0]]||0)+1});
+   const big=Object.keys(cnt).filter(n=>cnt[n]>=2);if(big.length>=2)mixed.push(`"${G.g.name||'Gruppo'}" mescola ${big.join(' e ')}`)});
+  I.push(mixed.length?it('warn','Gruppi tematici',`${mixed.join('; ')}. Crea un gruppo per ogni tema, con il suo annuncio e la sua pagina di destinazione: annunci e punteggio di qualità migliorano.`,0,2):it('ok','Gruppi tematici','Ogni gruppo di annunci tratta un solo tema.',2,2))}
+ if(all.length){const avg=all.reduce((s,k)=>s+k.r,0)/all.length;const badK=all.filter(k=>k.r<.3);
+  I.push(it(avg>=.78?'ok':avg>=.55?'warn':'bad','Pertinenza',(badK.length?`Parole chiave non pertinenti: ${badK.slice(0,5).map(k=>'"'+k.text+'"').join(', ')}. Attirano persone che non diventeranno clienti. `:'')+(avg>=.78?'Le parole chiave rispecchiano ciò che il cliente vende e dove.':sc.local?'Aggiungi la zona (es. città o quartiere) e l\'intenzione (domicilio, prezzi, prenota…).':'Rendile più specifiche: prodotto + intenzione (online, prezzi, uomo/donna, corso…).'),Math.round(8*avg),8))
+  const nb=all.filter(k=>k.m==='broad').length,ne=all.filter(k=>k.m==='exact').length;
+  if(nb===all.length)I.push(it('warn','Tipi di corrispondenza','Tutte a corrispondenza generica: Google ti mostra anche per ricerche solo vagamente correlate. Usa "frase" o [esatta] per le parole chiave principali.',1,5));
+  else if(ne===all.length)I.push(it('warn','Tipi di corrispondenza','Solo corrispondenza esatta: controllo massimo ma poca copertura. Aggiungi qualche parola chiave a frase.',4,5));
+  else I.push(it('ok','Tipi di corrispondenza','Buon mix di corrispondenze.',5,5));
+  const singles=all.filter(k=>sig(k.text).length<=1);
+  I.push(singles.length?it('warn','Parole chiave generiche',`Una sola parola (${singles.map(k=>'"'+k.text+'"').join(', ')}) è troppo generica: costa di più e intercetta ricerche di ogni tipo.`,0,3):it('ok','Parole chiave generiche','Nessuna parola chiave di una sola parola.',3,3));
+ }else{I.push(it('bad','Pertinenza','—',0,8));I.push(it('bad','Tipi di corrispondenza','—',0,5));I.push(it('bad','Parole chiave generiche','—',0,3))}
+ const blockedJ=sc.junk.filter(q=>negs.some(n=>blocks(n,q.split(' '))));const cov=blockedJ.length/sc.junk.length;
+ const self=all.filter(k=>k.blockedBy);
+ const miss=[...new Set(sc.junk.filter(q=>!blockedJ.includes(q)).map(q=>sc.bad.find(b=>(' '+q+' ').includes(' '+b+' '))).filter(Boolean))];
+ let np=Math.round(5*Math.min(1,cov/.6));if(self.length)np=Math.max(0,np-2);
+ I.push(it(self.length?'bad':cov>=.6?'ok':cov>0?'warn':'bad','Parole chiave negative',(self.length?`Attenzione: la negativa "${self[0].blockedBy.text}" blocca la tua parola chiave "${self[0].text}". `:'')+(negs.length?`Escludi ${blockedJ.length} ricerche inutili su ${sc.junk.length} tipiche di questo settore.`:'Nessuna parola chiave negativa.')+(miss.length?` Ti mancano, ad esempio: ${miss.slice(0,4).join(', ')}.`:''),np,5));
+ cats.push({t:'Parole chiave',items:I});
+ // 5
+ I=[];const Gs=A.groups;const n=Gs.length;const avgP=f=>Gs.reduce((s,G)=>s+f(G),0)/n;const nm2=G=>n>1?`"${G.g.name}"`:'l\'annuncio';
+ const worst=(f,max)=>Gs.filter(G=>f(G)<max).map(nm2);
+ const fH=G=>G.H.length>=8?4:G.H.length>=5?3:G.H.length>=3?1:0;
+ let p=avgP(fH),w=worst(fH,4);I.push(it(p>=4?'ok':p>=1?'warn':'bad','Titoli',p>=4?'Almeno 8 titoli: Google ha abbastanza combinazioni da testare.':`Pochi titoli in ${w.join(', ')}: ${Gs.map(G=>G.H.length).join(' / ')} su 15. Punta ad almeno 8.${Gs.some(G=>G.H.length<3)?' Con meno di 3 titoli l\'annuncio non può essere pubblicato.':''}`,p,4));
+ const fD=G=>G.D.length>=3?3:G.D.length===2?1.5:0;p=avgP(fD);w=worst(fD,3);
+ I.push(it(p>=3?'ok':p>=1?'warn':'bad','Descrizioni',p>=3?'Almeno 3 descrizioni.':`Descrizioni insufficienti in ${w.join(', ')}. Scrivine almeno 3.${Gs.some(G=>G.D.length<2)?' Con meno di 2 l\'annuncio non può essere pubblicato.':''}`,p,3));
+ const fK=G=>G.kws.length?4*G.kws.filter(k=>k.ar>0).length/G.kws.length:0;p=avgP(fK);
+ I.push(it(p>=3.2?'ok':p>=1.5?'warn':'bad','Parole chiave nei titoli',p>=3.2?'I titoli riprendono le parole chiave: migliora la pertinenza e il punteggio di qualità.':'Molte parole chiave non compaiono nei titoli. Chi cerca "X" vuole leggere "X" nell\'annuncio: aumenta il CTR e abbassa il CPC.',p,4));
+ const fC=G=>CTA.test(norm(G.H.concat(G.D).join(' ')))?2:0;p=avgP(fC);
+ I.push(it(p>=2?'ok':'warn','Invito all\'azione',p>=2?'Presente un invito all\'azione.':'Manca un invito all\'azione chiaro (Ordina ora, Prenota la visita, Prova gratis…).',p,2));
+ const pol=G=>{const ex=G.H.some(h=>h.includes('!'));const caps=G.H.concat(G.D).some(h=>/\b[A-ZÀ-Ù]{5,}\b/.test(h));const dup=G.H.length!==new Set(G.H.map(norm)).size;return{ex,caps,dup,pts:2-(ex?1:0)-(caps?1:0)-(dup?.5:0)}};
+ const pr=Gs.map(pol);p=Math.max(0,pr.reduce((s,x)=>s+x.pts,0)/n);
+ const pm=[];if(pr.some(x=>x.ex))pm.push('punto esclamativo nei titoli (non consentito)');if(pr.some(x=>x.caps))pm.push('parole tutte in MAIUSCOLO (non consentite se non sono sigle)');if(pr.some(x=>x.dup))pm.push('titoli duplicati');
+ I.push(it(pm.length?'warn':'ok','Norme e stile',pm.length?'Da correggere: '+pm.join('; ')+'.':'Nessun problema di norme editoriali.',p,2));
+ const fU=G=>G.lp.l===2?3:G.lp.l===1?2:0;p=avgP(fU);
+ I.push(it(p>=3?'ok':p>=2?'warn':'bad','URL finale',Gs.map(G=>(n>1?G.g.name+': ':'')+G.lp.m).join(' · ')+(p<3?`. Usa le pagine del brief (${sc.paths.join(', ')}).`:'.'),p,3));
+ const fP=G=>G.g.p1.trim()?1:0;p=avgP(fP);
+ I.push(it(p>=1?'ok':'warn','Percorso visualizzato',p>=1?'Percorso compilato: l\'URL mostrato è più chiaro.':'Compila il percorso visualizzato (es. /pizza/domicilio): costa nulla e rende l\'annuncio più pertinente.',p,1));
+ const fL=G=>G.H.length&&G.H.reduce((s,h)=>s+h.length,0)/G.H.length>=18?1:0;p=avgP(fL);
+ I.push(it(p>=1?'ok':'warn','Uso dello spazio',p>=1?'Titoli che sfruttano bene i 30 caratteri.':'Titoli molto corti: usa lo spazio per dire qualcosa di concreto.',p,1));
+ cats.push({t:'Annunci',items:I});
+ // 6
+ I=[];const a=S.a;const slN=a.sl.filter(s=>s.t.trim()&&s.u.trim()).length,coN=a.co.filter(x=>x.trim()).length,snN=a.snV.split(',').filter(x=>x.trim()).length;
+ I.push(it(slN>=4?'ok':slN>=2?'warn':'bad','Sitelink',slN>=4?`${slN} sitelink completi.`:`${slN} sitelink completi (testo + URL). Aggiungine almeno 4.`,slN>=4?4:slN>=2?3:0,4));
+ I.push(it(coN>=4?'ok':coN>=2?'warn':'bad','Callout',coN>=4?`${coN} callout.`:`${coN} callout. Aggiungine almeno 4 con i punti di forza del brief.`,coN>=4?3:coN>=2?2:0,3));
+ if(sc.phone)I.push(a.phone.replace(/\D/g,'').length>=6?it('ok','Asset di chiamata','Numero inserito: da smartphone si chiama con un tocco.',3,3):it('bad','Asset di chiamata','Il cliente riceve contatti per telefono: aggiungi il numero del brief.',0,3));
+ else I.push(a.snH&&snN>=3?it('ok','Snippet strutturati','Snippet con almeno 3 valori.',3,3):it('warn','Snippet strutturati','Il cliente non ha un telefono: usa uno snippet strutturato (es. Marchi o Corsi) con almeno 3 valori.',0,3));
+ cats.push({t:'Asset',items:I});
+ cats.forEach(k=>{k.pts=k.items.reduce((s,x)=>s+x.pts,0);k.max=k.items.reduce((s,x)=>s+x.max,0)});
+ const total=Math.round(cats.reduce((s,k)=>s+k.pts,0));
+ return{cats,total}}
+
+/* ============ CAMBIO SCENARIO: ogni cliente ha la sua campagna e il suo storico ============ */
+const PER_SC=['c','groups','neg','a','attempts','history','result','maxStep'];
+function switchScenario(id){
+ if(S.scenario===id)return;
+ S.saved=S.saved||{};
+ if(S.scenario)S.saved[S.scenario]=JSON.parse(JSON.stringify(Object.fromEntries(PER_SC.map(k=>[k,S[k]]))));
+ const f=fresh(),snap=S.saved[id];
+ PER_SC.forEach(k=>S[k]=snap&&snap[k]!==undefined?snap[k]:f[k]);
+ S.scenario=id;S.ui={adTab:0,ideaTarget:0};
+}
+
+const EXAMPLES={pizzeria:{name:'Search – Pizza a domicilio – Milano',sl:'Il nostro menù',co:'Consegna in 30 minuti',ph:'02 1234 5678',sn:'Margherita, Diavola, Capricciosa'},running:{name:'Search – Scarpe running – Italia',sl:'Scarpe da trail',co:'Reso gratuito in 30 giorni',ph:'',sn:'Uomo, Donna, Trail'},dentista:{name:'Search – Impianti dentali – Torino',sl:'Prenota la visita',co:'Prima visita gratuita',ph:'011 987 6543',sn:'Impianti, Igiene, Sbiancamento'},inglese:{name:'Search – Corsi inglese online – Italia',sl:'Lezione di prova',co:'Insegnanti madrelingua',ph:'',sn:'Inglese generale, Business English, IELTS'}};
+const EX=()=>EXAMPLES[S.scenario]||EXAMPLES.pizzeria;
+/* ============ RENDER ============ */
+function render(){
+ const v=$('#view');S.maxStep=Math.max(S.maxStep,S.step);
+ renderSteps();renderHelp();renderChip();
+ v.innerHTML=[rScenario,rGoal,rSettings,rBudget,rKw,rAds,rAssets,rSummary,rResults][S.step]();
+ afterRender();save();
+}
+function renderSteps(){
+ $('#steps').innerHTML=STEPS.map((t,i)=>{const dis=(i>0&&!S.scenario)||(i===8&&!S.result);
+  return`<li><button type="button" data-go="${i}" class="${i===S.step?'cur':''} ${i<S.maxStep&&i!==S.step?'done':''}" ${dis?'disabled':''}><span class="n">${i<S.maxStep&&i!==S.step?'✓':i+1}</span>${t}</button></li>`}).join('')}
+function renderHelp(){const h=HELP[S.step];$('#help').innerHTML=`<div class="box"><span class="lab">Cos'è questo passaggio</span><h3>${h.t}</h3>${h.b}</div><div class="box err"><span class="lab">Errore comune</span><p>${h.e}</p></div><div class="box tip"><span class="lab">Consiglio</span><p>${h.p}</p></div>`}
+function renderChip(){const sc=SC[S.scenario];$('#scChip').innerHTML=sc?`<button type="button" class="chip btn sm" id="bBrief" title="Rileggi il brief">Cliente: <b>${esc(sc.name)}</b></button>`:''}
+function briefHTML(sc){return`<div class="brief"><b>${esc(sc.name)} · brief del cliente</b><dl>${sc.facts.map(f=>`<dt>${f[0]}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></div>`}
+const nav=(next='Avanti',dis=false)=>`<div class="nav"><button class="btn" type="button" data-go="${S.step-1}" ${S.step===0?'style="visibility:hidden"':''}>← Indietro</button><button class="btn pri" type="button" data-go="${S.step+1}" ${dis?'disabled':''}>${next} →</button></div>`;
+const cnt=(val,max)=>`<span class="cnt ${val.length>max?'over':''}" data-max="${max}">${val.length}/${max}</span>`;
+const tin=(b,val,max,ph='',id='')=>`<div class="inp"><input type="text" id="${id||'f_'+b.replace(/\./g,'_')}" data-b="${b}" value="${esc(val)}" placeholder="${esc(ph)}" maxlength="${max+20}">${cnt(val,max)}</div>`;
+const get=p=>p.split('.').reduce((o,k)=>o?.[k],S);
+function set(p,v){const ks=p.split('.');let o=S;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks.at(-1)]=v}
+
+function rScenario(){
+ const sc=SC[S.scenario];
+ return`<div class="card"><h2>Scegli il cliente</h2><p class="lead">Ogni scenario è un cliente con un brief preciso. Creerai per lui una campagna sulla Rete di Ricerca, dalla A alla Z. Alla fine vedrai 30 giorni di risultati simulati e un punteggio su 100 con i consigli per migliorare.</p>
+ <div class="scen">${Object.values(SC).map(s=>`<button type="button" class="sc ${S.scenario===s.id?'on':''}" data-sc="${s.id}"><span class="k">${s.k}</span><h3>${esc(s.name)}</h3><p>${esc(s.short)}</p><span class="lvl">${s.lvl} · ${s.monthly} €/mese</span></button>`).join('')}</div></div>
+ ${sc?`<div class="card">${briefHTML(sc)}<p class="hint">Leggi bene il brief: ti servirà in ogni passaggio. Puoi rileggerlo quando vuoi dal pulsante "Cliente" in alto.</p></div>`:''}
+ ${exampleCard('30–45')}
+ ${nav('Inizia a creare la campagna',!sc)}
+ <p class="fine">© 2026 Azzurra Curcio · Campagna Zero · Materiale didattico. Opera distribuita con licenza <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.it" target="_blank" rel="noopener">Creative Commons Attribuzione – Non commerciale – Non opere derivate 4.0 Internazionale (CC BY-NC-ND 4.0)</a>: puoi usarla e condividerla citando l'autrice, senza scopi commerciali e senza modificarla. Simulatore didattico indipendente, non affiliato né approvato da Google. Google Ads è un marchio di Google LLC. Clienti, marchi, siti e numeri di telefono degli scenari sono di fantasia: ogni riferimento a realtà esistenti è casuale. I risultati sono stime di un modello semplificato.</p>`}
+
+function rGoal(){const c=S.c;
+ return`<div class="card"><h2>Obiettivo della campagna</h2><p class="lead">Qual è il risultato che rende questa campagna un successo per il cliente?</p>
+ <div class="opts">${GOALS.map(g=>`<label class="opt ${c.goal===g.id?'on':''}"><input type="radio" name="goal" data-b="c.goal" value="${g.id}" ${c.goal===g.id?'checked':''}><span><b>${g.t}</b><small>${g.d}</small></span></label>`).join('')}</div>
+ ${['considerazione','notorieta'].includes(c.goal)?`<div class="al warn"><span class="dot warn"></span><span>Con questo obiettivo Google ti proporrebbe soprattutto campagne Display, Video e Demand Gen. In questo esercizio la campagna resta comunque sulla Rete di Ricerca.</span></div>`:''}
+ </div>
+ <div class="card"><h3>Tipo di campagna</h3><label class="opt on" style="max-width:420px"><input type="radio" checked disabled><span><b>Rete di Ricerca</b><small>Annunci di testo nei risultati di Google per chi cerca i tuoi prodotti o servizi.</small></span></label>
+ <div class="field"><label for="f_c_name">Nome della campagna</label><input type="text" id="f_c_name" data-b="c.name" value="${esc(c.name)}" placeholder="Es. ${esc(EX().name)}"><span class="hint">Il nome lo vedi solo tu: deve farti capire subito tipo, prodotto e zona.</span></div></div>
+ ${nav()}`}
+
+function rSettings(){const c=S.c;
+ return`<div class="card"><h2>Impostazioni della campagna</h2><h3>Reti</h3>
+ <label class="opt ${c.partners?'on':''}"><input type="checkbox" data-b="c.partners" ${c.partners?'checked':''}><span><b>Includi i partner di ricerca di Google</b><small>Gli annunci possono comparire anche su siti partner che usano la ricerca di Google.</small></span></label>
+ <label class="opt ${c.display?'on':''}"><input type="checkbox" data-b="c.display" ${c.display?'checked':''}><span><b>Includi la Rete Display di Google</b><small>Mostra annunci anche su siti, app e video quando gli utenti navigano, non solo quando cercano.</small></span></label></div>
+ <div class="card"><h3>AI Max per le campagne sulla rete di ricerca</h3><p class="hint">Nelle nuove campagne di ricerca è attivo di default. Usa l'intelligenza artificiale di Google per mostrare gli annunci anche per ricerche che non corrispondono esattamente alle tue parole chiave, e per adattare titoli e pagine di destinazione.</p>
+ <label class="opt ${aiCfg().on?'on':''}"><input type="checkbox" data-b="c.aimax" ${aiCfg().on?'checked':''}><span><b>Attiva AI Max</b><small>Funziona bene con strategie di offerta basate sulle conversioni e con buone parole chiave negative.</small></span></label>
+ ${aiCfg().on?`<div class="opts"><label class="opt ${c.aiStm!==false?'on':''}"><input type="checkbox" data-b="c.aiStm" ${c.aiStm!==false?'checked':''}><span><b>Corrispondenza dei termini di ricerca</b><small>Raggiunge ricerche pertinenti oltre le tue parole chiave.</small></span></label><label class="opt ${c.aiTxt!==false?'on':''}"><input type="checkbox" data-b="c.aiTxt" ${c.aiTxt!==false?'checked':''}><span><b>Personalizzazione del testo</b><small>Google crea varianti dei titoli dal sito e dagli annunci.</small></span></label><label class="opt ${aiCfg().url?'on':''} ${c.aiTxt===false?'dim':''}"><input type="checkbox" data-b="c.aiUrl" ${aiCfg().url?'checked':''} ${c.aiTxt===false?'disabled':''}><span><b>Espansione dell'URL finale</b><small>Può mandare le persone a un'altra pagina del sito più pertinente. Richiede la personalizzazione del testo.</small></span></label></div>`:''}</div>
+ <div class="card"><h3>Località</h3><p class="hint">Scegli dove si trovano le persone che il cliente può servire.</p>
+ <div class="opts">${LOCS.map(l=>`<label class="opt ${c.loc===l.id?'on':''}"><input type="radio" name="loc" data-b="c.loc" value="${l.id}" ${c.loc===l.id?'checked':''}><span><b>${l.t}</b></span></label>`).join('')}</div>
+ <span class="lbl">Opzioni località · Includi:</span>
+ <div class="list"><label class="opt ${c.locOpt==='pi'?'on':''}"><input type="radio" name="lo" data-b="c.locOpt" value="pi" ${c.locOpt==='pi'?'checked':''}><span><b>Presenza o interesse</b><small>Persone che si trovano, si trovano abitualmente o hanno mostrato interesse per le località target.</small></span></label>
+ <label class="opt ${c.locOpt==='p'?'on':''}"><input type="radio" name="lo" data-b="c.locOpt" value="p" ${c.locOpt==='p'?'checked':''}><span><b>Presenza</b><small>Persone che si trovano o si trovano abitualmente nelle località target.</small></span></label></div></div>
+ <div class="card"><h3>Lingue</h3><p class="hint">Le lingue parlate dai clienti (in base alle impostazioni dei loro dispositivi).</p>
+ <div class="opts">${[['it','Italiano'],['en','Inglese'],['all','Tutte le lingue']].map(([id,t])=>`<label class="opt ${c.lang.includes(id)?'on':''}"><input type="checkbox" data-lang="${id}" ${c.lang.includes(id)?'checked':''}><span><b>${t}</b></span></label>`).join('')}</div></div>
+ <div class="card"><h3>Date di inizio e fine <span class="hint">(facoltative)</span></h3><div class="row"><div class="field"><label for="f_s">Data di inizio</label><input type="date" id="f_s" data-b="c.start" value="${esc(c.start)}"></div><div class="field"><label for="f_e">Data di fine</label><input type="date" id="f_e" data-b="c.end" value="${esc(c.end)}"><span class="hint">Lascia vuoto per una campagna senza scadenza.</span></div></div></div>
+ ${nav()}`}
+
+function rBudget(){const c=S.c,d=num(c.budget);
+ return`<div class="card"><h2>Budget</h2><div class="field" style="max-width:340px"><label for="f_c_budget">Budget giornaliero medio (€)</label><input type="number" min="0" step="0.5" id="f_c_budget" data-b="c.budget" value="${esc(c.budget)}" placeholder="Es. 20"><span class="hint" id="monthly">${d?`≈ ${eur(d*30.4,0)} al mese (budget × 30,4)`:'Ricorda: Google ragiona in budget giornaliero.'}</span></div></div>
+ <div class="card"><h3>Strategia di offerta</h3><div class="list">${BIDS.map(b=>`<label class="opt ${c.bid===b.id?'on':''}"><input type="radio" name="bid" data-b="c.bid" value="${b.id}" ${c.bid===b.id?'checked':''}><span><b>${b.t}</b><small>${b.d}</small></span></label>`).join('')}</div>
+ ${c.bid==='manual'?`<div class="field" style="max-width:340px"><label for="f_c_maxCpc">Offerta CPC massima predefinita (€)</label><input type="number" min="0" step="0.05" id="f_c_maxCpc" data-b="c.maxCpc" value="${esc(c.maxCpc)}" placeholder="Es. 0,80"><span class="hint">Il massimo che sei disposto a pagare per un clic.</span></div>`:''}
+ ${c.bid==='tcpa'?`<div class="field" style="max-width:340px"><label for="f_c_tcpa">CPA target (€)</label><input type="number" min="0" step="0.5" id="f_c_tcpa" data-b="c.tcpa" value="${esc(c.tcpa)}" placeholder="Es. 15"><span class="hint">Quanto vuoi spendere in media per una conversione.</span></div>`:''}
+ ${c.bid==='troas'?`<div class="field" style="max-width:340px"><label for="f_c_troas">ROAS target (%)</label><input type="number" min="0" step="10" id="f_c_troas" data-b="c.troas" value="${esc(c.troas)}" placeholder="Es. 400"><span class="hint">400% = 4 € di vendite per ogni euro speso.</span></div>`:''}
+ </div>${nav()}`}
+
+function rKw(){const sc=SC[S.scenario];
+ return`<div class="card"><h2>Gruppi di annunci e parole chiave</h2><p class="lead">Crea un gruppo per ogni tema (es. "Pizza a domicilio" e "Pizzeria Navigli"). Scrivi una parola chiave per riga. Per il tipo di corrispondenza: <span class="mono">parola</span> = generica, <span class="mono">"parola"</span> = a frase, <span class="mono">[parola]</span> = esatta.</p></div>
+ ${S.groups.map((g,i)=>`<div class="card"><header><h3>Gruppo ${i+1}</h3>${S.groups.length>1?`<button type="button" class="btn sm ghost" data-delg="${i}">Elimina gruppo</button>`:''}</header>
+  <div class="field"><label for="g${i}n">Nome del gruppo di annunci</label><input type="text" id="g${i}n" data-b="groups.${i}.name" value="${esc(g.name)}"></div>
+  <div class="field"><label for="g${i}k">Parole chiave</label><textarea id="g${i}k" rows="7" data-b="groups.${i}.kw" placeholder="${esc(sc.ideas[1])}\n&quot;${esc(sc.ideas[3])}&quot;\n[${esc(sc.ideas[4])}]">${esc(g.kw)}</textarea></div>
+  <div class="kwlive" id="kl${i}"></div></div>`).join('')}
+ ${S.groups.length<4?`<button type="button" class="btn" id="addG">+ Aggiungi gruppo di annunci</button>`:''}
+ <div class="card"><h3>Parole chiave negative</h3><p class="hint">Valgono per tutta la campagna. Una per riga. Le ricerche che contengono questi termini non mostreranno il tuo annuncio.</p><textarea id="neg" rows="5" data-b="neg" placeholder="es. gratis">${esc(S.neg)}</textarea><div id="negchk" class="list"></div></div>
+ <div class="card"><header><h3>Strumento di pianificazione: idee per le parole chiave</h3></header><p class="hint">Stime di ricerche mensili nella zona del cliente. Attenzione: non tutte le idee sono buone. Valuta tu quali aggiungere.</p>
+  ${S.groups.length>1?`<div class="field" style="max-width:280px"><label for="ideaT">Aggiungi al gruppo</label><select id="ideaT">${S.groups.map((g,i)=>`<option value="${i}" ${S.ui.ideaTarget==i?'selected':''}>${esc(g.name||'Gruppo '+(i+1))}</option>`).join('')}</select></div>`:''}
+  <div class="tw"><table class="ideas"><thead><tr><th>Idea</th><th class="num">Ricerche/mese</th><th class="num">CPC stimato</th><th></th></tr></thead><tbody>${sc.ideas.map(t=>{const v=volume(t,sc),cp=baseCpc(t,sc);return`<tr><td>${esc(t)}</td><td class="num">${int(v)}</td><td class="num">${eur(cp*.7)} – ${eur(cp*1.6)}</td><td><button type="button" class="btn sm" data-idea="${esc(t)}">+ Aggiungi</button></td></tr>`}).join('')}</tbody></table></div></div>
+ ${nav()}`}
+
+function rAds(){const sc=SC[S.scenario];const i=Math.min(S.ui.adTab,S.groups.length-1);S.ui.adTab=i;const g=S.groups[i];
+ return`<div class="card"><h2>Annunci</h2><p class="lead">Un annuncio adattabile per ogni gruppo. Scrivi titoli diversi tra loro: Google li combinerà e mostrerà le combinazioni migliori.</p>
+ ${S.groups.length>1?`<div class="tabs">${S.groups.map((x,j)=>`<button type="button" data-tab="${j}" class="${j===i?'on':''}">${esc(x.name||'Gruppo '+(j+1))}</button>`).join('')}</div>`:''}
+ <div class="hl-kw" id="hlkw"></div></div>
+ <div class="adwrap"><div class="serp" id="serp" aria-label="Anteprima annuncio"></div><div class="strength" id="strength"></div></div>
+ <div class="card"><h3>URL</h3><div class="field"><label for="u${i}">URL finale</label><input type="url" id="u${i}" data-b="groups.${i}.url" value="${esc(g.url)}" placeholder="https://www.${sc.domain}${sc.paths[0]}"><span class="hint" id="lpm"></span></div>
+ <div class="field"><span class="lbl">Percorso visualizzato</span><div class="row" style="align-items:center"><span class="mono hint" style="flex:none;min-width:0">www.${sc.domain} /</span>${tin(`groups.${i}.p1`,g.p1,15,'percorso 1')}<span style="flex:none;min-width:0">/</span>${tin(`groups.${i}.p2`,g.p2,15,'percorso 2')}</div></div></div>
+ <div class="card"><header><h3>Titoli</h3><span class="hint">almeno 8 consigliati, fino a 15 · max 30 caratteri</span></header><div class="grid2">${g.h.map((h,j)=>(j>=8&&!S.ui.allH&&!g.h.slice(8).some(x=>x.trim()))?'':`<div class="field"><label for="h${i}_${j}" class="hint">Titolo ${j+1}${j<3?' *':''}</label>${tin(`groups.${i}.h.${j}`,h,30,'',`h${i}_${j}`)}</div>`).join('')}</div>${(!S.ui.allH&&!g.h.slice(8).some(x=>x.trim()))?'<button type="button" class="btn" id="moreH">+ Aggiungi altri titoli (facoltativi, fino a 15)</button>':''}</div>
+ <div class="card"><header><h3>Descrizioni</h3><span class="hint">fino a 4 · max 90 caratteri</span></header>${g.d.map((d,j)=>`<div class="field"><label for="d${i}_${j}" class="hint">Descrizione ${j+1}${j<2?' *':''}</label>${tin(`groups.${i}.d.${j}`,d,90,'',`d${i}_${j}`)}</div>`).join('')}</div>
+ ${nav()}`}
+
+function rAssets(){const a=S.a;
+ return`<div class="card"><h2>Asset</h2><p class="lead">Informazioni extra che ingrandiscono l'annuncio. Aggiungerli è gratuito e di solito aumenta i clic.</p></div>
+ <div class="card"><header><h3>Sitelink</h3><span class="hint">Testo max 25 · righe descrizione max 35</span></header>${a.sl.map((s,j)=>`<div class="grid2" style="padding-bottom:10px;border-bottom:1px dashed var(--line)"><div class="field"><label class="hint" for="sl${j}t">Sitelink ${j+1} · testo</label>${tin(`a.sl.${j}.t`,s.t,25,'Es. '+EX().sl,`sl${j}t`)}</div><div class="field"><label class="hint" for="sl${j}u">URL finale</label><input type="url" id="sl${j}u" data-b="a.sl.${j}.u" value="${esc(s.u)}" placeholder="https://..."></div><div class="field"><label class="hint" for="sl${j}a">Descrizione riga 1</label>${tin(`a.sl.${j}.d1`,s.d1,35,'',`sl${j}a`)}</div><div class="field"><label class="hint" for="sl${j}b">Descrizione riga 2</label>${tin(`a.sl.${j}.d2`,s.d2,35,'',`sl${j}b`)}</div></div>`).join('')}</div>
+ <div class="card"><header><h3>Callout</h3><span class="hint">max 25 caratteri</span></header><div class="grid2">${a.co.map((x,j)=>`<div class="field"><label class="hint" for="co${j}">Callout ${j+1}</label>${tin(`a.co.${j}`,x,25,j===0?'Es. '+EX().co:'',`co${j}`)}</div>`).join('')}</div></div>
+ <div class="card"><h3>Chiamata</h3><div class="field" style="max-width:340px"><label for="ph">Numero di telefono</label><input type="text" id="ph" data-b="a.phone" value="${esc(a.phone)}" placeholder="${EX().ph?'Es. '+esc(EX().ph):'Lascia vuoto se non serve'}"><span class="hint">Lascia vuoto se il cliente non riceve telefonate.</span></div></div>
+ <div class="card"><h3>Snippet strutturati</h3><div class="row"><div class="field"><label for="snh">Intestazione</label><select id="snh" data-b="a.snH"><option value="">— nessuna —</option>${SNIP_H.map(h=>`<option ${a.snH===h?'selected':''}>${h}</option>`).join('')}</select></div><div class="field" style="flex:2"><label for="snv">Valori (separati da virgola, almeno 3)</label><input type="text" id="snv" data-b="a.snV" value="${esc(a.snV)}" placeholder="Es. ${esc(EX().sn)}"></div></div></div>
+ ${nav()}`}
+
+function rSummary(){const sc=SC[S.scenario],c=S.c,A=analyze();
+ const blk=[];if(!c.goal)blk.push('Scegli un obiettivo.');if(!num(c.budget))blk.push('Inserisci un budget giornaliero.');if(!c.bid)blk.push('Scegli una strategia di offerta.');
+ A.groups.forEach(G=>{const n=G.g.name||'Gruppo';if(!G.kws.length)blk.push(`"${n}": nessuna parola chiave.`);if(G.H.length<3)blk.push(`"${n}": servono almeno 3 titoli.`);if(G.D.length<2)blk.push(`"${n}": servono almeno 2 descrizioni.`);if(!G.g.url.trim())blk.push(`"${n}": manca l'URL finale.`)});
+ const row=(k,v)=>`<tr><th style="width:38%">${k}</th><td>${v}</td></tr>`;
+ return`<div class="card"><h2>Riepilogo</h2><div class="tw"><table>
+ ${row('Cliente',esc(sc.name))}${row('Nome campagna',esc(c.name)||'<span class="tag bad">mancante</span>')}${row('Obiettivo',(GOALS.find(g=>g.id===c.goal)||{t:'<span class="tag bad">mancante</span>'}).t)}
+ ${row('AI Max',aiCfg().on?'Attivo'+(aiCfg().stm?' · corrispondenza termini':'')+(aiCfg().txt?' · personalizzazione testo':'')+(aiCfg().url?' · espansione URL':''):'Disattivato')}${row('Reti','Rete di Ricerca'+(c.partners?' + partner di ricerca':'')+(c.display?' + Rete Display':''))}${row('Località',(LOCS.find(l=>l.id===c.loc)||{}).t+' · '+(c.locOpt==='p'?'Presenza':'Presenza o interesse'))}
+ ${row('Lingue',c.lang.map(l=>({it:'Italiano',en:'Inglese',all:'Tutte'})[l]).join(', ')||'<span class="tag bad">nessuna</span>')}
+ ${row('Budget',num(c.budget)?`${eur(num(c.budget))}/giorno · ≈ ${eur(num(c.budget)*30.4,0)}/mese`:'<span class="tag bad">mancante</span>')}${row('Offerta',(BIDS.find(b=>b.id===c.bid)||{t:'<span class="tag bad">mancante</span>'}).t)}
+ ${A.groups.map(G=>row(esc(G.g.name||'Gruppo'),`${G.kws.length} parole chiave · ${G.H.length} titoli · ${G.D.length} descrizioni · efficacia <b>${G.str.label}</b>`)).join('')}
+ ${row('Parole chiave negative',A.negs.length)}${row('Asset',`${S.a.sl.filter(s=>s.t.trim()&&s.u.trim()).length} sitelink · ${S.a.co.filter(x=>x.trim()).length} callout · telefono ${S.a.phone.trim()?'sì':'no'} · snippet ${S.a.snH?'sì':'no'}`)}
+ </table></div></div>
+ <div class="card"><h3>Controlli prima della pubblicazione</h3>${blk.length?blk.map(b=>`<div class="al bad"><span class="dot bad"></span><span>${esc(b)}</span></div>`).join('')+'<p class="hint">Puoi pubblicare comunque: vedrai l\'effetto di questi problemi sui risultati.</p>':'<div class="al ok"><span class="dot ok"></span><span>Nessun blocco: la campagna può essere pubblicata.</span></div>'}</div>
+ <div class="nav"><button class="btn" type="button" data-go="6">← Indietro</button><button class="btn pri" type="button" id="publish">Pubblica e simula 30 giorni →</button></div>`}
+
+function rResults(){
+ const R=S.result;if(!R)return'<div class="card">Nessun risultato.</div>';
+ const sc=SC[S.scenario];const t=R.tot;const col=R.total>=85?'var(--good)':R.total>=70?'var(--accent)':R.total>=50?'var(--warn)':'var(--bad)';
+ const verdict=R.total>=85?'Campagna pronta per il cliente':R.total>=70?'Buona base, da rifinire':R.total>=50?'Da rivedere prima di spendere':'Non ancora pronta';
+ const prev=S.history.length>1?S.history[S.history.length-2]:null;
+ const spend=[{k:'Clic utili',v:t.relCost,c:'var(--good)'},{k:'Ricerche non pertinenti',v:t.junkCost,c:'var(--warn)'},{k:'Fuori zona',v:t.geoCost,c:'var(--bad)'},{k:'Rete Display',v:t.dispCost,c:'var(--muted)'}];
+ const sum=spend.reduce((s,x)=>s+x.v,0)||1;
+ const fixes=R.cats.flatMap(k=>k.items.filter(x=>x.lvl!=='ok'&&x.max>0).map(x=>({...x,cat:k.t}))).sort((a,b)=>(b.max-b.pts)-(a.max-a.pts)).slice(0,3);
+ const kpi=(k,v)=>`<div class="kpi"><span>${k}</span><b>${v}</b></div>`;
+ const qsC=q=>q>=7?'h':q>=5?'m':'l';
+ return`<div class="card"><div class="hero"><div class="ring" style="--p:${R.total};--c:${col}"><div><span><b>${R.total}</b><br><small>su 100</small></span></div></div>
+ <div style="display:flex;flex-direction:column;gap:8px"><span class="hint">Tentativo n° ${S.attempts} · ${esc(sc.name)}</span><h2>${verdict}</h2>
+ ${prev!=null?`<p>${R.total>prev?`Hai migliorato di <b>${R.total-prev} punti</b> rispetto al tentativo precedente (${prev}).`:R.total<prev?`Il punteggio è sceso di ${prev-R.total} punti rispetto al tentativo precedente (${prev}).`:`Stesso punteggio del tentativo precedente.`}</p>`:''}
+ <div class="row" style="flex:none"><button class="btn pri" type="button" data-go="1" style="flex:none">Modifica la campagna</button><button class="btn" type="button" id="copyRep" style="flex:none">Copia il report</button>${getName()?`<button class="btn ghost" type="button" id="chName" style="flex:none">Nome: ${esc(getName())} · cambia</button>`:''}<button class="btn ghost" type="button" data-go="0" style="flex:none">Cambia scenario</button></div></div></div></div>
+ ${fixes.length?`<div class="card"><h3>Le prime cose da sistemare</h3><ol class="top3">${fixes.map(f=>`<li><span><b>${f.cat} · ${f.t}</b> — ${esc(f.msg)}</span></li>`).join('')}</ol></div>`:''}
+ <div class="card"><header><h3>Risultati simulati · 30 giorni</h3>${R.limited?'<span class="tag bad">Limitata dal budget</span>':'<span class="tag mut">Budget non esaurito</span>'}</header>
+ <div class="kpis">${kpi('Impressioni',int(t.impr))}${kpi('Clic',int(t.clicks))}${kpi('CTR',t.impr?pct(t.clicks/t.impr):'—')}${kpi('CPC medio',t.clicks?eur(t.cost/t.clicks):'—')}${kpi('Costo',eur(t.cost,0))}${kpi('Conversioni',t.conv.toLocaleString('it-IT',{maximumFractionDigits:1}))}${kpi('Costo/conv.',t.conv>=.5?eur(t.cost/t.conv):'—')}</div>
+ <div class="field"><span class="lbl">Dove sono andati i soldi</span><div class="stack">${spend.map(s=>`<div style="width:${s.v/sum*100}%;background:${s.c}" title="${s.k}: ${eur(s.v,0)}"></div>`).join('')}</div>
+ <div class="legend">${spend.map(s=>`<span><i style="background:${s.c}"></i>${s.k}: <b class="mono">${eur(s.v,0)}</b> (${Math.round(s.v/sum*100)}%)</span>`).join('')}</div></div>
+ <p class="fine">Simulazione didattica: numeri stimati con un modello semplificato, utili per capire cause ed effetti. Non sono previsioni reali di Google Ads. Ads Lab è stato creato da Azzurra Curcio.</p></div>
+ <div class="card"><h3>Valutazione per area</h3>${R.cats.map(k=>`<div class="cat"><header><h3>${k.t}</h3><span class="pts">${Math.round(k.pts*10)/10} / ${k.max}</span></header><div class="bar"><i style="width:${k.pts/k.max*100}%"></i></div>${k.items.map(x=>`<div class="al ${x.lvl}"><span class="dot ${x.lvl}"></span><span><b>${x.t}</b> · ${esc(x.msg)} ${x.max?`<span class="pts">(${Math.round(x.pts*10)/10}/${x.max})</span>`:''}</span></div>`).join('')}</div>`).join('<hr style="border:0;border-top:1px solid var(--line);width:100%">')}</div>
+ <div class="card"><h3>Parole chiave</h3><p class="hint">Il punteggio di qualità (1–10) combina CTR previsto, pertinenza dell'annuncio ed esperienza sulla pagina di destinazione.</p><div class="tw"><table><thead><tr><th>Parola chiave</th><th>Gruppo</th><th>QS</th><th>CTR prev.</th><th>Pert. annuncio</th><th>Pagina dest.</th><th class="num">Clic</th><th class="num">CPC</th><th class="num">Costo</th><th class="num">Conv.</th></tr></thead><tbody>
+ ${R.kwRows.map(r=>`<tr><td><span class="mt ${r.m}">${{broad:'GEN',phrase:'FRASE',exact:'ESATTA'}[r.m]}</span> ${esc(r.text)}</td><td>${esc(r.g)}</td>${r.blocked?`<td colspan="8"><span class="tag bad">Bloccata dalla negativa "${esc(r.blocked)}"</span></td>`:`<td><span class="qs ${qsC(r.qs)}">${r.qs}</span></td><td class="hint">${LVL3[r.ec]}</td><td class="hint">${LVL3[r.ar]}</td><td class="hint">${LVL3[r.lp]}</td><td class="num">${int(r.clicks)}</td><td class="num">${r.clicks?eur(r.cost/r.clicks):'—'}</td><td class="num">${eur(r.cost,0)}</td><td class="num">${r.conv.toLocaleString('it-IT',{maximumFractionDigits:1})}</td>`}</tr>`).join('')||'<tr><td colspan="10">Nessuna parola chiave attiva.</td></tr>'}
+ </tbody></table></div></div>
+ <div class="card"><h3>Report termini di ricerca</h3><p class="hint">Cosa hanno scritto davvero le persone che hanno visto l'annuncio. Le righe in arancione sono ricerche inutili: aggiungi le parole che le identificano tra le negative.</p><div class="tw"><table><thead><tr><th>Termine di ricerca</th><th>Stato</th><th class="num">Clic</th><th class="num">Costo</th><th class="num">Conv.</th></tr></thead><tbody>
+ ${R.terms.map(x=>`<tr><td>${esc(x.q)}<br><span class="fine">da: ${esc(x.from)}</span></td><td>${x.type==='ok'?'<span class="tag ok">Pertinente</span>':x.type==='blocked'?'<span class="tag mut">Escluso dalle negative</span>':'<span class="tag bad">Spreco</span>'}</td><td class="num">${x.type==='blocked'?'—':int(x.clicks)}</td><td class="num">${x.type==='blocked'?'—':eur(x.cost,0)}</td><td class="num">${x.type==='blocked'?'—':x.conv.toLocaleString('it-IT',{maximumFractionDigits:1})}</td></tr>`).join('')||'<tr><td colspan="5">Nessun dato.</td></tr>'}
+ ${R.dispClicks?`<tr><td>Posizionamenti sulla Rete Display (siti e app)</td><td><span class="tag bad">Spreco</span></td><td class="num">${int(R.dispClicks)}</td><td class="num">${eur(t.dispCost,0)}</td><td class="num">${R.dispConv.toLocaleString('it-IT',{maximumFractionDigits:1})}</td></tr>`:''}
+ </tbody></table></div></div>`}
+
+/* ============ AGGIORNAMENTI LIVE ============ */
+function afterRender(){setTimeout(markTerms,0);addHelpM();centerStep();
+ if(S.step===4){S.groups.forEach((g,i)=>kwLive(i));negLive()}
+ if(S.step===5)adLive();
+}
+function kwLive(i){const el=$('#kl'+i);if(!el)return;const A=analyze();const G=A.groups[i];
+ el.innerHTML=G.kws.length?G.kws.map(k=>`<span class="kw ${k.blockedBy?'blk':''}" title="${k.blockedBy?'Bloccata dalla negativa '+esc(k.blockedBy.text):'Ricerche/mese stimate'}"><span class="mt ${k.m}">${{broad:'GEN',phrase:'FRASE',exact:'ESATTA'}[k.m]}</span>${esc(k.text)} <span class="hint mono">${int(volume(k.text,A.sc))}</span></span>`).join('')+`<span class="hint" style="align-self:center">${G.kws.length} parole chiave</span>`:'<span class="hint">Le parole chiave che scrivi compariranno qui con il tipo di corrispondenza riconosciuto.</span>'}
+function negLive(){const el=$('#negchk');if(!el)return;const A=analyze();const self=A.groups.flatMap(G=>G.kws).filter(k=>k.blockedBy);
+ el.innerHTML=self.map(k=>`<div class="al bad"><span class="dot bad"></span><span>La negativa "${esc(k.blockedBy.text)}" blocca la tua parola chiave "${esc(k.text)}".</span></div>`).join('')}
+let rot=0;
+function adLive(){const A=analyze(),i=S.ui.adTab,G=A.groups[i],sc=A.sc,g=G.g;
+ const H=G.H.length?G.H:['Titolo 1','Titolo 2','Titolo 3'],D=G.D.length?G.D:['Qui comparirà la descrizione del tuo annuncio.'];
+ const pick=(arr,n,o)=>Array.from({length:Math.min(n,arr.length)},(_,j)=>arr[(j+o)%arr.length]);
+ const path=[g.p1,g.p2].filter(x=>x.trim()).map(x=>' › '+esc(x.trim())).join('');
+ const sl=S.a.sl.filter(s=>s.t.trim()),co=S.a.co.filter(x=>x.trim());
+ $('#serp').innerHTML=`<div class="sp1"><b>Sponsorizzato</b></div><div class="sp1"><span class="fav">${esc(sc.name[0])}</span><span><span style="color:var(--ink)">${esc(sc.name)}</span><br><span class="u">www.${sc.domain}${path}</span></span></div>
+ <div class="t">${pick(H,3,rot).map(esc).join(' | ')}</div><div class="d">${pick(D,2,rot).map(esc).join(' ')}</div>
+ ${co.length?`<div class="co">${co.slice(0,4).map(esc).join(' · ')}</div>`:''}${S.a.phone.trim()?`<div class="ph">Chiama: ${esc(S.a.phone)}</div>`:''}
+ ${sl.length?`<div class="sl">${sl.slice(0,4).map(s=>`<span>${esc(s.t)}</span>`).join('')}</div>`:''}
+ <div><button type="button" class="btn sm" id="rotBtn" style="margin-top:8px">Mostra un'altra combinazione</button></div>`;
+ const s=G.str;const cols=['var(--line)','var(--bad)','var(--warn)','var(--accent)','var(--good)'];
+ $('#strength').innerHTML=`<span class="lbl">Efficacia dell'annuncio</span><b style="font-family:var(--f-display);font-size:20px;color:${cols[s.lvl]}">${s.label}</b><div class="meter">${[1,2,3,4].map(n=>`<i style="background:${n<=s.lvl?cols[s.lvl]:'var(--line)'}"></i>`).join('')}</div>${s.tips.length?`<ul>${s.tips.slice(0,4).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:'<p class="hint">Ottimo lavoro.</p>'}`;
+ const hl=norm(G.H.join(' ')).split(' ');
+ $('#hlkw').innerHTML=G.kws.length?`<span class="hint">Parole chiave del gruppo nei titoli:</span>${G.kws.map(k=>`<span class="${adRel(k.text,hl)>0?'y':'n'}">${esc(k.text)}</span>`).join('')}`:'<span class="hint">Questo gruppo non ha ancora parole chiave (passaggio precedente).</span>';
+ $('#lpm').textContent=g.url.trim()?'Pagina di destinazione: '+G.lp.m:'La pagina dove arriva chi clicca.';
+}
+function updateCounter(el){const c=el.parentElement.querySelector('.cnt');if(!c)return;const m=+c.dataset.max;c.textContent=el.value.length+'/'+m;c.classList.toggle('over',el.value.length>m)}
+
+
+function addHelpM(){const h=HELP[S.step];if(!h)return;const v=document.querySelector('#view');
+ v.insertAdjacentHTML('afterbegin',`<details class="helpm"><summary>Cos'è questo passaggio? · ${h.t}</summary><div class="hb">${h.b}<div class="hx e"><b>Errore comune</b>${h.e}</div><div class="hx t"><b>Consiglio</b>${h.p}</div></div></details>`)}
+function centerStep(){const st=document.querySelector('#steps'),cur=st&&st.querySelector('.cur');if(!cur||st.scrollWidth<=st.clientWidth)return;st.scrollLeft=cur.offsetLeft-st.clientWidth/2+cur.offsetWidth/2}
+/* ============ EVENTI ============ */
+const RERENDER=new Set(['c.goal','c.partners','c.display','c.loc','c.locOpt','c.bid']);
+$('#view').addEventListener('input',e=>{const el=e.target,b=el.dataset.b;if(!b)return;
+ if(el.type==='checkbox'||el.type==='radio')return;
+ set(b,el.value);updateCounter(el);save();
+ if(b==='c.budget'){const d=num(el.value);$('#monthly').textContent=d?`≈ ${eur(d*30.4,0)} al mese (budget × 30,4)`:'Ricorda: Google ragiona in budget giornaliero.'}
+ if(S.step===4){const m=b.match(/^groups\.(\d+)\.kw$/);if(m)kwLive(+m[1]);if(b==='neg'){S.groups.forEach((g,i)=>kwLive(i))}negLive()}
+ if(S.step===5)adLive();
+});
+$('#view').addEventListener('change',e=>{const el=e.target;
+ if(el.dataset.lang){const id=el.dataset.lang;S.c.lang=el.checked?[...new Set([...S.c.lang,id])]:S.c.lang.filter(x=>x!==id);render();return}
+ if(el.id==='ideaT'){S.ui.ideaTarget=+el.value;save();return}
+ const b=el.dataset.b;if(!b)return;
+ if(el.type==='checkbox'){set(b,el.checked);render();return}
+ if(el.type==='radio'){set(b,el.value);render();return}
+ if(el.tagName==='SELECT'){set(b,el.value);save();if(S.step===5)adLive()}
+});
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.dataset.go!=null){const s=+t.dataset.go;if(s<0)return;if(s>0&&!S.scenario)return;if(s===8&&!S.result)return;S.step=s;render();window.scrollTo({top:0});return}
+ if(t.dataset.sc){switchScenario(t.dataset.sc);render();return}
+ if(t.id==='addG'){S.groups.push(newGroup('Gruppo di annunci '+(S.groups.length+1)));render();return}
+ if(t.dataset.delg!=null){S.groups.splice(+t.dataset.delg,1);S.ui.adTab=0;S.ui.ideaTarget=0;render();return}
+ if(t.dataset.idea){const gi=Math.min(S.ui.ideaTarget,S.groups.length-1);const g=S.groups[gi];const lines=g.kw.split('\n').filter(x=>x.trim());if(!lines.some(l=>norm(l)===norm(t.dataset.idea)))lines.push(t.dataset.idea);g.kw=lines.join('\n');render();return}
+ if(t.dataset.tab!=null){S.ui.adTab=+t.dataset.tab;render();return}
+ if(t.id==='rotBtn'){rot++;adLive();return}
+ if(t.id==='moreH'){S.ui.allH=true;render();return}
+ if(t.id==='publish'){publish();return}
+ if(t.id==='copyRep'){copyReport();return}
+ if(t.id==='bGloss'){openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Glossario</h2><button class="btn sm" type="button" data-close>Chiudi</button></header><dl>${GLOSS.map(g=>`<div><dt>${g[0]}</dt><dd>${g[1]}</dd></div>`).join('')}</dl>`);return}
+ if(t.id==='bBrief'){openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Brief del cliente</h2><button class="btn sm" type="button" data-close>Chiudi</button></header>${briefHTML(SC[S.scenario])}`);return}
+ if(t.id==='bReset'){openModal(`<h2>Ricominciare da zero?</h2><p>Perderai la campagna attuale e lo storico dei punteggi.</p><div class="nav"><button class="btn" type="button" data-close>Annulla</button><button class="btn pri" type="button" id="doReset">Sì, ricomincia</button></div>`);return}
+ if(t.id==='doReset'){S=fresh();closeModal();render();return}
+ if(t.dataset.close!=null){closeModal();return}
+});
+$('#ov').addEventListener('click',e=>{if(e.target.id==='ov')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+function openModal(h){$('#modal').innerHTML=h;$('#ov').classList.add('on');const b=$('#modal button');if(b)b.focus()}
+function closeModal(){$('#ov').classList.remove('on')}
+
+function publish(){
+ const A=analyze(),R=simulate(A),G=grade(A,R);
+ const kwRows=[];A.groups.forEach((Gr,gi)=>Gr.kws.forEach(k=>{const r=R.rows.find(x=>x.k===k);
+  kwRows.push({text:k.text,m:k.m,g:Gr.g.name||'Gruppo '+(gi+1),qs:k.qs,ec:k.ec,ar:k.ar,lp:Gr.lp.l,blocked:k.blockedBy?k.blockedBy.text:null,clicks:r&&!r.blocked?r.clicks:0,cost:r&&!r.blocked?r.cost:0,conv:r&&!r.blocked?r.conv:0})}));
+ S.attempts++;S.history.push(G.total);
+ S.result={total:G.total,cats:G.cats,tot:{...R.tot,dispCost:R.disp.cost},limited:R.limited,kwRows,terms:R.terms.slice(0,25),dispClicks:R.disp.clicks,dispConv:R.disp.conv};
+ S.step=8;render();window.scrollTo({top:0});
+}
+function copyReport(){if(!getName()){askName(copyReport,'Salva e copia il report');return}const R=S.result,sc=SC[S.scenario],t=R.tot;
+ const txt=[`ADS LAB – Report campagna`,`Campagna Zero · simulatore creato da Azzurra Curcio`,`Studente: ${getName()}`,`Cliente: ${sc.name}`,`Campagna: ${S.c.name||'(senza nome)'}`,`Tentativo n° ${S.attempts} · Punteggio: ${R.total}/100`,'',
+ `Risultati simulati 30 giorni: ${int(t.impr)} impressioni · ${int(t.clicks)} clic · CTR ${t.impr?pct(t.clicks/t.impr):'—'} · costo ${eur(t.cost,0)} · ${t.conv.toFixed(1)} conversioni · costo/conv. ${t.conv>=.5?eur(t.cost/t.conv):'—'}`,'',
+ ...R.cats.flatMap(k=>[`${k.t}: ${Math.round(k.pts*10)/10}/${k.max}`,...k.items.filter(x=>x.lvl!=='ok').map(x=>`  - ${x.t}: ${x.msg}`)])].join('\n');
+ const fallback=()=>openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Report</h2><button class="btn sm" type="button" data-close>Chiudi</button></header><p class="hint">Seleziona il testo e copialo per inviarlo al docente.</p><textarea readonly>${esc(txt)}</textarea>`);
+ try{navigator.clipboard.writeText(txt).then(()=>{const b=$('#copyRep');if(b){b.textContent='Copiato ✓';setTimeout(()=>{if($('#copyRep'))$('#copyRep').textContent='Copia il report'},2000)}},fallback)}catch(e){fallback()}}
+
+if(S.step===8&&!S.result)S.step=7;
+
+/* ===== Nome dello studente nel report ===== */
+const NAME_KEY='labadv-nome';let _nm=null;
+function getName(){if(_nm!==null)return _nm;try{_nm=localStorage.getItem(NAME_KEY)||''}catch(e){_nm=''}return _nm}
+function setName(v){_nm=v;try{localStorage.setItem(NAME_KEY,v)}catch(e){}}
+function askName(after,label){openModal(`<h2>Come ti chiami?</h2><p class="hint">Il tuo nome compare nella prima riga del report, così la docente sa chi l'ha inviato. Resta salvato solo in questo browser.</p><div class="field"><label for="nmIn">Nome e cognome</label><input type="text" id="nmIn" value="${esc(getName())}" autocomplete="name" maxlength="60"></div><p class="hint" id="nmErr" style="color:var(--bad)" hidden>Scrivi nome e cognome per continuare.</p><div class="row" style="justify-content:flex-end;flex:none"><button class="btn" type="button" data-close style="flex:none">Annulla</button><button class="btn pri" type="button" id="saveName" style="flex:none">${label||'Salva'}</button></div>`);window._afterName=after;setTimeout(()=>{const i=document.getElementById('nmIn');if(i)i.focus()},30)}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.id==='saveName'){const v=(document.getElementById('nmIn').value||'').trim().replace(/\s+/g,' ');if(v.length<3||!/\s/.test(v)){document.getElementById('nmErr').hidden=false;return}setName(v);closeModal();const f=window._afterName;window._afterName=null;if(f)f()}
+ if(t.id==='chName')askName(()=>render(),'Salva')});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){e.preventDefault();document.getElementById('saveName').click()}});
+
+/* ===== Sigle spiegate dove compaiono ===== */
+const DEFS={'CPM':'Costo per mille impressioni: quanto paghi ogni 1.000 volte che l\'annuncio viene mostrato.','CPC':'Costo per clic: quanto paghi in media per ogni clic.','CTR':'Percentuale di clic: clic diviso impressioni. Indica quanto l\'annuncio invoglia a cliccare.','CPA':'Costo per acquisizione: quanto costa in media un risultato (una vendita, un contatto).','ROAS':'Ritorno sulla spesa pubblicitaria: valore delle vendite diviso spesa. ROAS 3 = 3 € incassati per ogni euro speso.','ThruPlay':'Visualizzazione del video fino alla fine (o per almeno 15 secondi).','Advantage+':'Le automazioni di Meta: budget, pubblico o posizionamenti gestiti dall\'algoritmo.','Spark Ads':'Annunci TikTok che promuovono un post già pubblicato, mantenendo like e commenti.','pixel':'Codice installato sul sito che comunica alla piattaforma cosa fanno le persone (acquisti, contatti).','Pangle':'Rete di app di terze parti in cui TikTok può mostrare gli annunci.','UTM':'Parametri aggiunti al link per riconoscere da dove arriva il traffico in Google Analytics.','remarketing':'Mostrare annunci a chi ha già visitato il sito o interagito con il brand.','Punteggio di qualità':'Voto da 1 a 10 che Google dà a una parola chiave: più è alto, meno paghi ogni clic.','AI Max':'Funzioni di Google che ampliano le ricerche oltre le parole chiave e personalizzano titoli e link.','Frequenza':'Quante volte, in media, ogni persona ha visto l\'annuncio.','Copertura':'Numero di persone diverse che hanno visto l\'annuncio almeno una volta.','lead':'Contatto di una persona interessata: nome, telefono o email.','impressioni':'Le volte in cui l\'annuncio è stato mostrato.','Rete Display':'Banner e annunci su siti e app: li vede chi naviga, non chi sta cercando.','sitelink':'Link aggiuntivi sotto l\'annuncio che portano ad altre pagine del sito.','callout':'Brevi frasi sui punti di forza mostrate sotto l\'annuncio, es. "Consegna gratuita".','corrispondenza':'Quanto le ricerche reali possono essere diverse dalla tua parola chiave: generica, a frase o esatta.','parole chiave negative':'Termini che escludono le ricerche che non vuoi, es. "lavoro" o "ricetta".'};
+const _TK=Object.keys(DEFS).sort((a,b)=>b.length-a.length);
+const _TRX=new RegExp('(^|[^A-Za-zÀ-ÿ0-9])('+_TK.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![A-Za-zÀ-ÿ0-9])','i');
+function markTerms(){const used=new Set();const roots=[document.getElementById('view'),document.getElementById('help')].filter(Boolean);
+ const skip='input,textarea,select,option,button,script,style,.term,.serp,.post,.phone,.story,#pvFeed,#pvStory,a,h1,.brand,.kw,.mt,.tag';
+ roots.forEach(root=>{const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.trim()&&n.parentElement&&n.parentElement.offsetParent!==null&&!n.parentElement.closest(skip)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
+  const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  nodes.forEach(node=>{let txt=node.nodeValue;const frag=document.createDocumentFragment();let changed=false;
+   for(let guard=0;guard<6;guard++){const m=_TRX.exec(txt);if(!m)break;const key=_TK.find(k=>k.toLowerCase()===m[2].toLowerCase());if(used.has(key)){const cut=m.index+m[0].length;frag.appendChild(document.createTextNode(txt.slice(0,cut)));txt=txt.slice(cut);changed=true;continue}
+    used.add(key);const start=m.index+m[1].length;frag.appendChild(document.createTextNode(txt.slice(0,start)));const sp=document.createElement('span');sp.className='term';sp.tabIndex=0;sp.dataset.def=DEFS[key];sp.textContent=m[2];frag.appendChild(sp);txt=txt.slice(start+m[2].length);changed=true}
+   if(changed){frag.appendChild(document.createTextNode(txt));node.parentNode.replaceChild(frag,node)}})})}
+(function(){const tip=document.createElement('div');tip.id='tip';tip.setAttribute('role','tooltip');document.body.appendChild(tip);let cur=null;
+ let shownAt=0,lastTouch=0;document.addEventListener('touchstart',()=>{lastTouch=Date.now()},{passive:true,capture:true});const show=el=>{cur=el;shownAt=Date.now();tip.textContent=el.dataset.def;tip.style.display='block';const r=el.getBoundingClientRect();const tw=Math.min(280,window.innerWidth-24);tip.style.maxWidth=tw+'px';let x=r.left+window.scrollX;x=Math.min(x,window.scrollX+window.innerWidth-tip.offsetWidth-12);x=Math.max(window.scrollX+12,x);tip.style.left=x+'px';tip.style.top=(r.bottom+window.scrollY+6)+'px'};
+ const hide=()=>{cur=null;tip.style.display='none'};
+ document.addEventListener('mouseover',e=>{if(Date.now()-lastTouch<1000)return;const t=e.target.closest&&e.target.closest('.term');if(t)show(t)});
+ document.addEventListener('mouseout',e=>{if(Date.now()-lastTouch<1000)return;const t=e.target.closest&&e.target.closest('.term');if(t)hide()});
+ document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('term'))show(e.target)});
+ document.addEventListener('focusout',e=>{if(e.target.classList&&e.target.classList.contains('term'))hide()});
+ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.term');if(t){e.preventDefault();e.stopPropagation();if(cur===t&&Date.now()-shownAt>500)hide();else show(t)}else if(cur)hide()},true);
+ window.addEventListener('scroll',()=>{if(cur)hide()},{passive:true});})();
+
+/* ===== Campagna di esempio commentata ===== */
+function showExample(){const X=EXAMPLE;openModal(`<header style="display:flex;align-items:center;gap:10px"><h2 style="flex:1">Campagna di esempio commentata</h2><button class="btn sm" type="button" data-close>Chiudi</button></header>
+ <p class="hint">Cliente: <b>${esc(X.client)}</b>. Ecco le scelte di una campagna fatta bene e il perché di ognuna.</p>
+ <div class="tw"><table><thead><tr><th>Passaggio</th><th>Scelta</th><th>Perché</th></tr></thead><tbody>${X.rows.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td class="hint">${esc(r[2])}</td></tr>`).join('')}</tbody></table></div>
+ <div class="al warn"><span class="dot warn"></span><span>Caricare l'esempio sostituisce la campagna che stai facendo per questo cliente. Per esercitarti davvero, prova poi con un altro cliente.</span></div>
+ <div class="row" style="justify-content:flex-end;flex:none"><button class="btn" type="button" data-close style="flex:none">Chiudi</button><button class="btn pri" type="button" id="loadEx" style="flex:none">Carica l'esempio e guarda i risultati</button></div>`)}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.id==='bEx'){showExample()}if(t.id==='loadEx'){closeModal();EXAMPLE.load();window.scrollTo({top:0})}});
+const exampleCard=(mins)=>`<div class="card exbox"><div><b>Prima volta?</b> <span class="hint">Una campagna richiede circa ${mins} minuti. Puoi interrompere e riprendere quando vuoi: il lavoro resta salvato in questo browser.</span></div><button class="btn" type="button" id="bEx" style="flex:none">Guarda una campagna di esempio</button></div>`;
+const EXAMPLE={client:'Pizzeria Da Gennaro',rows:[
+ ['Obiettivo','Vendite','Il cliente vuole ordini: è il risultato da ottimizzare.'],
+ ['Nome','Search – Pizza a domicilio – Milano','Tipo di campagna, prodotto e zona: si ritrova subito tra tante campagne.'],
+ ['Reti','Solo Rete di Ricerca','Rete Display e partner disattivati: il budget va solo a chi sta cercando una pizza.'],
+ ['AI Max','Attivo','Funziona perché l\'offerta è basata sulle conversioni e le parole chiave negative tengono lontane le ricerche inutili.'],
+ ['Località','Milano, raggio 3 km dai Navigli · Presenza','La pizzeria consegna entro 3 km: inutile mostrarsi a chi vive lontano.'],
+ ['Budget','15 € al giorno','450 € al mese ÷ 30,4 giorni ≈ 15 € al giorno.'],
+ ['Offerta','Massimizza le conversioni','Il monitoraggio degli ordini è attivo, quindi Google può cercare chi ordina davvero.'],
+ ['Parole chiave','6, a frase ed esatte','Servizio + zona ("pizza a domicilio milano"). Nessuna parola singola generica come "pizza".'],
+ ['Negative','ricetta, lavoro, corso, impasto…','Escludono chi cerca ricette, lavoro o corsi: persone che non ordineranno.'],
+ ['Annuncio','9 titoli e 4 descrizioni','Parola chiave nei titoli, punti di forza, un invito all\'azione, niente punti esclamativi.'],
+ ['Pagina di destinazione','/ordina','La pagina dove si ordina, non la home: un passaggio in meno per il cliente.'],
+ ['Asset','4 sitelink, 4 callout, telefono','L\'annuncio diventa più grande e da telefono si chiama con un tocco.']],
+ load(){switchScenario('pizzeria');Object.assign(S.c,{name:'Search – Pizza a domicilio – Milano',goal:'vendite',aimax:true,aiStm:true,aiTxt:true,aiUrl:true,display:false,partners:false,loc:'milano_navigli',locOpt:'p',lang:['it'],budget:'15',bid:'maxconv',maxCpc:'',tcpa:'',troas:''});
+  const g=newGroup('Pizza a domicilio');g.kw='"pizza a domicilio milano"\n[consegna pizza navigli]\n"pizza asporto navigli"\n[ordinare pizza online milano]\n"pizza domicilio navigli"\n"consegna pizza milano"';g.url='https://www.dagennaro-pizzeria.it/ordina';g.p1='pizza';g.p2='domicilio';
+  ['Pizza a Domicilio Milano','Pizza Asporto ai Navigli','Ordina Online in 2 Minuti','Consegna Pizza Navigli','Vera Pizza Napoletana','Consegna in 30 Minuti','Ordina Ora la Tua Pizza','Pizza Domicilio Navigli','Forno a Legna e Impasto 48 Ore'].forEach((h,i)=>g.h[i]=h);
+  ['Pizza napoletana con impasto a lunga lievitazione. Ordina online e ricevila a casa.','Consegna a domicilio entro 3 km dai Navigli. Asporto pronto in 15 minuti.','Ingredienti DOP campani e forno a legna. Scopri il menù e ordina ora.','Chiama lo 02 1234 5678 o ordina dal sito. Aperti tutte le sere dalle 18:30.'].forEach((d,i)=>g.d[i]=d);
+  S.groups=[g];S.neg='ricetta\nlavoro\ncorso\nimpasto\nforno\ngratis\ncalorie\nsurgelata';
+  S.a.sl=[{t:'Il nostro menù',d1:'',d2:'',u:'https://www.dagennaro-pizzeria.it/menu'},{t:'Ordina online',d1:'',d2:'',u:'https://www.dagennaro-pizzeria.it/ordina'},{t:'Chi siamo',d1:'',d2:'',u:'https://www.dagennaro-pizzeria.it/chi-siamo'},{t:'Orari e contatti',d1:'',d2:'',u:'https://www.dagennaro-pizzeria.it/contatti'}];
+  S.a.co=['Consegna in 30 minuti','Forno a legna','Ingredienti DOP','Aperti tutte le sere','',''];S.a.phone='02 1234 5678';S.a.snH='Tipi';S.a.snV='Margherita, Diavola, Capricciosa';S.ui={adTab:0,ideaTarget:0};publish()}};
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+CAMPAGNA ZERO
+Un progetto di Azzurra Curcio · Licenza CC BY-NC-ND 4.0
+
+File
+- index.html        pagina iniziale
+- ads-lab.html      Ads Lab (Google Ads)
+- social-lab.html   Social Lab (Meta Ads)
+- clip-lab.html     Clip Lab (TikTok Ads)
+- reel-lab.html     Reel Lab (promozione del reel dall'app)
+- guida.html        Guida rapida con glossario
+- fonts/            caratteri tipografici ospitati localmente (licenza SIL Open Font License)
+- README.md, LICENSE.md   descrizione e licenza (per GitHub)
+
+Tutti i file e la cartella fonts devono restare insieme, con index.html al primo livello.
+Pagine HTML statiche: nessun database, nessun cookie, nessuna raccolta di dati.
+Il salvataggio dei progressi avviene solo nel browser di chi usa i simulatori.

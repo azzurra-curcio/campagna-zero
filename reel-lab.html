@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reel Lab promozione dall'app</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+/* Layout: stepper a sinistra · lavoro al centro · spiegazioni a destra (famiglia Ads Lab / Social Lab, accento indaco) */
+:root{
+  --paper:#f3f4f6; --surface:#ffffff; --ink:#1a1b22; --muted:#5d6170; --line:#dfe1e7;
+  --accent:#c2410c; --accent-ink:#ffffff; --accent-soft:#fdebe1; --mark:#f3c94b; --mark-soft:#fdf3d2;
+  --good:#2b7a4b; --warn:#a96300; --bad:#bf3a2b; --good-soft:#e3f2e8; --warn-soft:#fbefdc; --bad-soft:#f8e3df;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#141113; --surface:#1e1a1c; --ink:#eee8eb; --muted:#a89da2; --line:#352e31;
+    --accent:#fb923c; --accent-ink:#2a1205; --accent-soft:#3a2418; --mark:#e8bd3c; --mark-soft:#332b14;
+    --good:#5cc489; --warn:#e3a243; --bad:#ef7a69; --good-soft:#18301f; --warn-soft:#33270f; --bad-soft:#3a1d18;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141113; --surface:#1e1a1c; --ink:#eee8eb; --muted:#a89da2; --line:#352e31;
+  --accent:#fb923c; --accent-ink:#2a1205; --accent-soft:#3a2418; --mark:#e8bd3c; --mark-soft:#332b14;
+  --good:#5cc489; --warn:#e3a243; --bad:#ef7a69; --good-soft:#18301f; --warn-soft:#33270f; --bad-soft:#3a1d18;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--f-body)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.2;text-wrap:balance;margin:0}
+h2{font-size:26px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.top{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand b.logo{font-family:var(--f-display);font-size:22px;letter-spacing:-.01em}
+.brand b.logo i{font-style:normal;background:var(--mark);color:#1c1a10;padding:0 5px;border-radius:4px;margin-left:2px}
+.brand span{color:var(--muted);font-size:13px}
+.brand span b{color:var(--ink);font-weight:600}
+.top .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.app{display:grid;grid-template-columns:220px minmax(0,1fr) 300px;gap:24px;padding:24px 20px 60px;max-width:1440px;margin:0 auto}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:sticky;top:84px;align-self:start}
+.steps .lvl{font:600 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 10px 2px}
+.steps button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--muted)}
+.steps button .n{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:500 12px var(--f-mono)}
+.steps button.done .n{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.steps button.cur{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--line)}
+.steps button.cur .n{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.steps button:disabled{cursor:not-allowed;opacity:.5}
+main{min-width:0;display:flex;flex-direction:column;gap:18px}
+.help{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 100px);overflow:auto}
+.help .box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.help .box h3{font-size:15px}
+.help .lab{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.help .err{background:var(--bad-soft);border-color:transparent}
+.help .tip{background:var(--mark-soft);border-color:transparent}
+.help ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card > header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card > header h3{flex:1}
+.lead{color:var(--muted);max-width:68ch}
+.field{display:flex;flex-direction:column;gap:6px}
+.field > label, .lbl{font-weight:600;font-size:14px}
+.hint{font-size:13px;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=url],select,textarea{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:9px 11px}
+textarea{resize:vertical;min-height:44px}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.cnt{font:12px var(--f-mono);color:var(--muted);text-align:right}
+.cnt.over{color:var(--warn);font-weight:600}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row > *{flex:1;min-width:150px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.opt{position:relative;display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:var(--surface)}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:4px;accent-color:var(--accent)}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt.off{opacity:.5;cursor:not-allowed}
+.opt b{display:block;font-size:14px}
+.opt small{display:block;color:var(--muted);font-size:13px;line-height:1.4}
+.list{display:flex;flex-direction:column;gap:8px}
+.scen{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.sc{border:1.5px solid var(--line);border-radius:12px;padding:16px;background:var(--surface);display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left}
+.sc:hover{border-color:var(--accent)}
+.sc.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sc .k{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.sc h3{font-size:18px}
+.sc p{font-size:14px;color:var(--muted)}
+.sc .lv{font-size:12px;color:var(--muted)}
+.brief{border-left:4px solid var(--mark);background:var(--mark-soft);border-radius:0 10px 10px 0;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.brief dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0;font-size:14px}
+.brief dt{color:var(--muted)}
+.brief dd{margin:0;font-weight:500}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.nav{display:flex;justify-content:space-between;gap:10px}
+.al{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;font-size:14px}
+.al.ok{background:var(--good-soft)} .al.warn{background:var(--warn-soft)} .al.bad{background:var(--bad-soft)} .al.info{background:var(--accent-soft)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:6px}
+.dot.ok{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)} .dot.info{background:var(--accent)}
+/* audience gauge */
+.gauge{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--paper)}
+.gauge .trk{position:relative;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--warn) 0 22%,var(--good) 22% 78%,var(--warn) 78%)}
+.gauge .pin{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:var(--ink);transform:translateX(-2px)}
+.gauge .ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.gauge b{font:500 18px var(--f-mono)}
+/* media library */
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.med{border:2px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;background:var(--surface);display:flex;flex-direction:column;text-align:left;padding:0}
+.med.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.med .th{position:relative;display:grid;place-items:center;color:#fff;font:700 13px var(--f-body);text-align:center;padding:8px;aspect-ratio:1/1;overflow:hidden}
+.med .th em{position:absolute;left:6px;top:6px;font:600 10px var(--f-mono);font-style:normal;background:rgba(0,0,0,.55);padding:2px 6px;border-radius:4px}
+.med .th .ck{position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.35);display:grid;place-items:center;font-size:13px}
+.med.on .th .ck{background:var(--accent)}
+.med .cap{padding:8px 10px;font-size:12.5px;line-height:1.35}
+/* previews */
+.pv{display:grid;grid-template-columns:minmax(0,340px) 200px;gap:16px;align-items:start}
+.post{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;font-family:Helvetica, Arial, sans-serif}
+.post .hd{display:flex;gap:8px;align-items:center;padding:10px 12px;font-size:13px}
+.post .av{width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700}
+.post .hd small{display:block;color:var(--muted);font-size:11px}
+.post .tx{padding:0 12px 10px;font-size:13.5px;white-space:pre-wrap;word-break:break-word}
+.post .tx i{color:var(--muted);font-style:normal}
+.post .md{display:grid;place-items:center;color:#fff;font-weight:700;text-align:center;padding:12px;aspect-ratio:1/1}
+.post .car{display:flex;gap:6px;overflow-x:auto;padding:0 0 0 12px}
+.post .car .md{flex:0 0 72%;border-radius:8px}
+.post .ft{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper)}
+.post .ft div{flex:1;min-width:0}
+.post .ft small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase}
+.post .ft b{display:block;font-size:14px}
+.post .ft span{font-size:12px;color:var(--muted)}
+.post .cta{border:0;background:var(--line);color:var(--ink);border-radius:6px;padding:7px 10px;font-weight:600;font-size:13px;white-space:nowrap}
+.story{border-radius:14px;aspect-ratio:9/16;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;font:700 13px Helvetica,Arial,sans-serif;text-align:center;padding:10px}
+.story .s-top{position:absolute;top:8px;left:10px;right:10px;display:flex;gap:6px;align-items:center;font-size:11px;font-weight:600}
+.story .s-top i{width:18px;height:18px;border-radius:50%;background:#fff;display:inline-block}
+.story .s-cta{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#fff;color:#111;border-radius:999px;padding:5px 12px;font-size:12px;white-space:nowrap}
+.story .crop{position:absolute;inset:0;display:grid;place-items:center}
+.story .bars{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 100%)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tw{overflow-x:auto}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+.ring{--p:0;width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%), var(--line) 0);display:grid;place-items:center}
+.ring > div{width:104px;height:104px;border-radius:50%;background:var(--surface);display:grid;place-items:center;text-align:center}
+.ring b{font:700 36px var(--f-display);line-height:1}
+.ring small{font-size:12px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--paper)}
+.kpi.hi{border-color:var(--accent);background:var(--accent-soft)}
+.kpi span{display:block;font-size:12px;color:var(--muted)}
+.kpi b{font:500 21px var(--f-mono);font-variant-numeric:tabular-nums}
+.stack{display:flex;height:28px;border-radius:8px;overflow:hidden;background:var(--line)}
+.stack > div{height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.cat{display:flex;flex-direction:column;gap:8px}
+.cat > header{display:flex;align-items:center;gap:10px}
+.cat > header h3{flex:1;font-size:16px}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.pts{font:500 13px var(--f-mono);color:var(--muted);white-space:nowrap}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.tag.ok{background:var(--good-soft);color:var(--good)} .tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.warn{background:var(--warn-soft);color:var(--warn)} .tag.mut{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+.fine{font-size:12px;color:var(--muted)}
+.top3{counter-reset:t;display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.top3 li{counter-increment:t;display:grid;grid-template-columns:28px 1fr;gap:8px;font-size:14px}
+.top3 li::before{content:counter(t);width:24px;height:24px;border-radius:50%;background:var(--mark);color:#1c1a10;display:grid;place-items:center;font:700 12px var(--f-mono)}
+.ov{position:fixed;inset:0;background:rgba(14,10,12,.5);display:none;place-items:center;z-index:20;padding:16px}
+.ov.on{display:grid}
+.modal{background:var(--surface);border-radius:14px;max-width:720px;width:100%;max-height:85vh;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:14px}
+.modal dl{margin:0;display:flex;flex-direction:column;gap:10px}
+.modal dt{font-weight:600}
+.modal dd{margin:0;color:var(--muted);font-size:14px}
+.modal textarea{min-height:240px;font:13px var(--f-mono)}
+.struct{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}
+.struct span{padding:4px 10px;border-radius:6px;background:var(--paper);border:1px solid var(--line)}
+.struct span.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+.pv{grid-template-columns:260px minmax(0,1fr)}
+#phone{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.med .th{aspect-ratio:auto!important;height:170px}
+.phone{position:relative;width:240px;aspect-ratio:9/16;border-radius:22px;overflow:hidden;background:#000;color:#fff;font:13px/1.35 Helvetica,Arial,sans-serif;box-shadow:0 0 0 6px var(--ink)}
+.phone .ph-bg{position:absolute;inset:0}
+.phone .ph-mid{position:absolute;left:0;right:0;top:50%;transform:translateY(-60%);display:grid;place-items:center;font-weight:700;font-size:11px;text-align:center;padding:6px}
+.phone .ph-empty{position:absolute;inset:0;display:grid;place-items:center;color:#aaa;font-size:12px;padding:20px;text-align:center}
+.phone .ph-side{position:absolute;right:8px;bottom:110px;display:flex;flex-direction:column;gap:14px}
+.phone .ph-side i{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.85)}
+.phone .ph-bot{position:absolute;left:10px;right:48px;bottom:10px;display:flex;flex-direction:column;gap:3px;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.phone .ph-bot p{margin:0;font-size:12px}
+.phone .ph-bot small{font-size:11px;opacity:.9}
+.phone .ph-sp{font-size:10px;opacity:.85}
+.phone .ph-cta{margin-top:6px;background:var(--accent);color:#fff;border-radius:4px;padding:6px 8px;font-weight:700;font-size:12px;text-align:center;text-shadow:none}
+@media (max-width:1180px){
+  .app{grid-template-columns:200px minmax(0,1fr)}
+  .help{grid-column:2;position:static;max-height:none}
+}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;padding:16px}
+  .steps{flex-direction:row;overflow-x:auto;position:static;gap:4px}
+  .steps .lvl{display:none}
+  .steps button{white-space:nowrap}
+  .help{grid-column:1}
+  .pv,.grid2,.hero{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){.bar i,.stack > div{transition:width .5s ease}}
+
+/* ===== Ritocchi di visualizzazione: aiuto richiudibile, navigazione sempre visibile, mobile compatto ===== */
+.cred-m{display:none}
+.helpm{display:none;background:var(--mark-soft);border-radius:12px;padding:0}
+.helpm summary{cursor:pointer;list-style:none;padding:12px 16px;display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}
+.helpm summary::-webkit-details-marker{display:none}
+.helpm summary::before{content:"?";width:22px;height:22px;flex:none;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:600 12px var(--f-mono)}
+.helpm summary::after{content:"Apri";margin-left:auto;font:500 12px var(--f-mono);color:var(--muted)}
+.helpm[open] summary::after{content:"Chiudi"}
+.helpm .hb{padding:0 16px 16px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.helpm .hb ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.helpm .hb table{font-size:13px}
+.helpm .hx{border-radius:8px;padding:10px 12px;font-size:14px}
+.helpm .hx.e{background:var(--bad-soft)} .helpm .hx.t{background:var(--surface)}
+.helpm .hx b{display:block;font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.nav{position:sticky;bottom:0;z-index:3;padding:16px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--paper) 40%)}
+.nav .btn{box-shadow:0 1px 2px rgba(0,0,0,.06)}
+@media (max-width:1180px){
+  .help{display:none}
+  .helpm{display:block}
+  .app{grid-template-columns:200px minmax(0,1fr)}
+}
+@media (max-width:820px){
+  .top{position:static;padding:10px 16px;gap:8px 10px}
+  .brand > span:not(.cred-m){display:none}
+  .cred-m{display:inline;font-size:12px;color:var(--muted)}
+  .top .sp{flex-basis:100%;height:0}
+  #scChip{flex:1;min-width:0}
+  #scChip .chip{max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;text-align:left}
+  .app{grid-template-columns:1fr;padding:0 16px 24px;gap:14px}
+  .steps{position:sticky;top:0;z-index:4;background:var(--paper);margin:0 -16px;padding:8px 16px;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .steps::-webkit-scrollbar{display:none}
+  .steps button{padding:6px 10px}
+  main{gap:14px}
+  .card{padding:16px;border-radius:12px;gap:12px}
+  h2{font-size:22px}
+  .lead{font-size:14px}
+  table{font-size:13px}
+  th,td{padding:7px 8px}
+  .hero{justify-items:start;gap:14px}
+  .ring{width:112px;height:112px}.ring > div{width:88px;height:88px}.ring b{font-size:30px}
+  .kpi b{font-size:18px}
+  .nav .btn{flex:1;padding:12px}
+  .nav .btn[style*="hidden"]{flex:0;padding:0;border:0;width:0}
+  #phone{align-items:center!important;width:100%}
+  .modal{padding:18px;max-height:90vh}
+}
+
+.ck{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;border:1.5px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:var(--surface)}
+.ck.on{border-color:var(--good);background:var(--good-soft)}
+.ck input{margin-top:4px;accent-color:var(--good);width:18px;height:18px}
+.ck b{font-size:14px}
+.ck small{grid-column:2;color:var(--muted);font-size:13px;line-height:1.4}
+.ck .req{font:600 10px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--bad);margin-left:6px}
+.meterbar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.meterbar i{display:block;height:100%;background:var(--good)}
+.plat{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:820px){.plat{grid-template-columns:1fr}}
+.top a.btn{white-space:nowrap}
+@media (max-width:820px){#scChip{flex:1 1 100%}}
+.term{text-decoration:underline dotted;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:help;border-radius:3px}
+.term:focus-visible{outline:2px solid var(--mark)}
+#tip{position:absolute;z-index:40;display:none;background:var(--ink);color:var(--paper);font:13px/1.45 var(--f-body);padding:8px 11px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.18);pointer-events:none}
+.exbox{flex-direction:row;align-items:center;gap:14px;background:var(--mark-soft);border-color:transparent}
+.exbox > div{flex:1}
+@media (max-width:820px){.exbox{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand"><b class="logo">Reel<i>Lab</i></b><span>Dal reel alla sponsorizzazione dall'app · creato da <b>Azzurra Curcio</b></span><span class="cred-m">di Azzurra Curcio</span></div>
+  <span class="sp"></span>
+  <span id="scChip"></span>
+  <a class="btn sm" href="index.html" style="text-decoration:none;color:inherit">← Campagna Zero</a>
+  <button class="btn sm ghost" id="bReset" type="button">Ricomincia</button>
+</div>
+<div class="app">
+  <ol class="steps" id="steps"></ol>
+  <main id="view"></main>
+  <aside class="help" id="help"></aside>
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+<script>
+/* ================= DATI ================= */
+const BRIEF=[['Cosa promuovi','Un reel realizzato dalla classe che racconta un episodio verosimile della vita del corso IFTS VIP (Videomaking, Innovazione, Pubblicità), per far conoscere il corso e attirare nuovi iscritti'],['Il contenuto','Video verticale 9:16 di circa 45 secondi, già pubblicato sul profilo del corso'],['Pubblico','Ragazze e ragazzi 18–29 anni che vivono a Pisa e dintorni (il corso si svolge a Pisa)'],['Obiettivo','Far conoscere il corso: far vedere il reel alle persone giuste e portarle sul profilo del corso'],['Budget','50 € in totale, da spendere in circa una settimana'],['Come','Promozione direttamente dall\'app: "Metti in evidenza" su Instagram o "Promuovi" su TikTok'],['Sito','www.corso-ifts-vip.it/iscrizioni (sito di fantasia per l\'esercizio)']];
+const PLAT={
+ ig:{t:'Instagram',tool:'Metti in evidenza',cpm:6,min:1,maxDays:30,viewsL:'Visualizzazioni (3 s)',deepL:'ThruPlay (video visti)',
+  req:[
+   ['pro','Il profilo del corso è un account professionale (creator o business)','I profili personali non possono mettere in evidenza i contenuti.'],
+   ['vert','Il reel è verticale 9:16','Le promozioni dei reel richiedono il formato verticale.'],
+   ['len','Il reel dura al massimo 60 secondi','È il limite indicato dalle guide attuali per i reel in evidenza: verificalo nell\'app, può cambiare.'],
+   ['audio','L\'audio è originale o preso dalla libreria audio commerciale di Instagram','La musica protetta da copyright è il motivo più frequente per cui una promozione viene rifiutata.'],
+   ['no3p','Non contiene GIF, sticker o filtri di terzi','Anche questi elementi possono impedire la promozione.'],
+   ['policy','Testo e video rispettano le norme pubblicitarie','Niente promesse irrealistiche, niente riferimenti a caratteristiche personali di chi guarda.']],
+  goals:[['profilo','Più visite al profilo','Per farsi conoscere e ottenere nuovi follower.'],['sito','Più visite al sito web','Per portare le persone a una pagina, ad esempio le iscrizioni.'],['msg','Più messaggi','Per avviare conversazioni in Direct.']],
+  goalPts:{profilo:15,sito:10,msg:5}},
+ tt:{t:'TikTok',tool:'Promuovi',cpm:4,min:3,maxDays:7,viewsL:'Visualizzazioni (2 s)',deepL:'Visualizzazioni da 6 secondi',
+  req:[
+   ['pro','L\'account del corso è Business o Creator e chi paga ha almeno 18 anni','Sono i requisiti per usare la promozione.'],
+   ['vert','Il video è verticale 9:16','Su TikTok i video orizzontali appaiono piccoli e vengono scrollati via.'],
+   ['len','Il video è pubblico','Si possono promuovere solo i video pubblici.'],
+   ['audio','L\'audio è originale o preso dalla libreria musicale commerciale','La musica non autorizzata per uso commerciale impedisce la promozione.'],
+   ['no3p','Non contiene marchi, loghi o contenuti di altri senza permesso','TikTok può rifiutare promozioni con materiale protetto.'],
+   ['policy','Il video rispetta le linee guida della community e le norme pubblicitarie','Valgono sia le regole per tutti i video sia quelle per le promozioni.']],
+  goals:[['views','Aumenta l\'account · più visualizzazioni del video','Il video viene mostrato a più persone possibile.'],['profile','Aumenta l\'account · più visite al profilo','Porta le persone sul profilo del corso.'],['follower','Aumenta l\'account · più follower','Cerca persone che probabilmente seguiranno il profilo.'],['leads','Ottieni lead','Raccoglie contatti: serve un modulo o una chat.'],['sales','Ottieni vendite','Porta sul sito per acquisti: non è il caso del corso.']],
+  goalPts:{views:15,profile:15,follower:13,leads:4,sales:2}}
+};
+const CREA=[
+ ['hook',4,'Nei primi 2 secondi succede qualcosa che ferma lo scroll','Una domanda, un conflitto, un volto in primo piano, un movimento. Se l\'inizio è lento, la persona è già passata oltre.'],
+ ['arc',4,'Il racconto ha un inizio, uno sviluppo e un finale','Anche in 45 secondi l\'evento va raccontato: cosa succede, cosa cambia, come si chiude. Chi guarda deve voler arrivare alla fine.'],
+ ['brand',3,'Si capisce presto che si parla del corso IFTS VIP','Nome del corso, luogo o logo entro i primi secondi: chi guarda deve collegare l\'evento al corso.'],
+ ['subs',3,'Ci sono i sottotitoli','Molte persone guardano i video senza audio: senza sottotitoli perdono i dialoghi.'],
+ ['safe',3,'Testi e sottotitoli sono nelle zone sicure','Lontano dai bordi, dai pulsanti a destra e dalla descrizione in basso, che li coprirebbero.'],
+ ['audioq',3,'I dialoghi si sentono bene','Niente vento, rimbombo o musica troppo alta sopra le voci.'],
+ ['cta',2,'Il finale contiene un invito all\'azione','Ad esempio "Scopri il corso nel profilo" oppure "Iscrizioni aperte".'],
+ ['cover',2,'Copertina e didascalia invogliano a guardare','La copertina compare nel profilo; la didascalia accompagna il video.'],
+ ['pace',1,'Il ritmo è da social','Nessuna scena lunga e vuota: tagli rapidi, durata adatta alla storia.']
+];
+const LOCS=[['citta','Pisa + 30 km',600e3,.92],['regione','Toscana',2.8e6,.55],['italia','Italia',30e6,.06]];
+const INTERESTS=[['Film e video',1],['Social media e creator',1],['Fotografia',.8],['Design e creatività',.8],['Istruzione',.7],['Finanza',0],['Golf',0],['Arredamento',0]];
+const CTAS=[['scopri','Scopri di più'],['iscriviti','Iscriviti'],['prenota','Prenota ora'],['contattaci','Contattaci'],['acquista','Acquista ora']];
+const STEPS=['Piattaforma','Il reel è pronto?','Obiettivo','Pubblico','Budget e durata','Pagamento','Riepilogo','Risultati'];
+const HELP=[
+ {t:'Promuovere dall\'app',b:'<p>Per un singolo reel con un budget piccolo non serve Gestione inserzioni: si può promuovere direttamente dall\'app.</p><ul><li><b>Instagram</b>: pulsante <b>Metti in evidenza</b> sotto il reel.</li><li><b>TikTok</b>: <b>Promuovi</b> dal menu del video (o dagli strumenti per il business).</li></ul><p>È più semplice ma ha meno opzioni: pochi obiettivi, pubblico essenziale, budget e durata.</p>',e:'Pensare che "mettere in evidenza" sia solo un pulsante: obiettivo, pubblico e durata vanno scelti con la stessa cura di una campagna.',p:'I nomi dei pulsanti nelle app cambiano spesso: se non li trovi uguali, cerca la funzione corrispondente.'},
+ {t:'Il reel è pronto per essere promosso?',b:'<p>Prima di spendere, controlla due cose:</p><ul><li><b>Requisiti</b>: se ne manca uno, la piattaforma non permette la promozione o la rifiuta.</li><li><b>Creatività</b>: non è obbligatoria, ma decide se le persone guardano fino alla fine.</li></ul><p>La pubblicità amplifica il video: un video debole sponsorizzato resta debole, solo più costoso.</p>',e:'Usare una canzone famosa: il reel funziona come post normale, ma non si può promuovere.',p:'Prepara una versione del reel con audio originale o della libreria commerciale fin dal montaggio.'},
+ {t:'Scegliere l\'obiettivo',b:'<p>L\'obiettivo dice alla piattaforma a chi mostrare il video:</p><ul><li><b>visite al profilo / visualizzazioni / follower</b>: per far conoscere il corso;</li><li><b>visite al sito</b>: per portare alla pagina delle iscrizioni;</li><li><b>messaggi / lead</b>: per raccogliere contatti, se qualcuno risponde subito alle chat.</li></ul>',e:'Scegliere "visite al sito" quando il sito non è pronto o non è adatto al telefono.',p:'Per un reel che racconta il corso, l\'obiettivo più coerente è far crescere visualizzazioni e visite al profilo.'},
+ {t:'Il pubblico',b:'<p>Due possibilità:</p><ul><li><b>Automatico / suggerito</b>: la piattaforma sceglie in base ai follower e a chi interagisce. Comodo, ma non sa che il corso si tiene in una città precisa.</li><li><b>Crea il tuo pubblico</b>: scegli località, età, genere e interessi.</li></ul><p>Per un corso in presenza la <b>località</b> è decisiva: chi vive lontano difficilmente si iscriverà.</p>',e:'Lasciare il pubblico automatico per un corso locale: il budget finisce a persone in tutta Italia.',p:'Poche scelte ma giuste: città + età. Pochi interessi, solo se pertinenti.'},
+ {t:'Budget e durata',b:'<p>Si imposta un <b>budget giornaliero</b> e una <b>durata in giorni</b>: il totale è budget × giorni.</p><ul><li><b>Instagram</b>: si parte da circa 1 € al giorno; la durata si sceglie liberamente.</li><li><b>TikTok</b>: si parte da circa 3 € al giorno; la promozione dura da 1 a 7 giorni.</li></ul><p>Meglio qualche giorno con un budget costante che un solo giorno con tutto il budget: l\'algoritmo ha bisogno di tempo per trovare le persone giuste.</p>',e:'Spendere tutto in un giorno: costi più alti e poche persone diverse raggiunte.',p:'Con 50 € e una settimana: circa 7 € al giorno.'},
+ {t:'Pagamento',b:'<p>Il pagamento avviene con carta o con il saldo della piattaforma.</p><p>Su <b>Instagram da iPhone</b> le guide attuali segnalano che Apple applica una commissione (circa il 30%) sui pagamenti fatti in app: a parità di spesa paghi di più. Da Android o da computer la commissione non c\'è.</p>',e:'Pagare dall\'app su iPhone senza saperlo: 50 € di pubblicità costano circa 65 €.',p:'Se puoi, gestisci il pagamento da computer.'},
+ {t:'Controllo finale',b:'<p>Ricontrolla requisiti, obiettivo, pubblico, budget e durata. Dopo l\'invio la piattaforma verifica il contenuto: di solito in pochi minuti, a volte fino a 24 ore.</p>',e:'Promuovere il giorno stesso della scadenza: la verifica può richiedere tempo.',p:'Avvia la promozione qualche giorno prima della data in cui ti servono i risultati.'},
+ {t:'Leggere i risultati',b:'<ul><li><b>Copertura</b>: persone diverse raggiunte.</li><li><b>Frequenza</b>: quante volte in media le persone hanno visto il video.</li><li><b>Visualizzazioni brevi</b> (2–3 secondi): quante persone si sono fermate.</li><li><b>Visualizzazioni lunghe</b> (ThruPlay o 6 secondi): quante hanno davvero guardato.</li><li><b>Visite al profilo e follower</b>: quanto il video ha incuriosito.</li></ul>',e:'Guardare solo le visualizzazioni brevi: contano quelle lunghe e le visite al profilo.',p:'Se in molti si fermano ma pochi guardano a lungo, lavora sulla storia e sul ritmo, non sul pubblico.'}
+];
+
+/* ================= STATO ================= */
+const KEY='reellab-v1';
+const newState=()=>({plat:'',step:0,maxStep:0,check:{},goal:'',cta:'',url:'',aud:'auto',loc:'citta',ageMin:18,ageMax:65,gender:'all',interests:[],daily:'',days:'',pay:'',attempts:0,history:[],result:null});
+function fresh(){return{plat:'',step:0,saved:{},cur:newState()}}
+let ST=fresh();try{const r=localStorage.getItem(KEY);if(r){const o=JSON.parse(r);if(o&&o.cur)ST=o}}catch(e){}
+const S=new Proxy({},{get:(_,k)=>ST.cur[k],set:(_,k,v)=>{ST.cur[k]=v;return true}});
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}},300)}
+function switchPlat(p){if(ST.cur.plat===p)return;if(ST.cur.plat)ST.saved[ST.cur.plat]=ST.cur;ST.cur=ST.saved[p]||Object.assign(newState(),{plat:p});ST.cur.plat=p;ST.cur.step=Math.max(ST.cur.step,0)}
+
+/* ================= UTILITÀ ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
+const eur=(v,d=2)=>v.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:'always'})+' €';
+const int=v=>Math.round(v).toLocaleString('it-IT',{useGrouping:'always'});
+const dec=(v,d=1)=>v.toLocaleString('it-IT',{maximumFractionDigits:d});
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const P=()=>PLAT[S.plat];
+
+/* ================= ANALISI ================= */
+function analyze(){const p=P();const reqMiss=p.req.filter(r=>!S.check[r[0]]);
+ const cw=CREA.reduce((t,c)=>t+c[1],0);const cs=CREA.filter(c=>S.check[c[0]]).reduce((t,c)=>t+c[1],0)/cw;
+ const L=LOCS.find(l=>l[0]===S.loc)||LOCS[2];const lo=+S.ageMin,hi=+S.ageMax>=65?70:+S.ageMax;
+ const ov=Math.max(0,Math.min(hi,29)-Math.max(lo,18)),w=Math.max(1,hi-lo),prec=ov/w,cov=ov/11;
+ const sel=INTERESTS.filter(i=>S.interests.includes(i[0]));const avgI=sel.length?sel.reduce((t,i)=>t+i[1],0)/sel.length:null;
+ let tgt,N;
+ if(S.aud==='auto'){tgt=.45*.75;N=8e6}
+ else{tgt=L[3]*(.35+.65*prec)*(S.gender==='all'?1:.85);N=L[2]*clamp(w/50,.08,1)*(S.gender==='all'?1:.5)*(sel.length?Math.min(1,.15*sel.length+.05):1)}
+ const fit=S.aud==='auto'?.85:(avgI==null?.85:.45+.55*avgI);
+ const daily=num(S.daily),days=Math.round(num(S.days));
+ return{p,reqMiss,cs,L,prec,cov,sel,avgI,tgt,N:Math.max(500,N),fit,daily,days}}
+
+/* ================= SIMULAZIONE E VALUTAZIONE ================= */
+function simulate(A){const p=A.p;const days=clamp(A.days,0,p.maxDays);let spend=A.daily>=p.min&&days>0?A.daily*days:0;
+ const paid=spend*(S.plat==='ig'&&S.pay==='ios'?1.3:1);
+ if(A.reqMiss.length)return{spend:0,paid:0,impr:0,reach:0,views:0,deep:0,prof:0,foll:0,site:0,msg:0,rejected:true};
+ const gm={profilo:1,sito:1,msg:1,views:1,profile:1,follower:1,leads:1,sales:1};
+ const cpm=p.cpm*(A.N<60e3?1.4:A.N<200e3?1.15:1)*(days<=2?1.25:1)*(S.goal==='views'?.8:1);
+ const impr=spend/cpm*1000;const reach=Math.min(A.N,A.N*(1-Math.exp(-impr/(A.N*1.5))));
+ const hook=S.check.hook?1:0,subs=S.check.subs?1:.85;
+ const views=impr*(.22+.33*hook)*subs*(S.goal==='views'?1.15:1);
+ const deep=views*(.25+.45*A.cs)*(S.goal==='views'?1.1:1);
+ const inT=A.tgt;
+ const prof=impr*.004*(['profilo','profile'].includes(S.goal)?1.7:S.goal==='follower'?1.2:.8)*(.5+.8*A.cs)*(.5+.5*inT)*A.fit;
+ const foll=prof*(S.goal==='follower'?.38:.22)*(.6+.6*A.cs);
+ const site=S.goal==='sito'||S.goal==='sales'?impr*.007*(.5+.8*A.cs)*(S.url.trim()?1:0):impr*.0008;
+ const msg=S.goal==='msg'||S.goal==='leads'?impr*.0012*(.5+A.cs):0;
+ return{spend,paid,impr,reach,views,deep,prof:prof,foll,site,msg,freq:reach?impr/reach:0,inTarget:reach*inT,rejected:false}}
+function grade(A,R){const p=A.p,cats=[];const it=(lvl,t,msg,pts,max)=>({lvl,t,msg,pts,max});
+ let I=[];
+ if(!A.reqMiss.length)I.push(it('ok','Requisiti','Tutti i requisiti per la promozione sono rispettati.',25,25));
+ else I.push(it('bad','Requisiti',`Promozione non possibile o rifiutata. Manca: ${A.reqMiss.map(r=>r[1].toLowerCase()).join('; ')}.`,Math.round(25*(p.req.length-A.reqMiss.length)/p.req.length*.4),25));
+ cats.push({t:'Requisiti del reel',items:I});
+ I=[];const miss=CREA.filter(c=>!S.check[c[0]]);const cp=Math.round(25*A.cs*10)/10;
+ I.push(it(A.cs>=.85?'ok':A.cs>=.5?'warn':'bad','Creatività',miss.length?`Da migliorare: ${miss.map(c=>c[2].toLowerCase()).join('; ')}.`:'Il reel ha tutti gli ingredienti per essere guardato fino alla fine.',cp,25));
+ cats.push({t:'Creatività',items:I});
+ I=[];const gp=p.goalPts[S.goal]??0;const gT=(p.goals.find(g=>g[0]===S.goal)||[])[1];
+ if(!S.goal)I.push(it('bad','Obiettivo','Non hai scelto un obiettivo.',0,12));
+ else I.push(it(gp>=12?'ok':gp>=8?'warn':'bad','Obiettivo',gp>=12?`"${gT}" è coerente con il brief: far conoscere il corso e portare persone sul profilo.`:`"${gT}" non è l'obiettivo più adatto: il brief chiede di far vedere il reel e portare persone sul profilo.`,Math.round(gp*.8*10)/10,12));
+ const needUrl=S.goal==='sito'||S.goal==='sales';
+ if(needUrl){const ok=/corso-ifts-vip\.it/i.test(S.url);I.push(it(ok&&S.cta?'ok':'warn','Destinazione e pulsante',ok?(S.cta?'Link e pulsante impostati.':'Scegli il testo del pulsante.'):'Inserisci il link alla pagina delle iscrizioni del corso.',(ok?2:0)+(S.cta?1:0),3))}
+ else I.push(it('ok','Destinazione e pulsante','Con questo obiettivo il pulsante porta al profilo o al video: niente da configurare.',3,3));
+ cats.push({t:'Obiettivo',items:I});
+ I=[];
+ if(S.aud==='auto')I.push(it('warn','Pubblico','Il pubblico automatico non sa che il corso si tiene in una città precisa: buona parte del budget raggiunge persone troppo lontane. Crea un pubblico con località ed età.',5,15));
+ else{const lp=S.loc==='citta'?7:S.loc==='regione'?5:1;const ap=A.cov>=.9&&A.prec>=.7?5:A.cov>=.6?3:1;const ip=A.avgI==null?3:A.avgI>=.8?3:A.avgI>=.5?2:0;
+  I.push(it(lp>=7?'ok':lp>=5?'warn':'bad','Località',lp>=7?'Pisa e dintorni: proprio chi può iscriversi.':lp>=5?'La Toscana va bene, ma chi vive lontano da Pisa difficilmente frequenterà.':'Tutta Italia è troppo ampia per un corso in presenza.',lp,7));
+  I.push(it(ap>=5?'ok':'warn','Età',ap>=5?'Età coerente con il brief (18–29).':`Il brief indica 18–29 anni: hai scelto ${S.ageMin}–${+S.ageMax>=65?'65+':S.ageMax}.`,ap,5));
+  I.push(it(ip>=3?'ok':ip>=2?'warn':'bad','Interessi',A.avgI==null?'Nessun interesse: va bene, la località e l\'età bastano.':ip>=3?'Interessi pertinenti.':`Alcuni interessi non c'entrano: ${A.sel.filter(i=>i[1]<.5).map(i=>i[0]).join(', ')||'troppo generici'}.`,ip,3))}
+ cats.push({t:'Pubblico',items:I});
+ I=[];const tot=A.daily*A.days;let bp=0;const m=[];
+ if(!A.daily||!A.days){m.push('imposta budget giornaliero e durata')}
+ else{if(A.daily<p.min)m.push(`il budget giornaliero minimo su ${p.t} è circa ${p.min} €`);else bp+=3;
+  if(A.days>p.maxDays)m.push(`su ${p.t} la promozione dura al massimo ${p.maxDays} giorni`);else if(A.days<=2)m.push('1–2 giorni sono pochi: l\'algoritmo non ha tempo di trovare le persone giuste');else bp+=5;
+  if(tot>=40&&tot<=55)bp+=7;else m.push(`il totale è ${eur(tot,0)}, il brief prevede circa 50 €`)}
+ I.push(it(bp>=15?'ok':bp>=7?'warn':'bad','Budget e durata',bp>=15?`${eur(A.daily)} al giorno per ${A.days} giorni = ${eur(tot,0)}: in linea con il brief.`:m.join('; ')+'.',bp,15));
+ cats.push({t:'Budget e durata',items:I});
+ I=[];
+ if(S.plat==='ig'){I.push(!S.pay?it('bad','Pagamento','Scegli da dove paghi.',0,5):S.pay==='ios'?it('warn','Pagamento','Pagando dall\'app su iPhone si aggiunge la commissione di Apple (circa 30%): 50 € di pubblicità costano circa 65 €. Meglio pagare da computer o da Android.',2,5):it('ok','Pagamento','Nessuna commissione aggiuntiva.',5,5))}
+ else I.push(it('ok','Pagamento','Su TikTok paghi con carta o con il saldo Promote: i fondi non spesi restano nel saldo.',5,5));
+ cats.push({t:'Pagamento',items:I});
+ cats.forEach(k=>{k.pts=k.items.reduce((s,x)=>s+x.pts,0);k.max=k.items.reduce((s,x)=>s+x.max,0)});
+ let total=Math.round(cats.reduce((s,k)=>s+k.pts,0));if(R.rejected||!R.spend)total=Math.min(total,20);
+ return{cats,total}}
+
+/* ================= RENDER ================= */
+function render(){ST.cur.maxStep=Math.max(S.maxStep||0,S.step||0);
+ $('#steps').innerHTML=STEPS.map((t,i)=>{const dis=(i>0&&!S.plat)||(i===7&&!S.result);const done=i<S.maxStep&&i!==S.step;return`<li><button type="button" data-go="${i}" class="${i===S.step?'cur':''} ${done?'done':''}" ${dis?'disabled':''}><span class="n">${done?'✓':i+1}</span>${t}</button></li>`}).join('');
+ const h=HELP[S.step||0];$('#help').innerHTML=`<div class="box"><span class="lab">Cos'è questo passaggio</span><h3>${h.t}</h3>${h.b}</div><div class="box err"><span class="lab">Errore comune</span><p>${h.e}</p></div><div class="box tip"><span class="lab">Consiglio</span><p>${h.p}</p></div>`;
+ $('#scChip').innerHTML=S.plat?`<button type="button" class="chip btn sm" id="bBrief">Brief: <b>${P().t} · ${P().tool}</b></button>`:'';
+ $('#view').innerHTML=[rPlat,rCheck,rGoal,rAud,rBudget,rPay,rSum,rRes][S.step||0]();
+ $('#view').insertAdjacentHTML('afterbegin',`<details class="helpm"><summary>Cos'è questo passaggio? · ${h.t}</summary><div class="hb">${h.b}<div class="hx e"><b>Errore comune</b>${h.e}</div><div class="hx t"><b>Consiglio</b>${h.p}</div></div></details>`);
+ const st=$('#steps'),cur=st.querySelector('.cur');if(cur&&st.scrollWidth>st.clientWidth)st.scrollLeft=cur.offsetLeft-st.clientWidth/2+cur.offsetWidth/2;
+ if(S.step===1)meter();if(S.step===4)budHint();setTimeout(markTerms,0);save()}
+const nav=(next='Avanti',dis=false)=>`<div class="nav"><button class="btn" type="button" data-go="${S.step-1}" ${S.step===0?'style="visibility:hidden"':''}>← Indietro</button><button class="btn pri" type="button" data-go="${S.step+1}" ${dis?'disabled':''}>${next} →</button></div>`;
+const radio=(k,val,t,d)=>`<label class="opt ${S[k]===val?'on':''}"><input type="radio" name="${k}" data-k="${k}" value="${val}" ${S[k]===val?'checked':''}><span><b>${t}</b>${d?`<small>${d}</small>`:''}</span></label>`;
+const briefHTML=()=>`<div class="brief"><b>Il tuo reel · brief dell'esercizio</b><dl>${BRIEF.map(f=>`<dt>${f[0]}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></div>`;
+
+function rPlat(){return`<div class="card"><h2>Dal reel alla sponsorizzazione</h2><p class="lead">Hai girato un reel che racconta un evento successo durante il corso. Ora devi promuoverlo direttamente dall'app, con un budget piccolo. Scegli la piattaforma: puoi fare l'esercizio su entrambe, i progressi restano separati.</p>
+ <div class="plat"><button type="button" class="sc ${S.plat==='ig'?'on':''}" data-plat="ig"><span class="k">Instagram</span><h3>Metti in evidenza</h3><p>Promuovi il reel dal profilo del corso: obiettivo, pubblico, budget e durata.</p></button><button type="button" class="sc ${S.plat==='tt'?'on':''}" data-plat="tt"><span class="k">TikTok</span><h3>Promuovi</h3><p>Promuovi il video dal profilo TikTok del corso, da 1 a 7 giorni.</p></button></div></div>
+ <div class="card">${briefHTML()}</div>${exampleCard('10–15')}${nav('Inizia',!S.plat)}
+ <p class="fine">© 2026 Azzurra Curcio · Campagna Zero · Materiale didattico. Opera distribuita con licenza <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.it" target="_blank" rel="noopener">Creative Commons Attribuzione – Non commerciale – Non opere derivate 4.0 Internazionale (CC BY-NC-ND 4.0)</a>: puoi usarla e condividerla citando l'autrice, senza scopi commerciali e senza modificarla. Simulatore didattico indipendente, non affiliato né approvato da Meta o TikTok. Instagram è un marchio di Meta Platforms, Inc.; TikTok è un marchio di ByteDance Ltd. I nomi dei pulsanti nelle app possono cambiare. I risultati sono stime di un modello semplificato.</p>`}
+function rCheck(){const p=P();const row=(r,req)=>`<label class="ck ${S.check[r[0]]?'on':''}"><input type="checkbox" data-ck="${r[0]}" ${S.check[r[0]]?'checked':''}><b>${esc(r[req?1:2])}${req?'<span class="req">obbligatorio</span>':''}</b><small>${esc(r[req?2:3])}</small></label>`;
+ return`<div class="card"><h2>Il reel è pronto?</h2><p class="lead">Spunta solo ciò che è vero per il vostro reel. È la checklist da usare ogni volta che promuovete un reel, prima di spendere davvero.</p><div class="field"><span class="lbl">Preparazione</span><div class="meterbar"><i id="mb"></i></div><span class="hint" id="mt"></span></div></div>
+ <div class="card"><h3>Requisiti di ${p.t} per la promozione</h3><div class="list">${p.req.map(r=>row(r,true)).join('')}</div></div>
+ <div class="card"><h3>Creatività: cosa fa guardare il reel fino alla fine</h3><div class="list">${CREA.map(r=>row(r,false)).join('')}</div></div>${nav()}`}
+function meter(){const A=analyze();const req=A.p.req.length-A.reqMiss.length;const pc=Math.round((req/A.p.req.length*.5+A.cs*.5)*100);$('#mb').style.width=pc+'%';$('#mt').textContent=`Requisiti ${req}/${A.p.req.length} · creatività ${Math.round(A.cs*100)}%`+(A.reqMiss.length?' · finché manca un requisito la promozione non è possibile':'')}
+function rGoal(){const p=P();return`<div class="card"><h2>Obiettivo</h2><p class="lead">Cosa vuoi ottenere dalle persone che vedono il reel?</p><div class="list">${p.goals.map(g=>radio('goal',g[0],g[1],g[2])).join('')}</div>
+ ${S.goal==='sito'||S.goal==='sales'?`<div class="row"><div class="field"><label for="url">Link</label><input type="url" id="url" data-k="url" value="${esc(S.url)}" placeholder="https://www.corso-ifts-vip.it/iscrizioni"></div><div class="field" style="max-width:260px"><label for="cta">Testo del pulsante</label><select id="cta" data-k="cta"><option value="">— scegli —</option>${CTAS.map(([i,t])=>`<option value="${i}" ${S.cta===i?'selected':''}>${t}</option>`).join('')}</select></div></div>`:''}
+ <p class="hint">I nomi esatti degli obiettivi nelle app possono essere leggermente diversi: conta il risultato che chiedi.</p></div>${nav()}`}
+function rAud(){const ages=[];for(let a=18;a<=65;a++)ages.push(a);return`<div class="card"><h2>Pubblico</h2><div class="list">${radio('aud','auto',S.plat==='ig'?'Pubblico suggerito (Advantage+)':'Automatico',S.plat==='ig'?'Instagram sceglie in base ai follower e a chi interagisce, e può ampliare il pubblico.':'TikTok sceglie da solo le persone più propense a guardare.')}${radio('aud','custom','Crea il tuo pubblico','Scegli località, età, genere e interessi.')}</div></div>
+ ${S.aud==='custom'?`<div class="card"><span class="lbl">Località</span><div class="opts">${LOCS.map(l=>radio('loc',l[0],l[1],'')).join('')}</div>
+ <div class="row" style="max-width:420px"><div class="field"><label for="amin">Età minima</label><select id="amin" data-k="ageMin">${ages.map(a=>`<option ${+S.ageMin===a?'selected':''}>${a}</option>`).join('')}</select></div><div class="field"><label for="amax">Età massima</label><select id="amax" data-k="ageMax">${ages.map(a=>`<option value="${a}" ${+S.ageMax===a?'selected':''}>${a===65?'65+':a}</option>`).join('')}</select></div></div>
+ <span class="lbl">Genere</span><div class="opts">${radio('gender','all','Tutti','')}${radio('gender','f','Donne','')}${radio('gender','m','Uomini','')}</div>
+ <span class="lbl">Interessi (facoltativi)</span><div class="opts">${INTERESTS.map(([t])=>`<label class="opt ${S.interests.includes(t)?'on':''}"><input type="checkbox" data-int="${esc(t)}" ${S.interests.includes(t)?'checked':''}><span><b>${esc(t)}</b></span></label>`).join('')}</div>
+ <p class="hint">Pubblico stimato: circa ${int(analyze().N)} persone.</p></div>`:''}${nav()}`}
+function rBudget(){const p=P();return`<div class="card"><h2>Budget e durata</h2><div class="row"><div class="field"><label for="daily">Budget giornaliero (€)</label><input type="number" min="0" step="0.5" id="daily" data-k="daily" value="${esc(S.daily)}" placeholder="Es. 7"></div><div class="field"><label for="days">Durata (giorni)</label><input type="number" min="1" max="${p.maxDays}" step="1" id="days" data-k="days" value="${esc(S.days)}" placeholder="Es. 7"></div></div><p class="hint" id="bh"></p>
+ <p class="hint">${p.t}: minimo circa ${p.min} € al giorno, durata massima ${p.maxDays} giorni.</p></div>${nav()}`}
+function budHint(){const A=analyze();const t=A.daily*A.days;$('#bh').textContent=t?`Totale: ${eur(t)}`+(A.days>A.p.maxDays?` · su ${A.p.t} la durata massima è ${A.p.maxDays} giorni`:'')+(A.daily&&A.daily<A.p.min?` · sotto il minimo giornaliero`:''):'Il totale è budget giornaliero × giorni.'}
+function rPay(){return`<div class="card"><h2>Pagamento</h2>${S.plat==='ig'?`<p class="lead">Da dove imposterai il pagamento?</p><div class="list">${radio('pay','ios','App Instagram su iPhone','Il pagamento passa da Apple.')}${radio('pay','android','App Instagram su Android','')}${radio('pay','web','Da computer','Gestione inserzioni o Meta Business Suite.')}</div>`:`<p class="lead">Su TikTok paghi con carta o ricaricando il saldo Promote. I fondi non spesi tornano nel saldo.</p><div class="al info"><span class="dot info"></span><span>Nessuna scelta da fare in questo passaggio: puoi andare avanti.</span></div>`}</div>${nav()}`}
+function rSum(){const A=analyze();const p=A.p;const row=(k,v)=>`<tr><th style="width:36%">${k}</th><td>${v}</td></tr>`;const miss='<span class="tag bad">mancante</span>';
+ return`<div class="card"><h2>Riepilogo</h2><div class="tw"><table>${row('Piattaforma',p.t+' · '+p.tool)}${row('Requisiti',A.reqMiss.length?`<span class="tag bad">${A.reqMiss.length} mancanti</span>`:'<span class="tag ok">tutti rispettati</span>')}${row('Creatività',Math.round(A.cs*100)+'%')}${row('Obiettivo',(p.goals.find(g=>g[0]===S.goal)||[0,miss])[1])}${row('Pubblico',S.aud==='auto'?'Automatico':`${A.L[1]} · ${S.ageMin}–${+S.ageMax>=65?'65+':S.ageMax} · ${({all:'tutti',f:'donne',m:'uomini'})[S.gender]}${A.sel.length?' · '+A.sel.map(i=>i[0]).join(', '):''}`)}${row('Budget',A.daily&&A.days?`${eur(A.daily)} × ${A.days} giorni = ${eur(A.daily*A.days)}`:miss)}${S.plat==='ig'?row('Pagamento',({ios:'App su iPhone',android:'App su Android',web:'Computer'})[S.pay]||miss):''}</table></div>
+ ${A.reqMiss.length?'<div class="al bad"><span class="dot bad"></span><span>Manca almeno un requisito: la promozione verrebbe rifiutata o non sarebbe disponibile.</span></div>':''}</div>
+ <div class="nav"><button class="btn" type="button" data-go="5">← Indietro</button><button class="btn pri" type="button" id="publish">Avvia la promozione →</button></div>`}
+function rRes(){const R=S.result;if(!R)return'';const p=P();const t=R.sim;const col=R.total>=85?'var(--good)':R.total>=70?'var(--accent)':R.total>=50?'var(--warn)':'var(--bad)';
+ const verdict=R.total>=85?'Pronto per la promozione vera':R.total>=70?'Buona base, da rifinire':R.total>=50?'Da rivedere prima di spendere':'Non ancora pronto';const prev=S.history.length>1?S.history[S.history.length-2]:null;
+ const kpi=(k,v,hi)=>`<div class="kpi ${hi?'hi':''}"><span>${k}</span><b>${v}</b></div>`;
+ const fixes=R.cats.flatMap(k=>k.items.filter(x=>x.lvl!=='ok'&&x.max>0).map(x=>({...x,cat:k.t}))).sort((a,b)=>(b.max-b.pts)-(a.max-a.pts)).slice(0,3);
+ return`<div class="card"><div class="hero"><div class="ring" style="--p:${R.total};--c:${col}"><div><span><b>${R.total}</b><br><small>su 100</small></span></div></div><div style="display:flex;flex-direction:column;gap:8px"><span class="hint">Tentativo n° ${S.attempts} · ${p.t} · ${p.tool}</span><h2>${verdict}</h2>${prev!=null?`<p>${R.total>prev?`Hai migliorato di <b>${R.total-prev} punti</b> (prima ${prev}).`:R.total<prev?`Punteggio sceso di ${prev-R.total} punti (prima ${prev}).`:'Stesso punteggio del tentativo precedente.'}</p>`:''}<div class="row" style="flex:none"><button class="btn pri" type="button" data-go="1" style="flex:none">Modifica</button><button class="btn" type="button" id="copyRep" style="flex:none">Copia il report</button>${getName()?`<button class="btn ghost" type="button" id="chName" style="flex:none">Nome: ${esc(getName())} · cambia</button>`:''}<button class="btn ghost" type="button" data-go="0" style="flex:none">Cambia piattaforma</button></div></div></div></div>
+ ${t.rejected?'<div class="al bad"><span class="dot bad"></span><span><b>Promozione rifiutata o non disponibile</b>: manca almeno un requisito. Nessuna spesa.</span></div>':''}
+ ${fixes.length?`<div class="card"><h3>Le prime cose da sistemare</h3><ol class="top3">${fixes.map(f=>`<li><span><b>${f.cat} · ${f.t}</b> — ${esc(f.msg)}</span></li>`).join('')}</ol></div>`:''}
+ <div class="card"><h3>Risultati simulati</h3><div class="kpis">${kpi(p.deepL,int(t.deep),1)}${kpi('Visite al profilo',int(t.prof),1)}${kpi('Nuovi follower',int(t.foll),1)}${kpi('Copertura',int(t.reach))}${kpi('Di cui nella zona giusta',int(t.inTarget||0))}${kpi('Impressioni',int(t.impr))}${kpi('Frequenza',t.reach?dec(t.freq,2):'—')}${kpi(p.viewsL,int(t.views))}${t.site>=1?kpi('Clic sul sito',int(t.site)):''}${t.msg>=1?kpi('Messaggi',int(t.msg)):''}${kpi('Speso in pubblicità',eur(t.spend))}${kpi('Pagato',eur(t.paid))}</div>
+ <p class="fine">Simulazione didattica con un modello semplificato: serve a capire cause ed effetti, non è una previsione reale. Reel Lab è stato creato da Azzurra Curcio.</p></div>
+ <div class="card"><h3>Valutazione per area</h3>${R.cats.map(k=>`<div class="cat"><header><h3>${k.t}</h3><span class="pts">${dec(k.pts)} / ${k.max}</span></header><div class="bar"><i style="width:${k.pts/k.max*100}%"></i></div>${k.items.map(x=>`<div class="al ${x.lvl}"><span class="dot ${x.lvl}"></span><span><b>${x.t}</b> · ${esc(x.msg)} <span class="pts">(${dec(x.pts)}/${x.max})</span></span></div>`).join('')}</div>`).join('<hr style="border:0;border-top:1px solid var(--line);width:100%">')}</div>`}
+
+/* ================= EVENTI ================= */
+$('#view').addEventListener('input',e=>{const el=e.target;const k=el.dataset.k;if(!k||el.type==='radio'||el.tagName==='SELECT')return;S[k]=el.value;save();if(S.step===4)budHint()});
+$('#view').addEventListener('change',e=>{const el=e.target;
+ if(el.dataset.ck){S.check[el.dataset.ck]=el.checked;el.closest('.ck').classList.toggle('on',el.checked);meter();save();return}
+ if(el.dataset.int){const v=el.dataset.int;S.interests=el.checked?[...new Set([...S.interests,v])]:S.interests.filter(x=>x!==v);render();return}
+ const k=el.dataset.k;if(!k)return;S[k]=el.value;if(k==='ageMin'&&+S.ageMin>+S.ageMax)S.ageMax=S.ageMin;if(el.type==='radio'||el.tagName==='SELECT')render();else save()});
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.dataset.go!=null){const s=+t.dataset.go;if(s<0||(s>0&&!S.plat)||(s===7&&!S.result))return;S.step=s;render();window.scrollTo({top:0});return}
+ if(t.dataset.plat){switchPlat(t.dataset.plat);render();return}
+ if(t.id==='publish'){const A=analyze(),sim=simulate(A),G=grade(A,sim);S.attempts=(S.attempts||0)+1;S.history=[...(S.history||[]),G.total];S.result={total:G.total,cats:G.cats,sim};S.step=7;render();window.scrollTo({top:0});return}
+ if(t.id==='copyRep'){copyReport();return}
+ if(t.id==='bBrief'){openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Brief</h2><button class="btn sm" type="button" data-close>Chiudi</button></header>${briefHTML()}`);return}
+ if(t.id==='bReset'){openModal(`<h2>Ricominciare da zero?</h2><p>Perderai i dati di entrambe le piattaforme.</p><div class="nav"><button class="btn" type="button" data-close>Annulla</button><button class="btn pri" type="button" id="doReset">Sì, ricomincia</button></div>`);return}
+ if(t.id==='doReset'){ST=fresh();closeModal();render();return}
+ if(t.dataset.close!=null){closeModal();return}});
+$('#ov').addEventListener('click',e=>{if(e.target.id==='ov')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+function openModal(h){$('#modal').innerHTML=h;$('#ov').classList.add('on');const b=$('#modal button');if(b)b.focus()}
+function closeModal(){$('#ov').classList.remove('on')}
+function copyReport(){if(!getName()){askName(copyReport,'Salva e copia il report');return}const R=S.result,p=P(),t=R.sim;const txt=['REEL LAB – Report promozione','Campagna Zero · simulatore creato da Azzurra Curcio',`Studente: ${getName()}`,`Piattaforma: ${p.t} · ${p.tool}`,`Tentativo n° ${S.attempts} · Punteggio: ${R.total}/100`,'',`Risultati simulati: speso ${eur(t.spend)} (pagato ${eur(t.paid)}) · copertura ${int(t.reach)} · ${p.deepL.toLowerCase()} ${int(t.deep)} · visite al profilo ${int(t.prof)} · nuovi follower ${int(t.foll)}`,'',...R.cats.flatMap(k=>[`${k.t}: ${dec(k.pts)}/${k.max}`,...k.items.filter(x=>x.lvl!=='ok').map(x=>`  - ${x.t}: ${x.msg}`)])].join('\n');
+ const fb=()=>openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Report</h2><button class="btn sm" type="button" data-close>Chiudi</button></header><p class="hint">Seleziona il testo e copialo per inviarlo alla docente.</p><textarea readonly>${esc(txt)}</textarea>`);
+ try{navigator.clipboard.writeText(txt).then(()=>{const b=$('#copyRep');if(b){b.textContent='Copiato ✓';setTimeout(()=>{const x=$('#copyRep');if(x)x.textContent='Copia il report'},2000)}},fb)}catch(e){fb()}}
+if(S.step===7&&!S.result)S.step=6;
+
+/* ===== Nome dello studente nel report ===== */
+const NAME_KEY='labadv-nome';let _nm=null;
+function getName(){if(_nm!==null)return _nm;try{_nm=localStorage.getItem(NAME_KEY)||''}catch(e){_nm=''}return _nm}
+function setName(v){_nm=v;try{localStorage.setItem(NAME_KEY,v)}catch(e){}}
+function askName(after,label){openModal(`<h2>Come ti chiami?</h2><p class="hint">Il tuo nome compare nella prima riga del report, così la docente sa chi l'ha inviato. Resta salvato solo in questo browser.</p><div class="field"><label for="nmIn">Nome e cognome</label><input type="text" id="nmIn" value="${esc(getName())}" autocomplete="name" maxlength="60"></div><p class="hint" id="nmErr" style="color:var(--bad)" hidden>Scrivi nome e cognome per continuare.</p><div class="row" style="justify-content:flex-end;flex:none"><button class="btn" type="button" data-close style="flex:none">Annulla</button><button class="btn pri" type="button" id="saveName" style="flex:none">${label||'Salva'}</button></div>`);window._afterName=after;setTimeout(()=>{const i=document.getElementById('nmIn');if(i)i.focus()},30)}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.id==='saveName'){const v=(document.getElementById('nmIn').value||'').trim().replace(/\s+/g,' ');if(v.length<3||!/\s/.test(v)){document.getElementById('nmErr').hidden=false;return}setName(v);closeModal();const f=window._afterName;window._afterName=null;if(f)f()}
+ if(t.id==='chName')askName(()=>render(),'Salva')});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){e.preventDefault();document.getElementById('saveName').click()}});
+
+/* ===== Sigle spiegate dove compaiono ===== */
+const DEFS={'CPM':'Costo per mille impressioni: quanto paghi ogni 1.000 volte che l\'annuncio viene mostrato.','CPC':'Costo per clic: quanto paghi in media per ogni clic.','CTR':'Percentuale di clic: clic diviso impressioni. Indica quanto l\'annuncio invoglia a cliccare.','CPA':'Costo per acquisizione: quanto costa in media un risultato (una vendita, un contatto).','ROAS':'Ritorno sulla spesa pubblicitaria: valore delle vendite diviso spesa. ROAS 3 = 3 € incassati per ogni euro speso.','ThruPlay':'Visualizzazione del video fino alla fine (o per almeno 15 secondi).','Advantage+':'Le automazioni di Meta: budget, pubblico o posizionamenti gestiti dall\'algoritmo.','Spark Ads':'Annunci TikTok che promuovono un post già pubblicato, mantenendo like e commenti.','pixel':'Codice installato sul sito che comunica alla piattaforma cosa fanno le persone (acquisti, contatti).','Pangle':'Rete di app di terze parti in cui TikTok può mostrare gli annunci.','UTM':'Parametri aggiunti al link per riconoscere da dove arriva il traffico in Google Analytics.','remarketing':'Mostrare annunci a chi ha già visitato il sito o interagito con il brand.','Punteggio di qualità':'Voto da 1 a 10 che Google dà a una parola chiave: più è alto, meno paghi ogni clic.','AI Max':'Funzioni di Google che ampliano le ricerche oltre le parole chiave e personalizzano titoli e link.','Frequenza':'Quante volte, in media, ogni persona ha visto l\'annuncio.','Copertura':'Numero di persone diverse che hanno visto l\'annuncio almeno una volta.','lead':'Contatto di una persona interessata: nome, telefono o email.','impressioni':'Le volte in cui l\'annuncio è stato mostrato.','Rete Display':'Banner e annunci su siti e app: li vede chi naviga, non chi sta cercando.','sitelink':'Link aggiuntivi sotto l\'annuncio che portano ad altre pagine del sito.','callout':'Brevi frasi sui punti di forza mostrate sotto l\'annuncio, es. "Consegna gratuita".','corrispondenza':'Quanto le ricerche reali possono essere diverse dalla tua parola chiave: generica, a frase o esatta.','parole chiave negative':'Termini che escludono le ricerche che non vuoi, es. "lavoro" o "ricetta".'};
+const _TK=Object.keys(DEFS).sort((a,b)=>b.length-a.length);
+const _TRX=new RegExp('(^|[^A-Za-zÀ-ÿ0-9])('+_TK.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![A-Za-zÀ-ÿ0-9])','i');
+function markTerms(){const used=new Set();const roots=[document.getElementById('view'),document.getElementById('help')].filter(Boolean);
+ const skip='input,textarea,select,option,button,script,style,.term,.serp,.post,.phone,.story,#pvFeed,#pvStory,a,h1,.brand,.kw,.mt,.tag';
+ roots.forEach(root=>{const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.trim()&&n.parentElement&&n.parentElement.offsetParent!==null&&!n.parentElement.closest(skip)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
+  const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  nodes.forEach(node=>{let txt=node.nodeValue;const frag=document.createDocumentFragment();let changed=false;
+   for(let guard=0;guard<6;guard++){const m=_TRX.exec(txt);if(!m)break;const key=_TK.find(k=>k.toLowerCase()===m[2].toLowerCase());if(used.has(key)){const cut=m.index+m[0].length;frag.appendChild(document.createTextNode(txt.slice(0,cut)));txt=txt.slice(cut);changed=true;continue}
+    used.add(key);const start=m.index+m[1].length;frag.appendChild(document.createTextNode(txt.slice(0,start)));const sp=document.createElement('span');sp.className='term';sp.tabIndex=0;sp.dataset.def=DEFS[key];sp.textContent=m[2];frag.appendChild(sp);txt=txt.slice(start+m[2].length);changed=true}
+   if(changed){frag.appendChild(document.createTextNode(txt));node.parentNode.replaceChild(frag,node)}})})}
+(function(){const tip=document.createElement('div');tip.id='tip';tip.setAttribute('role','tooltip');document.body.appendChild(tip);let cur=null;
+ let shownAt=0,lastTouch=0;document.addEventListener('touchstart',()=>{lastTouch=Date.now()},{passive:true,capture:true});const show=el=>{cur=el;shownAt=Date.now();tip.textContent=el.dataset.def;tip.style.display='block';const r=el.getBoundingClientRect();const tw=Math.min(280,window.innerWidth-24);tip.style.maxWidth=tw+'px';let x=r.left+window.scrollX;x=Math.min(x,window.scrollX+window.innerWidth-tip.offsetWidth-12);x=Math.max(window.scrollX+12,x);tip.style.left=x+'px';tip.style.top=(r.bottom+window.scrollY+6)+'px'};
+ const hide=()=>{cur=null;tip.style.display='none'};
+ document.addEventListener('mouseover',e=>{if(Date.now()-lastTouch<1000)return;const t=e.target.closest&&e.target.closest('.term');if(t)show(t)});
+ document.addEventListener('mouseout',e=>{if(Date.now()-lastTouch<1000)return;const t=e.target.closest&&e.target.closest('.term');if(t)hide()});
+ document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('term'))show(e.target)});
+ document.addEventListener('focusout',e=>{if(e.target.classList&&e.target.classList.contains('term'))hide()});
+ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.term');if(t){e.preventDefault();e.stopPropagation();if(cur===t&&Date.now()-shownAt>500)hide();else show(t)}else if(cur)hide()},true);
+ window.addEventListener('scroll',()=>{if(cur)hide()},{passive:true});})();
+
+/* ===== Campagna di esempio commentata ===== */
+function showExample(){const X=EXAMPLE;openModal(`<header style="display:flex;align-items:center;gap:10px"><h2 style="flex:1">Campagna di esempio commentata</h2><button class="btn sm" type="button" data-close>Chiudi</button></header>
+ <p class="hint">Cliente: <b>${esc(X.client)}</b>. Ecco le scelte di una campagna fatta bene e il perché di ognuna.</p>
+ <div class="tw"><table><thead><tr><th>Passaggio</th><th>Scelta</th><th>Perché</th></tr></thead><tbody>${X.rows.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td class="hint">${esc(r[2])}</td></tr>`).join('')}</tbody></table></div>
+ <div class="al warn"><span class="dot warn"></span><span>Caricare l'esempio sostituisce la campagna che stai facendo per questo cliente. Per esercitarti davvero, prova poi con un altro cliente.</span></div>
+ <div class="row" style="justify-content:flex-end;flex:none"><button class="btn" type="button" data-close style="flex:none">Chiudi</button><button class="btn pri" type="button" id="loadEx" style="flex:none">Carica l'esempio e guarda i risultati</button></div>`)}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.id==='bEx'){showExample()}if(t.id==='loadEx'){closeModal();EXAMPLE.load();window.scrollTo({top:0})}});
+const exampleCard=(mins)=>`<div class="card exbox"><div><b>Prima volta?</b> <span class="hint">Una campagna richiede circa ${mins} minuti. Puoi interrompere e riprendere quando vuoi: il lavoro resta salvato in questo browser.</span></div><button class="btn" type="button" id="bEx" style="flex:none">Guarda una campagna di esempio</button></div>`;
+const EXAMPLE={client:'Il reel del corso IFTS VIP · Instagram',rows:[
+ ['Requisiti','Tutti spuntati','Account professionale, video verticale, durata adatta, audio originale o della libreria commerciale: senza questi la promozione non parte.'],
+ ['Creatività','Tutti gli ingredienti','Gancio nei primi 2 secondi, racconto con inizio e fine, sottotitoli, invito all\'azione finale.'],
+ ['Obiettivo','Più visite al profilo','Lo scopo è far conoscere il corso: chi visita il profilo vede tutto il resto.'],
+ ['Pubblico','Pisa + 30 km, 18–29 anni','Chi può davvero frequentare il corso. Il pubblico automatico non saprebbe che il corso è a Pisa.'],
+ ['Budget e durata','7 € al giorno per 7 giorni','Circa 50 € in una settimana: abbastanza giorni perché l\'algoritmo trovi le persone giuste.'],
+ ['Pagamento','Da computer','Niente commissione di Apple sui pagamenti fatti dall\'app su iPhone.']],
+ load(){switchPlat('ig');P().req.forEach(r=>S.check[r[0]]=true);CREA.forEach(c=>S.check[c[0]]=true);Object.assign(ST.cur,{goal:'profilo',url:'',cta:'',aud:'custom',loc:'citta',ageMin:18,ageMax:29,gender:'all',interests:[],daily:'7',days:'7',pay:'web'});
+  const A=analyze(),sim=simulate(A),G=grade(A,sim);S.attempts=(S.attempts||0)+1;S.history=[...(S.history||[]),G.total];S.result={total:G.total,cats:G.cats,sim};S.step=7;render()}};
+
+render();
+
+</script>
+</body>
+</html>

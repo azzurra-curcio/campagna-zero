@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Social Lab simulatore Meta Ads</title>
+<link href="fonts/fonts.css" rel="stylesheet">
+<style>
+/* Layout: stepper a sinistra · lavoro al centro · spiegazioni a destra (stessa famiglia di Ads Lab, accento diverso) */
+:root{
+  --paper:#f5f4f2; --surface:#ffffff; --ink:#1f1a1c; --muted:#665d61; --line:#e2dcdf;
+  --accent:#9b2f5e; --accent-ink:#ffffff; --accent-soft:#f6e6ed; --mark:#f3c94b; --mark-soft:#fdf3d2;
+  --good:#2b7a4b; --warn:#a96300; --bad:#bf3a2b; --good-soft:#e3f2e8; --warn-soft:#fbefdc; --bad-soft:#f8e3df;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#141113; --surface:#1e1a1c; --ink:#eee8eb; --muted:#a89da2; --line:#352e31;
+    --accent:#e07aa6; --accent-ink:#2a0d19; --accent-soft:#3a2230; --mark:#e8bd3c; --mark-soft:#332b14;
+    --good:#5cc489; --warn:#e3a243; --bad:#ef7a69; --good-soft:#18301f; --warn-soft:#33270f; --bad-soft:#3a1d18;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#141113; --surface:#1e1a1c; --ink:#eee8eb; --muted:#a89da2; --line:#352e31;
+  --accent:#e07aa6; --accent-ink:#2a0d19; --accent-soft:#3a2230; --mark:#e8bd3c; --mark-soft:#332b14;
+  --good:#5cc489; --warn:#e3a243; --bad:#ef7a69; --good-soft:#18301f; --warn-soft:#33270f; --bad-soft:#3a1d18;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--f-body)}
+h1,h2,h3{font-family:var(--f-display);line-height:1.2;text-wrap:balance;margin:0}
+h2{font-size:26px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.top{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand b.logo{font-family:var(--f-display);font-size:22px;letter-spacing:-.01em}
+.brand b.logo i{font-style:normal;background:var(--mark);color:#1c1a10;padding:0 5px;border-radius:4px;margin-left:2px}
+.brand span{color:var(--muted);font-size:13px}
+.brand span b{color:var(--ink);font-weight:600}
+.top .sp{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--ink)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.app{display:grid;grid-template-columns:220px minmax(0,1fr) 300px;gap:24px;padding:24px 20px 60px;max-width:1440px;margin:0 auto}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;position:sticky;top:84px;align-self:start}
+.steps .lvl{font:600 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 10px 2px}
+.steps button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--muted)}
+.steps button .n{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:500 12px var(--f-mono)}
+.steps button.done .n{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.steps button.cur{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--line)}
+.steps button.cur .n{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.steps button:disabled{cursor:not-allowed;opacity:.5}
+main{min-width:0;display:flex;flex-direction:column;gap:18px}
+.help{position:sticky;top:84px;align-self:start;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 100px);overflow:auto}
+.help .box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.help .box h3{font-size:15px}
+.help .lab{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.help .err{background:var(--bad-soft);border-color:transparent}
+.help .tip{background:var(--mark-soft);border-color:transparent}
+.help ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card > header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card > header h3{flex:1}
+.lead{color:var(--muted);max-width:68ch}
+.field{display:flex;flex-direction:column;gap:6px}
+.field > label, .lbl{font-weight:600;font-size:14px}
+.hint{font-size:13px;color:var(--muted)}
+input[type=text],input[type=number],input[type=date],input[type=url],select,textarea{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:9px 11px}
+textarea{resize:vertical;min-height:44px}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.cnt{font:12px var(--f-mono);color:var(--muted);text-align:right}
+.cnt.over{color:var(--warn);font-weight:600}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row > *{flex:1;min-width:150px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.opt{position:relative;display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;background:var(--surface)}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:4px;accent-color:var(--accent)}
+.opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.opt.off{opacity:.5;cursor:not-allowed}
+.opt b{display:block;font-size:14px}
+.opt small{display:block;color:var(--muted);font-size:13px;line-height:1.4}
+.list{display:flex;flex-direction:column;gap:8px}
+.scen{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.sc{border:1.5px solid var(--line);border-radius:12px;padding:16px;background:var(--surface);display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left}
+.sc:hover{border-color:var(--accent)}
+.sc.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sc .k{font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.sc h3{font-size:18px}
+.sc p{font-size:14px;color:var(--muted)}
+.sc .lv{font-size:12px;color:var(--muted)}
+.brief{border-left:4px solid var(--mark);background:var(--mark-soft);border-radius:0 10px 10px 0;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.brief dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0;font-size:14px}
+.brief dt{color:var(--muted)}
+.brief dd{margin:0;font-weight:500}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.nav{display:flex;justify-content:space-between;gap:10px}
+.al{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;font-size:14px}
+.al.ok{background:var(--good-soft)} .al.warn{background:var(--warn-soft)} .al.bad{background:var(--bad-soft)} .al.info{background:var(--accent-soft)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:6px}
+.dot.ok{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)} .dot.info{background:var(--accent)}
+/* audience gauge */
+.gauge{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--paper)}
+.gauge .trk{position:relative;height:10px;border-radius:5px;background:linear-gradient(90deg,var(--warn) 0 22%,var(--good) 22% 78%,var(--warn) 78%)}
+.gauge .pin{position:absolute;top:-5px;width:4px;height:20px;border-radius:2px;background:var(--ink);transform:translateX(-2px)}
+.gauge .ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.gauge b{font:500 18px var(--f-mono)}
+/* media library */
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.med{border:2px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;background:var(--surface);display:flex;flex-direction:column;text-align:left;padding:0}
+.med.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.med .th{position:relative;display:grid;place-items:center;color:#fff;font:700 13px var(--f-body);text-align:center;padding:8px;aspect-ratio:1/1;overflow:hidden}
+.med .th em{position:absolute;left:6px;top:6px;font:600 10px var(--f-mono);font-style:normal;background:rgba(0,0,0,.55);padding:2px 6px;border-radius:4px}
+.med .th .ck{position:absolute;right:6px;top:6px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.35);display:grid;place-items:center;font-size:13px}
+.med.on .th .ck{background:var(--accent)}
+.med .cap{padding:8px 10px;font-size:12.5px;line-height:1.35}
+/* previews */
+.pv{display:grid;grid-template-columns:minmax(0,340px) 200px;gap:16px;align-items:start}
+.post{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;font-family:Helvetica, Arial, sans-serif}
+.post .hd{display:flex;gap:8px;align-items:center;padding:10px 12px;font-size:13px}
+.post .av{width:32px;height:32px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700}
+.post .hd small{display:block;color:var(--muted);font-size:11px}
+.post .tx{padding:0 12px 10px;font-size:13.5px;white-space:pre-wrap;word-break:break-word}
+.post .tx i{color:var(--muted);font-style:normal}
+.post .md{display:grid;place-items:center;color:#fff;font-weight:700;text-align:center;padding:12px;aspect-ratio:1/1}
+.post .car{display:flex;gap:6px;overflow-x:auto;padding:0 0 0 12px}
+.post .car .md{flex:0 0 72%;border-radius:8px}
+.post .ft{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper)}
+.post .ft div{flex:1;min-width:0}
+.post .ft small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase}
+.post .ft b{display:block;font-size:14px}
+.post .ft span{font-size:12px;color:var(--muted)}
+.post .cta{border:0;background:var(--line);color:var(--ink);border-radius:6px;padding:7px 10px;font-weight:600;font-size:13px;white-space:nowrap}
+.story{border-radius:14px;aspect-ratio:9/16;position:relative;overflow:hidden;display:grid;place-items:center;color:#fff;font:700 13px Helvetica,Arial,sans-serif;text-align:center;padding:10px}
+.story .s-top{position:absolute;top:8px;left:10px;right:10px;display:flex;gap:6px;align-items:center;font-size:11px;font-weight:600}
+.story .s-top i{width:18px;height:18px;border-radius:50%;background:#fff;display:inline-block}
+.story .s-cta{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#fff;color:#111;border-radius:999px;padding:5px 12px;font-size:12px;white-space:nowrap}
+.story .crop{position:absolute;inset:0;display:grid;place-items:center}
+.story .bars{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 100%)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tw{overflow-x:auto}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+.ring{--p:0;width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%), var(--line) 0);display:grid;place-items:center}
+.ring > div{width:104px;height:104px;border-radius:50%;background:var(--surface);display:grid;place-items:center;text-align:center}
+.ring b{font:700 36px var(--f-display);line-height:1}
+.ring small{font-size:12px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--paper)}
+.kpi.hi{border-color:var(--accent);background:var(--accent-soft)}
+.kpi span{display:block;font-size:12px;color:var(--muted)}
+.kpi b{font:500 21px var(--f-mono);font-variant-numeric:tabular-nums}
+.stack{display:flex;height:28px;border-radius:8px;overflow:hidden;background:var(--line)}
+.stack > div{height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.cat{display:flex;flex-direction:column;gap:8px}
+.cat > header{display:flex;align-items:center;gap:10px}
+.cat > header h3{flex:1;font-size:16px}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.pts{font:500 13px var(--f-mono);color:var(--muted);white-space:nowrap}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.tag.ok{background:var(--good-soft);color:var(--good)} .tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.warn{background:var(--warn-soft);color:var(--warn)} .tag.mut{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+.fine{font-size:12px;color:var(--muted)}
+.top3{counter-reset:t;display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.top3 li{counter-increment:t;display:grid;grid-template-columns:28px 1fr;gap:8px;font-size:14px}
+.top3 li::before{content:counter(t);width:24px;height:24px;border-radius:50%;background:var(--mark);color:#1c1a10;display:grid;place-items:center;font:700 12px var(--f-mono)}
+.ov{position:fixed;inset:0;background:rgba(14,10,12,.5);display:none;place-items:center;z-index:20;padding:16px}
+.ov.on{display:grid}
+.modal{background:var(--surface);border-radius:14px;max-width:720px;width:100%;max-height:85vh;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:14px}
+.modal dl{margin:0;display:flex;flex-direction:column;gap:10px}
+.modal dt{font-weight:600}
+.modal dd{margin:0;color:var(--muted);font-size:14px}
+.modal textarea{min-height:240px;font:13px var(--f-mono)}
+.struct{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}
+.struct span{padding:4px 10px;border-radius:6px;background:var(--paper);border:1px solid var(--line)}
+.struct span.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+@media (max-width:1180px){
+  .app{grid-template-columns:200px minmax(0,1fr)}
+  .help{grid-column:2;position:static;max-height:none}
+}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;padding:16px}
+  .steps{flex-direction:row;overflow-x:auto;position:static;gap:4px}
+  .steps .lvl{display:none}
+  .steps button{white-space:nowrap}
+  .help{grid-column:1}
+  .pv,.grid2,.hero{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:no-preference){.bar i,.stack > div{transition:width .5s ease}}
+
+/* ===== Ritocchi di visualizzazione: aiuto richiudibile, navigazione sempre visibile, mobile compatto ===== */
+.cred-m{display:none}
+.helpm{display:none;background:var(--mark-soft);border-radius:12px;padding:0}
+.helpm summary{cursor:pointer;list-style:none;padding:12px 16px;display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}
+.helpm summary::-webkit-details-marker{display:none}
+.helpm summary::before{content:"?";width:22px;height:22px;flex:none;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:600 12px var(--f-mono)}
+.helpm summary::after{content:"Apri";margin-left:auto;font:500 12px var(--f-mono);color:var(--muted)}
+.helpm[open] summary::after{content:"Chiudi"}
+.helpm .hb{padding:0 16px 16px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.helpm .hb ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.helpm .hb table{font-size:13px}
+.helpm .hx{border-radius:8px;padding:10px 12px;font-size:14px}
+.helpm .hx.e{background:var(--bad-soft)} .helpm .hx.t{background:var(--surface)}
+.helpm .hx b{display:block;font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.nav{position:sticky;bottom:0;z-index:3;padding:16px 0 calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,transparent,var(--paper) 40%)}
+.nav .btn{box-shadow:0 1px 2px rgba(0,0,0,.06)}
+@media (max-width:1180px){
+  .help{display:none}
+  .helpm{display:block}
+  .app{grid-template-columns:200px minmax(0,1fr)}
+}
+@media (max-width:820px){
+  .top{position:static;padding:10px 16px;gap:8px 10px}
+  .brand > span:not(.cred-m){display:none}
+  .cred-m{display:inline;font-size:12px;color:var(--muted)}
+  .top .sp{flex-basis:100%;height:0}
+  #scChip{flex:1;min-width:0}
+  #scChip .chip{max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block;text-align:left}
+  .app{grid-template-columns:1fr;padding:0 16px 24px;gap:14px}
+  .steps{position:sticky;top:0;z-index:4;background:var(--paper);margin:0 -16px;padding:8px 16px;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .steps::-webkit-scrollbar{display:none}
+  .steps button{padding:6px 10px}
+  main{gap:14px}
+  .card{padding:16px;border-radius:12px;gap:12px}
+  h2{font-size:22px}
+  .lead{font-size:14px}
+  table{font-size:13px}
+  th,td{padding:7px 8px}
+  .hero{justify-items:start;gap:14px}
+  .ring{width:112px;height:112px}.ring > div{width:88px;height:88px}.ring b{font-size:30px}
+  .kpi b{font-size:18px}
+  .nav .btn{flex:1;padding:12px}
+  .nav .btn[style*="hidden"]{flex:0;padding:0;border:0;width:0}
+  #phone{align-items:center!important;width:100%}
+  .modal{padding:18px;max-height:90vh}
+}
+.top a.btn{white-space:nowrap}
+@media (max-width:820px){#scChip{flex:1 1 100%}}
+.term{text-decoration:underline dotted;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:help;border-radius:3px}
+.term:focus-visible{outline:2px solid var(--mark)}
+#tip{position:absolute;z-index:40;display:none;background:var(--ink);color:var(--paper);font:13px/1.45 var(--f-body);padding:8px 11px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.18);pointer-events:none}
+.exbox{flex-direction:row;align-items:center;gap:14px;background:var(--mark-soft);border-color:transparent}
+.exbox > div{flex:1}
+@media (max-width:820px){.exbox{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand"><b class="logo">Social<i>Lab</i></b><span>Simulatore didattico di campagne Meta Ads · creato da <b>Azzurra Curcio</b></span><span class="cred-m">di Azzurra Curcio</span></div>
+  <span class="sp"></span>
+  <span id="scChip"></span>
+  <a class="btn sm" href="index.html" style="text-decoration:none;color:inherit">← Campagna Zero</a>
+  <button class="btn sm" id="bGloss" type="button">Glossario</button>
+  <button class="btn sm ghost" id="bReset" type="button">Ricomincia</button>
+</div>
+<div class="app">
+  <ol class="steps" id="steps"></ol>
+  <main id="view"></main>
+  <aside class="help" id="help"></aside>
+</div>
+<div class="ov" id="ov"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+
+<script>
+/* ================= DATI GENERALI ================= */
+const OBJ=[
+ {id:'notorieta',t:'Notorietà',d:'Mostrare le inserzioni al maggior numero di persone che probabilmente le ricorderanno.'},
+ {id:'traffico',t:'Traffico',d:'Portare persone verso un sito, un\'app, un profilo o una chat.'},
+ {id:'interazione',t:'Interazione',d:'Ottenere messaggi, visualizzazioni dei video, interazioni con i post.'},
+ {id:'contatti',t:'Contatti',d:'Raccogliere contatti di potenziali clienti (moduli, messaggi, chiamate).'},
+ {id:'app',t:'Promozione dell\'app',d:'Far installare un\'app. Il cliente non ha un\'app.',off:true},
+ {id:'vendite',t:'Vendite',d:'Trovare persone che probabilmente acquisteranno il prodotto o servizio.'}
+];
+const CL={sito:'Sito web',moduli:'Moduli istantanei',messaggi:'App di messaggistica',chiamate:'Chiamate',profilo:'Profilo Instagram o Facebook',inserzione:'Sulla tua inserzione'};
+const CLD={sito:'Le persone vanno sul sito del cliente.',moduli:'Le persone compilano un modulo dentro Facebook o Instagram, senza uscire dall\'app.',messaggi:'Le persone avviano una chat (WhatsApp, Messenger, Instagram Direct).',chiamate:'Le persone chiamano con un tocco.',profilo:'Le persone visitano il profilo social.',inserzione:'Le persone interagiscono con l\'inserzione stessa (video, post).'};
+const CONVLOC={notorieta:[],traffico:['sito','messaggi','profilo','chiamate'],interazione:['messaggi','inserzione','sito','chiamate'],contatti:['sito','moduli','messaggi','chiamate'],vendite:['sito','messaggi','chiamate']};
+const GL={copertura:'Massimizza la copertura delle inserzioni',impressioni:'Massimizza il numero di impressioni',ricordo:'Massimizza il ricordo pubblicitario',thruplay:'Massimizza le ThruPlay (video visti)',lpv:'Massimizza le visualizzazioni della pagina di destinazione',clic:'Massimizza il numero di clic sul link',reachday:'Massimizza la copertura unica giornaliera',conv:'Massimizza il numero di conversazioni',visite:'Massimizza le visite al profilo',chiam:'Massimizza il numero di chiamate',postEng:'Massimizza l\'interazione con i post',convs:'Massimizza il numero di conversioni',value:'Massimizza il valore delle conversioni',leads:'Massimizza il numero di contatti',leadsConv:'Massimizza il numero di contatti di conversione (serve il CRM collegato)',leadsMsg:'Massimizza il numero di contatti nelle chat'};
+const GOPTS=(o,l)=>{if(o==='notorieta')return['copertura','impressioni','ricordo','thruplay'];const m={
+ traffico:{sito:['lpv','clic','reachday'],messaggi:['conv'],profilo:['visite'],chiamate:['chiam']},
+ interazione:{messaggi:['conv'],inserzione:['postEng','thruplay'],sito:['lpv','clic'],chiamate:['chiam']},
+ contatti:{sito:['convs','lpv','clic'],moduli:['leads','leadsConv'],messaggi:['leadsMsg','conv'],chiamate:['chiam']},
+ vendite:{sito:['convs','value','lpv','clic'],messaggi:['conv'],chiamate:['chiam']}};return(m[o]||{})[l]||[]};
+const GCAT={copertura:'reach',impressioni:'reach',ricordo:'reach',reachday:'reach',thruplay:'eng',postEng:'eng',lpv:'click',clic:'click',visite:'click',convs:'conv',value:'conv',leads:'conv',leadsConv:'conv',leadsMsg:'conv',conv:'conv',chiam:'conv'};
+const EVENTS=[['acquisto','Acquisto'],['carrello','Aggiunta al carrello'],['contenuto','Visualizzazione contenuto'],['lead','Lead'],['registrazione','Registrazione completata'],['contatto','Contatto']];
+const BIDS=[
+ {id:'volume',t:'Volume più elevato',d:'Meta cerca di ottenere più risultati possibile con il budget. Nessun limite di costo.'},
+ {id:'costcap',t:'Obiettivo di costo per risultato',d:'Indichi il costo medio per risultato che vuoi mantenere.'},
+ {id:'bidcap',t:'Limite dell\'offerta',d:'Imposti l\'offerta massima in ogni asta. Per utenti esperti.'},
+ {id:'roas',t:'Obiettivo ROAS',d:'Indichi il ritorno minimo sulla spesa. Solo per vendite con valore delle conversioni.'}
+];
+const CTAS=[['nessuno','Nessun pulsante'],['acquista','Acquista ora'],['scopri','Scopri di più'],['iscriviti','Iscriviti'],['prenota','Prenota ora'],['offerta','Richiedi offerta'],['whatsapp','Invia messaggio WhatsApp'],['messaggio','Invia messaggio'],['chiama','Chiama ora'],['contattaci','Contattaci'],['indicazioni','Indicazioni stradali']];
+const SPECIAL=[['none','Nessuna categoria'],['credito','Credito'],['occupazione','Occupazione'],['alloggi','Alloggi'],['sociali','Temi sociali, elezioni o politica'],['finanza','Prodotti e servizi finanziari']];
+const LOCS=[
+ {id:'italia',t:'Italia',pop:38e6},
+ {id:'regioni',t:'Toscana, Lazio, Emilia-Romagna e Umbria',pop:11e6},
+ {id:'toscana',t:'Toscana',pop:2.8e6},
+ {id:'siena20',t:'Siena + 20 km',pop:130e3},
+ {id:'emilia',t:'Emilia-Romagna',pop:3.3e6},
+ {id:'bologna40',t:'Bologna + 40 km',pop:1.0e6},
+ {id:'bologna10',t:'Bologna + 10 km',pop:520e3},
+ {id:'veneto',t:'Veneto',pop:3.6e6},
+ {id:'padova15',t:'Padova + 15 km',pop:480e3},
+ {id:'padova5',t:'Padova + 5 km',pop:220e3},
+ {id:'citta_corso',t:'Pisa + 30 km',pop:600e3},
+ {id:'regione_corso',t:'Toscana',pop:2.8e6}
+];
+const COURSE_LOCS=['citta_corso','regione_corso'];
+const locsFor=sc=>sc.locList?LOCS.filter(l=>sc.locList.includes(l.id)):LOCS.filter(l=>!COURSE_LOCS.includes(l.id));
+const PL=[['fbfeed','Feed di Facebook',.3],['igfeed','Feed di Instagram',.25],['stories','Storie (Facebook e Instagram)',.15],['reels','Reels (Facebook e Instagram)',.22],['an','Audience Network (app e siti esterni)',.05],['msgr','Messenger',.03]];
+const POLICY=/\b(hai|sei|soffri|ti senti|stanc[oa] di)\b[^.?!\n]{0,40}\b(mal di schiena|sovrappes|grass|chili|ciccia|ansia|ansios|depress|stress|dolor|cellulit|fuori forma|rughe|brufol|acne|single|calv)/i;
+
+/* ================= SCENARI ================= */
+const SC={
+ pilates:{id:'pilates',k:'Attività locale',name:'Studio Pilates Équilibre',lv:'Livello: base',
+  short:'Studio di pilates a Bologna: contatti per la lezione di prova gratuita.',
+  facts:[['Cosa fa','Pilates con reformer, lezioni individuali e in piccoli gruppi (max 6 persone)'],['Dove','Bologna, zona Santo Stefano. I clienti arrivano dalla città e dalla prima cintura (circa 10 km)'],['Pubblico','Donne e uomini 28–60 anni, soprattutto donne, interessati a benessere e postura'],['Obiettivo','Raccogliere contatti (nome e telefono) di chi vuole la lezione di prova gratuita: la titolare li richiama'],['Budget','20 € al giorno, continuativo'],['Sito','www.equilibrepilates.it — attenzione: il pixel di Meta NON è installato'],['Social','Pagina Facebook e profilo Instagram @equilibre.pilates (3.200 follower)'],['Informativa privacy','www.equilibrepilates.it/privacy']],
+  kpi:'lead',kpiL:'Contatti',kpiQ:'Contatti di qualità',
+  objIdeal:['contatti'],objPart:{interazione:3,traffico:3,vendite:2},
+  convIdeal:['moduli'],convOk:{messaggi:4,chiamate:3,sito:1},
+  goalIdeal:['leads'],goalOk:{leadsConv:2,leadsMsg:4,conv:3,chiam:3,convs:1,lpv:2,clic:2},
+  pixel:false,event:null,msgApp:null,phoneNeeded:true,
+  budget:{type:'daily',amount:20,lo:18,hi:22,olo:14,ohi:28},days:30,
+  bidOk:{volume:4,costcap:2,bidcap:1,roas:0},
+  cpm:7,ctr:.011,rate:{sito:.02,moduli:.13,moduliI:.08,messaggi:.07,chiamate:.03},qual:{sito:.8,moduli:.5,moduliI:.85,messaggi:.65,chiamate:.9},
+  loc:{bologna10:[.92,8],bologna40:[.5,5],emilia:[.15,2],italia:[.015,0]},
+  age:[28,60],gender:{all:[.8,3],f:[.95,3],m:[.35,0]},
+  interests:[['Pilates',1],['Yoga',1],['Fitness e benessere',1],['Postura',.8],['Bodybuilding',0],['Calcio',0],['Videogiochi',0],['Viaggi',.2]],
+  custom:[{id:'igeng',t:'Hanno interagito con il profilo Instagram (365 giorni)',size:9000,warm:1.8},{id:'lalig',t:'Pubblico simile 1% a chi ha interagito su Instagram',size:380000,warm:1.1,lal:true},{id:'vis',t:'Visitatori del sito (non disponibile: manca il pixel)',size:0,warm:1,off:true}],
+  formatFit:{single:[1,3],carousel:[.85,2]},
+  media:[{id:'v1',t:'Video 15 s: lezione al reformer con l\'istruttrice',ratio:'9:16',type:'video',q:.95,c:['#b98f73','#5a3d33']},{id:'f1',t:'Foto: allieva al reformer, luce naturale',ratio:'4:5',type:'foto',q:.85,c:['#d8c3ad','#8b6b55']},{id:'f2',t:'Foto: sala vuota con gli attrezzi',ratio:'1:1',type:'foto',q:.5,c:['#cfcac3','#7e7870']},{id:'g1',t:'Grafica: "PROMO!!! -50% SOLO OGGI"',ratio:'1:1',type:'grafica',q:.25,c:['#ff2d55','#ffcc00'],txt:'PROMO!!! -50% SOLO OGGI',note:'troppo testo e tono aggressivo'},{id:'s1',t:'Foto stock: donna che solleva pesi in palestra',ratio:'1.91:1',type:'foto',q:.3,c:['#5b6b7a','#222b33'],note:'foto stock, non rappresenta lo studio'}],
+  offer:['prov','gratuit','gratis','prima lezione','omaggio','senza cost','senza impegno','regal','free'],benefit:['postura','schiena','benessere','energi','piccoli gruppi','piccolo gruppo','reformer','istruttor','istruttric','insegnant','6 persone','sei persone','flessibil','tonic','santo stefano','bologna','equilibri','rilass','movimento','corpo','seguit','personalizzat'],
+  ctaGood:['iscriviti','prenota','offerta'],ctaOk:['scopri','contattaci','chiama'],
+  domain:'equilibrepilates.it',paths:['/prova','/lezioni','/privacy']},
+ bici:{id:'bici',k:'Inaugurazione',name:'Ruota Libera – officina bici',lv:'Livello: base',
+  short:'Nuovo negozio di biciclette a Padova: far sapere a tutto il quartiere che apre.',
+  facts:[['Cosa fa','Officina e negozio di biciclette: riparazioni, bici da città, e-bike'],['Dove','Padova, quartiere Portello. Nuovo negozio'],['Evento','Inaugurazione sabato 12 dicembre 2026, con festa e sconto del 20% sulle riparazioni per tutto dicembre'],['Pubblico','Chi vive in città, entro circa 5 km, dai 18 anni in su'],['Obiettivo','Far conoscere l\'apertura al maggior numero di persone della zona (non servono clic)'],['Budget','300 € in totale, dal 28 novembre al 12 dicembre 2026'],['Sito','www.ruotalibera-padova.it — pagina: /inaugurazione'],['Social','Pagina Facebook e profilo Instagram @ruotalibera.pd (aperti da poco: 400 follower)']],
+  kpi:'reach',kpiL:'Persone raggiunte in zona',
+  objIdeal:['notorieta'],objPart:{traffico:3,interazione:3},
+  convIdeal:[],convOk:{sito:3,inserzione:4,profilo:3},
+  goalIdeal:['copertura'],goalOk:{ricordo:4,reachday:4,impressioni:2,thruplay:3,postEng:2,lpv:1,clic:1,visite:2},
+  pixel:true,event:null,msgApp:null,phoneNeeded:false,
+  budget:{type:'total',amount:300,lo:280,hi:320,olo:220,ohi:380,start:'2026-11-28',end:'2026-12-12'},days:15,
+  bidOk:{volume:4,costcap:1,bidcap:1,roas:0},
+  cpm:3.6,ctr:.008,rate:{},qual:{},
+  loc:{padova5:[.95,8],padova15:[.7,6],veneto:[.07,1],italia:[.006,0]},
+  age:[18,65],gender:{all:[1,3],f:[.55,1],m:[.55,1]},
+  interests:[['Ciclismo',1],['Biciclette',1],['Mobilità sostenibile',.8],['Mountain bike',.6],['Moda',0],['Videogiochi',0],['Automobili',0],['Cucina',0]],
+  custom:[{id:'igeng',t:'Hanno interagito con il profilo Instagram (365 giorni)',size:1200,warm:1.5},{id:'lalig',t:'Pubblico simile 1% a chi ha interagito su Instagram',size:380000,warm:1,lal:true}],
+  formatFit:{single:[1,3],carousel:[.9,3]},
+  media:[{id:'v1',t:'Video 20 s: il meccanico al lavoro nel negozio nuovo',ratio:'9:16',type:'video',q:.9,c:['#4c7a5b','#1f3a2a']},{id:'f1',t:'Foto: vetrina con le bici e l\'insegna',ratio:'4:5',type:'foto',q:.8,c:['#e0b25c','#7a4f1b']},{id:'f2',t:'Foto: e-bike su sfondo bianco',ratio:'1:1',type:'foto',q:.55,c:['#e8e8e8','#9a9a9a']},{id:'g1',t:'Grafica: "INAUGURAZIONE!!! VIENI!!!" su sfondo rosso',ratio:'1:1',type:'grafica',q:.25,c:['#e01b24','#7a0d12'],txt:'INAUGURAZIONE!!! VIENI!!!',note:'troppo testo, nessuna immagine del negozio'},{id:'s1',t:'Foto stock: ciclista su strada di montagna',ratio:'1.91:1',type:'foto',q:.3,c:['#6c8fb3','#2b3f57'],note:'foto stock, non parla del negozio'}],
+  offer:['12 dicembre','dicembre','inaugur','apre','apriamo','aperti','apertura','scont','20%','20 per cento','festa','nuovo negozio','nuova officina','sabato','novita'],benefit:['riparazion','ripariamo','e bike','ebike','officina','portello','padova','tagliand','assistenz','bici','biciclett','meccanic','manutenzion','cicl'],
+  ctaGood:['scopri','indicazioni'],ctaOk:['chiama','nessuno','contattaci'],
+  domain:'ruotalibera-padova.it',paths:['/inaugurazione']},
+ agriturismo:{id:'agriturismo',k:'Turismo',name:'Agriturismo Il Poggio',lv:'Livello: intermedio',
+  short:'Agriturismo in Val d\'Orcia: richieste di prenotazione su WhatsApp per i weekend.',
+  facts:[['Cosa fa','Agriturismo con 6 camere, cucina tipica e degustazione di vini'],['Dove','Val d\'Orcia (Siena)'],['Pubblico','Coppie 30–65 anni che vivono a 1–3 ore di auto: Toscana, Lazio, Emilia-Romagna, Umbria'],['Offerta','Weekend d\'inverno: 2 notti + cena degustazione a 290 € a coppia'],['Obiettivo','Richieste di prenotazione. Le prenotazioni si gestiscono solo su WhatsApp Business'],['Budget','25 € al giorno, continuativo'],['Sito','www.ilpoggio-valdorcia.it — pixel installato, ma sul sito non si può prenotare'],['Social','Pagina Facebook e profilo Instagram @ilpoggio.valdorcia (11.000 follower)']],
+  kpi:'messaggi',kpiL:'Conversazioni avviate',kpiQ:'Richieste di prenotazione',
+  objIdeal:['contatti','interazione'],objPart:{traffico:3,vendite:4},
+  convIdeal:['messaggi'],convOk:{moduli:3,chiamate:3,sito:1},
+  goalIdeal:['conv','leadsMsg'],goalOk:{leads:3,chiam:3,lpv:1,clic:1,convs:1},
+  pixel:true,event:'contatto',msgApp:'whatsapp',phoneNeeded:false,
+  budget:{type:'daily',amount:25,lo:23,hi:27,olo:18,ohi:33},days:30,
+  bidOk:{volume:4,costcap:2,bidcap:1,roas:0},
+  cpm:6,ctr:.012,rate:{messaggi:.16,messaggiAlt:.11,moduli:.1,moduliI:.06,chiamate:.03,sito:.012},qual:{messaggi:.3,messaggiAlt:.2,moduli:.15,moduliI:.25,chiamate:.4,sito:.3},
+  loc:{regioni:[.85,8],toscana:[.55,5],italia:[.45,5],emilia:[.5,4],bologna40:[.55,4],bologna10:[.55,3],siena20:[.08,1],veneto:[.25,2],padova15:[.25,1],padova5:[.25,1]},
+  age:[30,65],gender:{all:[1,3],f:[.9,2],m:[.9,2]},
+  interests:[['Viaggi',1],['Vino',1],['Agriturismo',1],['Enogastronomia',1],['Trekking',.6],['Videogiochi',0],['Calcio',0],['Bodybuilding',0]],
+  custom:[{id:'igeng',t:'Hanno interagito con il profilo Instagram (365 giorni)',size:30000,warm:1.6},{id:'vis',t:'Visitatori del sito (180 giorni)',size:9000,warm:1.9},{id:'lalig',t:'Pubblico simile 1% a chi ha interagito su Instagram',size:380000,warm:1.15,lal:true}],
+  formatFit:{carousel:[1,3],single:[.85,2]},
+  media:[{id:'f1',t:'Foto: camera con il camino acceso',ratio:'4:5',type:'foto',q:.9,c:['#c96f3b','#4a2412']},{id:'f2',t:'Foto: pici al ragù e calice di rosso',ratio:'1:1',type:'foto',q:.85,c:['#b8462f','#5e1f12']},{id:'f3',t:'Foto: colline e cipressi all\'alba',ratio:'4:5',type:'foto',q:.9,c:['#e9b872','#6b7d3f']},{id:'v1',t:'Video 20 s: coppia a cena in terrazza al tramonto',ratio:'9:16',type:'video',q:.9,c:['#f08a4b','#4b2a4e']},{id:'g1',t:'Grafica: listino prezzi con molto testo',ratio:'1:1',type:'grafica',q:.25,c:['#ffffff','#bbbbbb'],txt:'LISTINO 2026 · CAMERA DOPPIA · SUPPLEMENTI · ORARI',note:'troppo testo, illeggibile da telefono'},{id:'s1',t:'Foto stock: il Colosseo a Roma',ratio:'1.91:1',type:'foto',q:.1,c:['#c9a27e','#5d4632'],note:'non c\'entra con l\'agriturismo'}],
+  offer:['290','2 notti','due notti','weekend','fine settimana','pacchett','cena','degust','offert','soggiorn','notti'],benefit:['camino','val d','orcia','cipress','vino','vini','relax','rilass','collin','tipic','toscan','romantic','coppia','campagna','silenzio','natura','tramont','cucina'],
+  ctaGood:['whatsapp'],ctaOk:['messaggio','scopri','prenota'],
+  domain:'ilpoggio-valdorcia.it',paths:['/camere','/weekend']},
+ cosmetici:{id:'cosmetici',k:'E-commerce',name:'Verde Viva cosmetici',lv:'Livello: avanzato',
+  short:'E-commerce di cosmetici naturali: vendite online con ritorno sulla spesa almeno 3.',
+  facts:[['Cosa fa','E-commerce di cosmetici naturali certificati bio: creme viso, sieri, detergenti'],['Dove','Spedizione in tutta Italia'],['Pubblico','Soprattutto donne 25–55 anni attente agli ingredienti naturali'],['Offerta','Spedizione gratuita sopra i 35 € e campioncino omaggio in ogni ordine'],['Obiettivo','Vendite online con ROAS (valore vendite ÷ spesa) di almeno 3'],['Dati','Pixel e API Conversioni attivi da 2 anni: circa 250 acquisti al mese, scontrino medio 38 €. Lista clienti di 6.000 email'],['Indicazione del cliente','Un gruppo di inserzioni per trovare nuovi clienti e uno di remarketing per chi ha visitato il sito senza acquistare'],['Budget','60 € al giorno, continuativo'],['Sito','www.verdeviva.it — pagine: /viso, /bestseller']],
+  kpi:'acquisti',kpiL:'Acquisti',
+  objIdeal:['vendite'],objPart:{traffico:2,contatti:1,interazione:1},
+  convIdeal:['sito'],convOk:{messaggi:1,chiamate:0},
+  goalIdeal:['convs','value'],goalOk:{lpv:2,clic:1,conv:1},
+  pixel:true,event:'acquisto',msgApp:null,phoneNeeded:false,
+  budget:{type:'daily',amount:60,lo:55,hi:65,olo:45,ohi:75},days:30,
+  bidOk:{volume:4,costcap:3,bidcap:1,roas:4},
+  cpm:9,ctr:.016,cr:.06,aov:38,rate:{},qual:{},
+  loc:{italia:[1,8],regioni:[1,3],toscana:[1,1],emilia:[1,1],veneto:[1,1],bologna40:[1,1],bologna10:[1,1],siena20:[1,0],padova15:[1,1],padova5:[1,0]},
+  age:[25,55],gender:{all:[.8,3],f:[.95,3],m:[.3,0]},
+  interests:[['Cosmetici naturali',1],['Cura della pelle',1],['Bellezza',1],['Prodotti biologici',1],['Sostenibilità',.6],['Calcio',0],['Automobili',0],['Videogiochi',0]],
+  custom:[{id:'vis30',t:'Visitatori del sito (30 giorni)',size:28000,warm:2.6,rt:true},{id:'cart7',t:'Hanno aggiunto al carrello (7 giorni)',size:2500,warm:4,rt:true},{id:'buy30',t:'Acquirenti (30 giorni)',size:250,warm:1.3,buyers:true},{id:'clienti',t:'Lista clienti (6.000 email)',size:6000,warm:1.4,buyers:true},{id:'lal',t:'Pubblico simile 1% alla lista clienti',size:400000,warm:1.25,lal:true},{id:'igeng',t:'Hanno interagito con il profilo Instagram (365 giorni)',size:15000,warm:1.6}],
+  formatFit:{carousel:[1,3],single:[1,3]},
+  media:[{id:'v1',t:'Video UGC 15 s: cliente che racconta la sua routine viso',ratio:'9:16',type:'video',q:.95,c:['#c7a48d','#6f4d3f']},{id:'f1',t:'Foto: crema viso con ingredienti naturali',ratio:'4:5',type:'foto',q:.85,c:['#a8c39a','#46623b']},{id:'f2',t:'Foto: siero su sfondo bianco',ratio:'1:1',type:'foto',q:.7,c:['#f1ede6','#b9b0a2']},{id:'f3',t:'Foto: set bestseller su sfondo bianco',ratio:'1:1',type:'foto',q:.7,c:['#efe7dc','#a99b86']},{id:'g1',t:'Grafica: "SALDI -70%!!! ULTIMI PEZZI"',ratio:'1:1',type:'grafica',q:.25,c:['#111111','#ff2d2d'],txt:'SALDI -70%!!! ULTIMI PEZZI',note:'promessa falsa (non ci sono saldi) e troppo testo'},{id:'s1',t:'Foto stock: modella in costume in spiaggia',ratio:'1.91:1',type:'foto',q:.25,c:['#5fb7d4','#1d5d73'],note:'foto stock, non mostra il prodotto'}],
+  offer:['spedizion','gratuit','gratis','campion','omaggio','regalo','35','free shipping'],benefit:['natural','bio','certificat','ingredient','pelle','idrat','vegan','senza','delicat','viso','crem','sier','routine','luminos','pura','sensibil'],
+  ctaGood:['acquista'],ctaOk:['scopri','offerta'],
+  domain:'verdeviva.it',paths:['/viso','/bestseller']},
+ reel:{id:'reel',k:'Il progetto della classe',name:'Il reel del corso IFTS VIP',lv:'Progetto: sponsorizza il vostro reel',
+  short:'Sponsorizza il reel girato dalla classe su un evento del corso, per farlo conoscere.',
+  facts:[['Cosa promuovi','Un reel realizzato dalla classe che racconta un episodio verosimile della vita del corso IFTS VIP (Videomaking, Innovazione, Pubblicità), per far conoscere il corso e attirare nuovi iscritti'],['Il contenuto','Reel verticale 9:16 di 45 secondi, con dialoghi originali, sottotitoli e un brano della libreria audio commerciale di Instagram'],['Pubblico','Ragazze e ragazzi 18–29 anni che vivono a Pisa e dintorni (il corso si svolge a Pisa), interessati a video, social e creatività'],['Obiettivo','Far vedere il reel al maggior numero di persone in target e portarle sul profilo Instagram del corso'],['Budget','70 € in totale per 7 giorni'],['Account','Profilo Instagram professionale del corso, collegato a una Pagina Facebook'],['Sito','www.corso-ifts-vip.it — pagina /iscrizioni (sito di fantasia per l\'esercizio). Pixel non installato']],
+  kpi:'video',kpiL:'ThruPlay (video visti)',kpiQ:'Visite al profilo stimate',
+  objIdeal:['interazione','notorieta'],objPart:{traffico:4,contatti:1,vendite:0},
+  convIdeal:['inserzione'],convOk:{sito:2,messaggi:1,chiamate:0},
+  goalIdeal:['thruplay'],goalOk:{postEng:4,copertura:4,ricordo:3,impressioni:2,visite:4,lpv:2,clic:2,conv:1},
+  pixel:false,event:null,msgApp:null,phoneNeeded:false,
+  budget:{type:'total',amount:70,lo:65,hi:75,olo:50,ohi:90,days:7},days:7,
+  bidOk:{volume:4,costcap:1,bidcap:1,roas:0},
+  cpm:5,ctr:.008,rate:{},qual:{},
+  locList:['citta_corso','regione_corso','italia'],loc:{citta_corso:[.92,8],regione_corso:[.6,6],italia:[.08,1]},
+  age:[18,29],gender:{all:[1,3],f:[.55,1],m:[.55,1]},
+  interests:[['Film e video',1],['Social media',1],['Fotografia',.8],['Design e creatività',.8],['Istruzione',.7],['Finanza',0],['Golf',0],['Arredamento',0]],
+  custom:[{id:'igeng',t:'Hanno interagito con il profilo Instagram del corso (365 giorni)',size:2500,warm:1.3},{id:'lalig',t:'Pubblico simile 1% a chi ha interagito su Instagram',size:380000,warm:1.05,lal:true}],
+  formatFit:{single:[1,3],carousel:[.6,1]},
+  media:[{id:'v1',t:'Il vostro reel 9:16 sull\'evento del corso, 45 s, con sottotitoli e gancio nei primi 2 secondi',ratio:'9:16',type:'video',q:.95,c:['#3d348b','#f18701']},{id:'v2',t:'Versione del reel con una hit famosa come colonna sonora',ratio:'9:16',type:'video',q:.85,c:['#f72585','#480ca8'],note:'musica protetta da copyright',reject:'musica protetta da copyright: nelle inserzioni si usa solo audio originale o della libreria audio commerciale'},{id:'v3',t:'Versione orizzontale 16:9 montata per YouTube',ratio:'1.91:1',type:'video',q:.45,c:['#264653','#2a9d8f'],note:'orizzontale: nei reels appare piccola con bande'},{id:'v4',t:'Versione del reel senza sottotitoli',ratio:'9:16',type:'video',q:.7,c:['#6d6875','#b5838d'],note:'senza sottotitoli: molti guardano i reels senza audio'},{id:'f1',t:'Foto di backstage dal set',ratio:'4:5',type:'foto',q:.6,c:['#e9c46a','#e76f51']},{id:'g1',t:'Locandina del corso con molto testo',ratio:'1:1',type:'grafica',q:.3,c:['#ffffff','#d0d0d0'],txt:'CORSO IFTS VIP · ISCRIZIONI APERTE · INFO E ORARI',note:'troppo testo, illeggibile da telefono'}],
+  offer:['corso','iscrizion','ifts','videomaking','prossima edizione','candid','gratuit','biennal','posti'],benefit:['video','story','storia','set','regia','montaggio','creativ','pubblicit','social','reel','lavoro','professione'],
+  ctaGood:['scopri'],ctaOk:['iscriviti','contattaci','nessuno','messaggio'],
+  domain:'corso-ifts-vip.it',paths:['/iscrizioni']}
+};
+
+/* ================= TESTI DI AIUTO ================= */
+const STEPS=[['Scenario',''],['Campagna','Campagna'],['Budget e programmazione','Campagna'],['Ottimizzazione','Gruppo di inserzioni'],['Pubblico e posizionamenti','Gruppo di inserzioni'],['Inserzione','Inserzione'],['Riepilogo',''],['Risultati','']];
+const HELP=[
+ {t:'Il brief del cliente',b:'<p>Ogni scenario è un cliente con un brief. Su Meta le persone <b>non stanno cercando</b> il prodotto: scorrono il feed. Per questo contano molto il <b>pubblico</b> e la <b>creatività</b> (immagine o video).</p><p>Prima di aprire Gestione inserzioni rispondi a: cosa vende, a chi, dove, quale risultato vuole, quanto può spendere, che dati ha (pixel, liste clienti).</p>',e:'Ignorare i dettagli tecnici del brief, come "il pixel non è installato" o "prenotazioni solo su WhatsApp": cambiano le scelte giuste.',p:'Rileggi il brief quando vuoi dal pulsante con il nome del cliente in alto.'},
+ {t:'Livello campagna',b:'<p>Una campagna Meta ha <b>3 livelli</b>: <b>Campagna</b> (obiettivo e budget) → <b>Gruppo di inserzioni</b> (ottimizzazione, pubblico, posizionamenti) → <b>Inserzione</b> (contenuti e testi).</p><p>L\'<b>obiettivo</b> dice a Meta quale risultato cercare: l\'algoritmo mostrerà le inserzioni alle persone più propense a compiere quell\'azione.</p><p><b>Novità dal 2025</b>: per Vendite, Contatti e App Meta propone di default una <b>campagna Advantage+</b>, con budget, pubblico e posizionamenti automatici. Puoi modificare queste impostazioni, ma la campagna perde lo stato Advantage+. Meta mostra anche un <b>punteggio opportunità</b> (da 0 a 100) con consigli per migliorare la configurazione.</p><p>Le <b>categorie speciali</b> (credito, occupazione, alloggi, temi sociali o politici, servizi finanziari) vanno dichiarate solo se l\'inserzione ne parla: limitano le opzioni di pubblico.</p>',e:'Scegliere "Traffico" quando il cliente vuole contatti o vendite: arrivano clic, non clienti.',p:'Chiediti: "Quale azione deve fare la persona perché il cliente sia contento?" Quello è l\'obiettivo.'},
+ {t:'Budget e programmazione',b:'<p>Il <b>budget della campagna Advantage+</b> (budget unico per la campagna) lascia che Meta distribuisca la spesa tra i gruppi di inserzioni. Se lo disattivi, imposti un budget per ogni gruppo.</p><ul><li><b>Budget giornaliero</b>: una spesa media al giorno, senza fine. Ideale per campagne continuative.</li><li><b>Budget totale</b>: una cifra da spendere tra una data di inizio e una di fine. Ideale per eventi e promozioni con scadenza.</li></ul><p>La <b>strategia di offerta</b> "Volume più elevato" è quella consigliata per iniziare.</p>',e:'Usare un budget giornaliero senza data di fine per un evento: la campagna continua a spendere anche dopo.',p:'Account nuovo o pochi dati: "Volume più elevato". Le strategie con obiettivo di costo o ROAS servono quando hai già uno storico di risultati.'},
+ {t:'Ottimizzazione e tracciamento',b:'<p>Il <b>luogo della conversione</b> indica dove avviene il risultato: sul sito, in un modulo istantaneo, in chat, al telefono, oppure <b>sulla tua inserzione</b> (per esempio chi guarda il video).</p><p>L\'<b>obiettivo di performance</b> dice esattamente cosa Meta deve massimizzare.</p><p>Per ottimizzare sul sito serve il <b>pixel</b> (o API Conversioni) con l\'<b>evento</b> giusto: per un e-commerce l\'evento è "Acquisto".</p><p>Ogni gruppo di inserzioni attraversa una <b>fase di apprendimento</b>: servono circa <b>50 risultati a settimana</b> per uscirne. Dividere poco budget in troppi gruppi la allunga.</p>',e:'Scegliere "Sito web" senza pixel installato: Meta non vede i risultati e non può ottimizzare.',p:'Con i moduli istantanei, il tipo "Intento più elevato" porta meno contatti ma più seri.'},
+ {t:'Pubblico e posizionamenti',b:'<p><b>Pubblico Advantage+</b>: è l\'impostazione predefinita. Meta trova il pubblico da solo e usa età, genere e interessi solo come suggerimenti. Se includi un pubblico personalizzato (per esempio per il remarketing), la campagna non è più "Advantage+".</p><p><b>Località</b> e <b>età minima</b> restano limiti rigidi: per un\'attività locale sono decisive.</p><p><b>Pubblici personalizzati</b>: persone che già conoscono il cliente (visitatori del sito, follower, lista clienti). Usali per il <b>remarketing</b> e per <b>escludere</b> chi ha già comprato.</p><p><b>Posizionamenti Advantage+</b>: Meta distribuisce le inserzioni su feed, storie, reels e altri spazi dove costano meno.</p>',e:'Un pubblico troppo stretto (molti filtri, zona piccola): costa di più e le persone vedono sempre la stessa inserzione.',p:'Se la zona è piccola, non aggiungere anche interessi: lascia lavorare l\'algoritmo.'},
+ {t:'L\'inserzione',b:'<p>Su Meta la <b>creatività</b> (immagine o video) è il fattore che pesa di più sui risultati.</p><ul><li>Preferisci contenuti <b>autentici</b> del cliente a foto stock.</li><li>Prepara un formato <b>verticale 9:16</b> per storie e reels e uno <b>4:5 o 1:1</b> per i feed.</li><li>Evita grafiche piene di testo.</li><li>Nel <b>testo principale</b> le prime righe (circa 125 caratteri) sono le uniche visibili senza "Altro": metti subito l\'offerta.</li><li>Il <b>pulsante</b> deve corrispondere all\'azione: Iscriviti, Invia messaggio WhatsApp, Acquista ora…</li></ul><p>Le norme pubblicitarie vietano testi che alludono a caratteristiche personali ("Hai mal di schiena?", "Sei sovrappeso?").</p>',e:'Scrivere "Sei stanca dei tuoi chili di troppo?": l\'inserzione viene rifiutata.',p:'Scrivi 2–3 varianti di testo e titolo: Meta mostrerà la combinazione che funziona meglio.'},
+ {t:'Controllo finale',b:'<p>Ricontrolla i tre livelli: <b>campagna</b> (obiettivo, budget), <b>gruppi di inserzioni</b> (ottimizzazione, pubblico, posizionamenti) e <b>inserzioni</b> (contenuti, testi, pulsante, destinazione).</p><p>Quando pubblichi, il simulatore stima i risultati e assegna un punteggio su 100.</p>',e:'Pubblicare un gruppo di inserzioni senza contenuti o senza testo.',p:'Puoi modificare e ripubblicare quante volte vuoi: confronta i punteggi.'},
+ {t:'Leggere i risultati',b:'<ul><li><b>Copertura</b>: persone diverse raggiunte.</li><li><b>Impressioni</b>: visualizzazioni totali.</li><li><b>Frequenza</b>: impressioni ÷ copertura. Oltre 3–5 nello stesso mese le persone si stancano.</li><li><b>CPM</b>: costo per 1.000 impressioni.</li><li><b>CTR (link)</b>: clic sul link ÷ impressioni. Su Meta spesso è intorno all\'1%.</li><li><b>Costo per risultato</b>: spesa ÷ risultati.</li><li><b>ROAS</b>: valore delle vendite ÷ spesa.</li></ul>',e:'Giudicare una campagna di notorietà dai clic: il suo risultato è la copertura.',p:'Guarda la ripartizione per posizionamento: se storie e reels vanno male, spesso manca un contenuto verticale.'}
+];
+const GLOSS=[
+ ['Gestione inserzioni','Lo strumento di Meta per creare e gestire campagne su Facebook, Instagram, Messenger e Audience Network.'],
+ ['Campagna · Gruppo di inserzioni · Inserzione','I tre livelli: obiettivo e budget; pubblico, posizionamenti e ottimizzazione; contenuti creativi.'],
+ ['Obiettivo','Il risultato che chiedi a Meta: Notorietà, Traffico, Interazione, Contatti, Promozione dell\'app, Vendite.'],
+ ['Pixel di Meta / API Conversioni','Codice e collegamento che comunicano a Meta cosa fanno le persone sul sito (acquisti, contatti).'],
+ ['Evento di conversione','L\'azione sul sito da ottimizzare, ad esempio Acquisto o Lead.'],
+ ['Modulo istantaneo','Modulo che si apre dentro Facebook/Instagram, già precompilato con i dati della persona.'],
+ ['Pubblico Advantage+','Targeting automatico: Meta usa i tuoi suggerimenti ma può andare oltre se trova persone migliori.'],
+ ['Pubblico personalizzato','Persone che conoscono già il cliente: visitatori del sito, follower, lista clienti.'],
+ ['Pubblico simile (lookalike)','Persone con caratteristiche simili a un pubblico di partenza (es. i clienti).'],
+ ['Remarketing','Mostrare inserzioni a chi ha già visitato il sito o interagito, per convincerlo a completare l\'azione.'],
+ ['Posizionamenti','Gli spazi dove compare l\'inserzione: feed, storie, reels, Messenger, Audience Network.'],
+ ['Fase di apprendimento','Periodo iniziale in cui Meta sperimenta. Si esce con circa 50 risultati a settimana per gruppo di inserzioni.'],
+ ['Copertura','Numero di persone diverse che hanno visto l\'inserzione almeno una volta.'],
+ ['Frequenza','Quante volte, in media, ogni persona ha visto l\'inserzione.'],
+ ['CPM','Costo per mille impressioni.'],
+ ['CTR (link)','Percentuale di persone che cliccano sul link rispetto alle impressioni.'],
+ ['ROAS','Ritorno sulla spesa pubblicitaria: valore delle vendite diviso spesa.'],
+ ['Categoria speciale','Dichiarazione obbligatoria per inserzioni su credito, occupazione, alloggi, temi sociali/politici, servizi finanziari. Limita il targeting.']
+];
+
+/* ================= STATO ================= */
+const KEY='sociallab-v1';
+const newAd=()=>({ig:false,format:'single',media:[],texts:Array(5).fill(''),heads:Array(5).fill(''),desc:'',cta:'',url:'',utm:'',formType:'',fNome:true,fEmail:true,fTel:false,privacy:'',greeting:'',phone:''});
+const newSet=n=>({name:n,convLoc:'',goal:'',event:'',apps:[],budget:'',adv:true,loc:'italia',ageMin:18,ageMax:65,gender:'all',interests:[],inc:[],exc:[],pl:'adv',plm:{fbfeed:true,igfeed:true,stories:true,reels:true,an:true,msgr:true},ad:newAd()});
+function fresh(){return{scenario:null,step:0,maxStep:0,attempts:0,history:[],
+ c:{name:'',obj:'',special:'none',cbo:true,btype:'daily',budget:'',start:'',end:'',bid:'volume',costcap:'',bidcap:'',roas:''},
+ sets:[newSet('Gruppo di inserzioni 1')],ui:{tab:0},result:null,saved:{}}}
+let S=fresh();
+try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o&&o.c&&o.sets)S=Object.assign(fresh(),o)}}catch(e){}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},300)}
+
+/* ================= UTILITÀ ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9%]+/g,' ').trim();
+const hasTerm=(t,terms)=>{const p=' '+t+' ',ws=t.split(' ');return terms.some(x=>x.includes(' ')?p.includes(' '+norm(x)):ws.some(w=>w.startsWith(norm(x))))};
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:0};
+const eur=(v,d=2)=>v.toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:'always'})+' €';
+const int=v=>Math.round(v).toLocaleString('it-IT',{useGrouping:'always'});
+const pct=(v,d=2)=>(v*100).toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const dec=(v,d=1)=>v.toLocaleString('it-IT',{maximumFractionDigits:d});
+const get=p=>p.split('.').reduce((o,k)=>o?.[k],S);
+function set(p,v){const ks=p.split('.');let o=S;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks.at(-1)]=v}
+const objT=id=>(OBJ.find(o=>o.id===id)||{}).t;
+const daysBetween=(a,b)=>{const x=Date.parse(a),y=Date.parse(b);return isFinite(x)&&isFinite(y)?Math.round((y-x)/864e5)+1:0};
+const locOf=id=>LOCS.find(l=>l.id===id)||LOCS[0];
+const mediaOf=(sc,id)=>sc.media.find(m=>m.id===id);
+const isVert=r=>r==='9:16';const isFeed=r=>r==='1:1'||r==='4:5';
+
+/* ================= ANALISI ================= */
+function ageInfo(s,sc){const lo=+s.ageMin,hi=+s.ageMax>=65?70:+s.ageMax;const[a,b]=sc.age;const bb=b>=65?70:b;
+ const ov=Math.max(0,Math.min(hi,bb)-Math.max(lo,a));const w=Math.max(1,hi-lo),iw=Math.max(1,bb-a);
+ return{share:clamp(w/52,.05,1),prec:ov/w,cov:ov/iw}}
+function audience(s,sc){
+ const L=locOf(s.loc),lf=(sc.loc[s.loc]||[0,0])[0];const ai=ageInfo(s,sc);const g=sc.gender[s.gender]||[1,0];
+ const inc=s.inc.map(id=>sc.custom.find(c=>c.id===id)).filter(c=>c&&!c.off);
+ let N,fitI,warm=1,rt=false;
+ if(inc.length){N=inc.reduce((t,c)=>t+(c.lal?c.size*Math.min(1,L.pop/38e6):c.size*Math.min(1,lf+.05)),0);warm=inc.reduce((t,c)=>t+c.warm*c.size,0)/Math.max(1,inc.reduce((t,c)=>t+c.size,0));rt=inc.some(c=>c.rt);fitI=.95}
+ else if(s.adv){N=L.pop*.85;fitI=sc.kpi==='reach'?.85:.95}
+ else{const sel=sc.interests.filter(x=>s.interests.includes(x[0]));N=L.pop*ai.share*(s.gender==='all'?1:.52)*(sel.length?Math.min(1,.12*sel.length+.04):1);
+  fitI=sel.length?.45+.55*sel.reduce((t,x)=>t+x[1],0)/sel.length:.8}
+ const ageFit=(s.adv||inc.length)?Math.max(.5+.5*ai.prec,.9):.5+.5*ai.prec;
+ const gFit=(s.adv||inc.length)?Math.max(g[0],.9):g[0];
+ let tgt=lf*ageFit*gFit;
+ const excBuyers=s.exc.some(id=>(sc.custom.find(c=>c.id===id)||{}).buyers);
+ if(sc.id==='cosmetici'&&!rt&&!excBuyers)tgt*=.94;
+ if(s.exc.length&&!inc.length)N*=.99;
+ return{N:Math.max(200,Math.round(N)),fitI,warm,rt,tgt,lf,ai,inc,excBuyers}}
+function adInfo(s,sc){
+ const a=s.ad;const M=a.media.map(id=>mediaOf(sc,id)).filter(Boolean);
+ const T=a.texts.map(x=>x.trim()).filter(Boolean),H=a.heads.map(x=>x.trim()).filter(Boolean);
+ const all=T.concat(H,[a.desc]).join(' \n ');
+ const policy=POLICY.test(all)||POLICY.test(norm(all));
+ const offer125=T.some(t=>hasTerm(norm(t.slice(0,125)),sc.offer));
+ const benefit=hasTerm(norm(all),sc.benefit);
+ const shouty=/\b[A-ZÀ-Ù]{5,}\b/.test(all)||/!{2,}/.test(all);
+ const q=M.length?M.reduce((t,m)=>t+m.q,0)/M.length:0;
+ const has916=M.some(m=>isVert(m.ratio)),hasFeed=M.some(m=>isFeed(m.ratio));
+ const vert=s.pl==='adv'||s.plm.stories||s.plm.reels;const feed=s.pl==='adv'||s.plm.fbfeed||s.plm.igfeed;
+ const rF=(vert?(has916?1:.85):1)*(feed?(hasFeed?1:.9):1);
+ const ff=(sc.formatFit[a.format]||[.8,1])[0]*((a.format==='carousel'&&M.length<2)?.6:1);
+ let textQ=T.length?.65+(offer125?.15:0)+(benefit?.1:0)+(T.length>=2?.05:0)+(H.length?.05:0)-(shouty?.1:0):0;
+ const ctaF=sc.ctaGood.includes(a.cta)?1.06:sc.ctaOk.includes(a.cta)?1:a.cta?.82:.9;
+ const rej=M.find(m=>m.reject);
+ const ready=M.length>0&&T.length>0&&!policy&&!rej;
+ return{rej,M,T,H,policy,offer125,benefit,shouty,q,has916,hasFeed,vert,feed,rF,ff,textQ,ctaF,ready}}
+
+/* ================= SIMULAZIONE ================= */
+function simulate(){
+ const sc=SC[S.scenario],c=S.c;
+ let D=sc.days;
+ if(c.btype==='total'){const d=daysBetween(c.start,c.end);D=d>0?d:30}
+ else if(c.end&&c.start){const d=daysBetween(c.start,c.end);if(d>0&&d<30)D=d}
+ const totalBudget=c.cbo?(c.btype==='daily'?num(c.budget)*D:num(c.budget)):S.sets.reduce((t,s)=>t+(c.btype==='daily'?num(s.budget)*D:num(s.budget)),0);
+ const daysWin=c.btype==='daily'?D:D;
+ const info=S.sets.map(s=>({s,au:audience(s,sc),ad:adInfo(s,sc)}));
+ // allocazione
+ const live=info.filter(x=>x.ad.ready);
+ let alloc;
+ if(c.cbo){const w=info.map(x=>x.ad.ready?Math.sqrt(x.au.N)*(.5+x.ad.q):0);const W=w.reduce((a,b)=>a+b,0)||1;alloc=w.map(v=>totalBudget*v/W)}
+ else alloc=info.map(x=>x.ad.ready?(c.btype==='daily'?num(x.s.budget)*D:num(x.s.budget)):0);
+ const bidVol={volume:1,costcap:.75,bidcap:.6,roas:1}[c.bid]||1;
+ const rows=info.map((x,i)=>{
+  const{s,au,ad}=x;let spend=alloc[i]*bidVol;
+  if(c.bid==='roas'){const r=num(c.roas);spend*=(s.goal!=='value'||!r)?.15:r>6?.45:r>4.5?.75:1}
+  const base={name:s.name,ready:ad.ready,ad,au,spend:0,impr:0,reach:0,freq:0,clicks:0,res:0,qual:0,value:0,out:0,sat:0,useful:0,limited:false,cpm:0,pl:[]};
+  if(!ad.ready||spend<=0)return base;
+  const cat=GCAT[s.goal]||'click';
+  const plAdv=s.pl==='adv';const plOn=PL.filter(p=>plAdv||s.plm[p[0]]);
+  const onlyAN=!plAdv&&plOn.length&&plOn.every(p=>p[0]==='an'||p[0]==='msgr');
+  const plCpm=plAdv?.85:onlyAN?.45:1+(!(s.plm.stories||s.plm.reels)?.2:0)+(plOn.length<=2?.1:0);
+  const sizeF=au.N<20e3?1.8:au.N<60e3?1.4:au.N<150e3?1.15:1;
+  const cpm=sc.cpm*{reach:.6,click:.9,eng:.8,conv:1.15}[cat]*plCpm*sizeF*(S.c.special!=='none'?1.1:1);
+  const impr=spend/cpm*1000;
+  const reach=Math.min(au.N,au.N*(1-Math.exp(-impr/(au.N*(cat==='reach'?1.15:1.7)))));
+  const freq=impr/Math.max(1,reach);const fOk=2+D/10;const sat=clamp((freq-fOk)/freq,0,.7);
+  let ctr=sc.ctr*Math.pow(ad.q,.8)*ad.ff*ad.textQ*ad.ctaF*Math.sqrt(au.fitI)*ad.rF*{click:1.3,conv:1,eng:.8,reach:.7}[cat]*(onlyAN?.5:1);
+  const iIn=impr*au.tgt,iOut=impr*(1-au.tgt);
+  const clicksIn=iIn*(1-sat)*ctr+iIn*sat*ctr*.3,clicksOut=iOut*ctr*.5;
+  const clicks=clicksIn+clicksOut;
+  let res=0,qual=0,value=0;
+  const mm={conv:1,click:.5,eng:.25,reach:.12}[cat];
+  if(sc.kpi==='reach'){res=reach*au.tgt}
+  else if(sc.kpi==='video'){const vr=.16*(ad.has916?1:.7)*Math.pow(ad.q,.7)*(cat==='eng'?(s.goal==='thruplay'?1.35:1.05):cat==='reach'?.9:cat==='click'?.7:.6);res=impr*au.tgt*(1-sat*.6)*vr;qual=clicksIn*(s.goal==='visite'?1.2:.8)+res*.02}
+  else{
+   const L=s.convLoc||'sito';let key=L,rate,ql;
+   if(L==='moduli'&&s.ad.formType==='intento')key='moduliI';
+   if(L==='messaggi'&&sc.msgApp&&!s.apps.includes(sc.msgApp))key='messaggiAlt';
+   if(sc.kpi==='acquisti'){rate=L==='sito'?sc.cr:L==='messaggi'?.008:.004;ql=1;
+    if(L==='sito'&&cat==='conv'&&S.sets[i].event&&S.sets[i].event!=='acquisto')rate*=.55}
+   else{rate=sc.rate[key]??sc.rate[L]??.01;ql=sc.qual[key]??sc.qual[L]??.5}
+   let m=mm;if(L==='sito'&&cat==='conv'&&!sc.pixel)m*=.45;
+   if(L==='messaggi'&&!s.apps.length)m*=.2;
+   if(L==='sito'&&cat==='conv'&&sc.pixel&&!s.event)m*=.5;
+   res=clicksIn*rate*m*au.warm+clicksOut*rate*.05;
+   if(cat==='conv'){const wk=res/(D/7);if(wk<50){res*=.92}}
+   qual=res*ql;
+   if(sc.kpi==='acquisti'){value=res*sc.aov*(s.goal==='value'?1.12:1)}
+  }
+  const limited=cat==='conv'&&sc.kpi!=='reach'&&res/(D/7)<50;
+  const out=spend*(1-au.tgt),satS=spend*au.tgt*sat,useful=spend-out-satS;
+  // posizionamenti
+  const fac=p=>p==='stories'||p==='reels'?(ad.has916?1.1:.55):p==='an'?.4:p==='msgr'?.6:(ad.hasFeed?1:.8);
+  const W=plOn.reduce((t,p)=>t+p[2],0)||1;const CW=plOn.reduce((t,p)=>t+p[2]/W*fac(p[0]),0)||1;
+  const pl=plOn.map(p=>({id:p[0],t:p[1],impr:impr*p[2]/W,clicks:clicks*(p[2]/W*fac(p[0]))/CW,spend:spend*p[2]/W}));
+  return{...base,spend,impr,reach,freq,clicks,res,qual,value,out,sat:satS,useful,limited,cpm,cat,pl}});
+ const tot=rows.reduce((t,r)=>{['spend','impr','reach','clicks','res','qual','value','out','sat','useful'].forEach(k=>t[k]+=r[k]||0);return t},{spend:0,impr:0,reach:0,clicks:0,res:0,qual:0,value:0,out:0,sat:0,useful:0});
+ tot.reach=Math.min(tot.reach,rows.reduce((m,r)=>Math.max(m,r.au.N),0)+rows.reduce((t,r)=>t+r.reach,0)*.15);
+ const plMap={};rows.forEach(r=>(r.pl||[]).forEach(p=>{const x=plMap[p.id]||(plMap[p.id]={t:p.t,impr:0,clicks:0,spend:0});x.impr+=p.impr;x.clicks+=p.clicks;x.spend+=p.spend}));
+ return{rows,tot,D,totalBudget,pl:Object.values(plMap)}}
+
+/* ================= VALUTAZIONE ================= */
+function grade(R){
+ const sc=SC[S.scenario],c=S.c,cats=[];const it=(lvl,t,msg,pts,max)=>({lvl,t,msg,pts,max});
+ const sets=S.sets,n=sets.length;
+ const info=sets.map(s=>({s,au:audience(s,sc),ad:adInfo(s,sc)}));
+ const nm=s=>n>1?`"${s.name}": `:'';
+ // 1 Campagna
+ let I=[];
+ if(!c.obj)I.push(it('bad','Obiettivo','Non hai scelto l\'obiettivo della campagna.',0,8));
+ else if(sc.objIdeal.includes(c.obj))I.push(it('ok','Obiettivo',`"${objT(c.obj)}" è l'obiettivo giusto per questo brief.`,8,8));
+ else{const p=sc.objPart[c.obj]||0;I.push(it(p>=3?'warn':'bad','Obiettivo',`"${objT(c.obj)}" non cerca il risultato che vuole il cliente. Meglio "${objT(sc.objIdeal[0])}"${sc.objIdeal[1]?` (o "${objT(sc.objIdeal[1])}")`:''}.`,p,8))}
+ const cn=c.name.trim();
+ I.push(!cn?it('bad','Nome campagna','Manca il nome. Usa uno schema come "Obiettivo – Prodotto – Zona – Mese".',0,2):(cn.length<8||/^(nuova campagna|campagna|test|prova)\s*[#\d]*/i.test(cn))?it('warn','Nome campagna',`"${cn}" è poco descrittivo. Esempio: "${NAMEX()}".`,1,2):it('ok','Nome campagna','Nome descrittivo.',2,2));
+ I.push(c.special==='none'?it('ok','Categoria speciale','Correttamente nessuna: le inserzioni non riguardano credito, lavoro, alloggi, politica o finanza.',2,2):it('bad','Categoria speciale','Hai dichiarato una categoria speciale che non riguarda questo cliente: limita età, genere e località del pubblico senza motivo.',0,2));
+ if(n>1)I.push(c.cbo?it('ok','Budget della campagna Advantage+','Attivo: Meta sposta il budget sul gruppo di inserzioni che rende di più.',3,3):it('warn','Budget della campagna Advantage+','Disattivo: con più gruppi devi bilanciare tu i budget. Va bene per controllare il remarketing, ma richiede esperienza.',2,3));
+ else I.push(it('ok','Budget della campagna Advantage+','Con un solo gruppo di inserzioni la scelta non cambia il risultato.',3,3));
+ cats.push({t:'Campagna',items:I});
+ // 2 Budget
+ I=[];const B=sc.budget;const daily=c.cbo?num(c.budget):sets.reduce((t,s)=>t+num(s.budget),0);
+ if(!daily)I.push(it('bad','Budget','Manca il budget: la campagna non può partire.',0,8));
+ else if(B.type==='daily'){
+  if(c.btype==='total'){const d=daysBetween(c.start,c.end);const eq=d>0?daily/d:0;I.push(it('warn','Budget',`Il cliente ha una spesa continuativa di ${B.amount} € al giorno: usa un budget giornaliero. ${eq?`Il tuo totale equivale a circa ${eur(eq)} al giorno.`:'Manca anche il periodo.'}`,eq>=B.olo&&eq<=B.ohi?4:2,8))}
+  else if(daily>=B.lo&&daily<=B.hi)I.push(it('ok','Budget',`${eur(daily)} al giorno, come da brief${c.cbo?'':' (somma dei gruppi di inserzioni)'}.`,8,8));
+  else{const ok=daily>=B.olo&&daily<=B.ohi;I.push(it(ok?'warn':'bad','Budget',`${eur(daily)} al giorno${c.cbo?'':' (somma dei gruppi)'}, ma il brief dice ${B.amount} € al giorno.${daily>B.amount*5?' Forse hai inserito il budget mensile nel campo giornaliero?':''}`,ok?4:1,8))}
+ }else{
+  const d=daysBetween(c.start,c.end);const datesOk=B.days?d===B.days:(c.start===B.start&&c.end===B.end);const datesNear=B.days?(d>0&&Math.abs(d-B.days)<=1):(d>0&&Math.abs(Date.parse(c.end)-Date.parse(B.end))<=864e5*1&&Math.abs(Date.parse(c.start)-Date.parse(B.start))<=864e5*2);
+  if(c.btype==='total'){const amtOk=daily>=B.lo&&daily<=B.hi;
+   if(amtOk&&(datesOk||datesNear))I.push(it('ok','Budget e date',`Budget totale di ${eur(daily,0)} dal ${c.start} al ${c.end}: perfetto per una promozione con una durata precisa.`,8,8));
+   else I.push(it('warn','Budget e date',`${amtOk?'':`Il brief prevede ${B.amount} € in totale (hai ${eur(daily,0)}). `}${(datesOk||datesNear)?'':(B.days?`Imposta date di inizio e fine per ${B.days} giorni, come da brief.`:`Le date devono andare dal ${B.start} al ${B.end}: la campagna deve finire con l'inaugurazione.`)}`,amtOk||(datesOk||datesNear)?5:2,8))}
+  else{const per=d>0?daily*d:0;I.push(it(c.end?'warn':'bad','Budget e date',c.end?`Budget giornaliero con data di fine: funziona (${eur(per,0)} in totale), ma per un evento con cifra fissa è più semplice il budget totale.`:'Budget giornaliero senza data di fine: la campagna continuerebbe a spendere oltre il periodo previsto. Usa un budget totale con le date del brief.',c.end&&per>=B.olo&&per<=B.ohi?6:c.end?4:1,8))}
+ }
+ const bp=sc.bidOk[c.bid]??0;const bm={
+  volume:'"Volume più elevato" è la strategia consigliata per iniziare: Meta spende il budget cercando più risultati possibile.',
+  costcap:sc.id==='cosmetici'?'L\'obiettivo di costo per risultato funziona con uno storico come questo, ma limita la spesa se il target è basso.':'L\'obiettivo di costo per risultato richiede uno storico di risultati che il cliente non ha: rischi che la campagna non spenda.',
+  bidcap:'Il limite dell\'offerta è per utenti esperti: se è troppo basso le inserzioni non vengono mostrate.',
+  roas:sc.id==='cosmetici'?(sets.every(s=>s.goal==='value')?(num(c.roas)>6?`Obiettivo ROAS ${num(c.roas)} troppo ambizioso: Meta spende pochissimo. Il brief chiede almeno 3.`:'Obiettivo ROAS sensato, coerente con il brief e con lo storico del cliente.'):'L\'obiettivo ROAS funziona solo con l\'obiettivo di performance "Massimizza il valore delle conversioni".'):'L\'obiettivo ROAS serve solo per le vendite con valore delle conversioni: non è adatto a questo cliente.'}[c.bid];
+ let bpts=bp;if(c.bid==='roas'&&sc.id==='cosmetici'&&(num(c.roas)>6||!sets.every(s=>s.goal==='value')))bpts=1;
+ I.push(it(bpts>=4?'ok':bpts>=2?'warn':'bad','Strategia di offerta',bm||'Scegli una strategia di offerta.',bpts,4));
+ cats.push({t:'Budget e programmazione',items:I});
+ // 3 Ottimizzazione (media sui gruppi)
+ I=[];
+ const cl=info.map(({s})=>{if(c.obj==='notorieta')return[sc.objIdeal.includes('notorieta')?6:0,'Con l\'obiettivo Notorietà non c\'è un luogo della conversione.'];
+  if(!s.convLoc)return[0,'luogo della conversione non scelto'];
+  if(sc.convIdeal.includes(s.convLoc))return[6,`"${CL[s.convLoc]}" è il luogo giusto`];
+  const p=sc.convOk[s.convLoc]??0;
+  const why=sc.id==='pilates'&&s.convLoc==='sito'?'senza pixel Meta non vede chi compila il modulo sul sito':sc.id==='agriturismo'&&s.convLoc==='sito'?'sul sito non si può prenotare: le prenotazioni passano da WhatsApp':sc.id==='cosmetici'?'le vendite avvengono sul sito':`il brief porta verso "${CL[sc.convIdeal[0]]||'—'}"`;
+  return[p,`"${CL[s.convLoc]}" non è l'ideale: ${why}`]});
+ let avg=cl.reduce((t,x)=>t+x[0],0)/n;
+ I.push(it(avg>=6?'ok':avg>=3?'warn':'bad','Luogo della conversione',sets.map((s,i)=>nm(s)+cl[i][1]).join(' · ')+'.',avg,6));
+ const gp=info.map(({s})=>{if(!s.goal)return[0,'obiettivo di performance non scelto'];if(sc.goalIdeal.includes(s.goal))return[5,`"${GL[s.goal]}" è corretto`];const p=sc.goalOk[s.goal]??0;return[p,`"${GL[s.goal]}" ottimizza per un risultato diverso da quello del cliente`]});
+ avg=gp.reduce((t,x)=>t+x[0],0)/n;
+ I.push(it(avg>=5?'ok':avg>=3?'warn':'bad','Obiettivo di performance',sets.map((s,i)=>nm(s)+gp[i][1]).join(' · ')+'.',avg,5));
+ const su=info.map(({s})=>{const L=s.convLoc,cat=GCAT[s.goal];
+  if(c.obj==='notorieta'||!L)return[c.obj==='notorieta'?4:0,c.obj==='notorieta'?'nessun tracciamento necessario':'—'];
+  if(L==='sito'&&cat==='conv'){if(!sc.pixel)return[0,'il pixel non è installato: Meta non può misurare le conversioni del sito'];if(!s.event)return[1,'manca l\'evento di conversione'];if(sc.event&&s.event!==sc.event)return[1,`l'evento "${(EVENTS.find(e=>e[0]===s.event)||[])[1]}" non è quello giusto: usa "${(EVENTS.find(e=>e[0]===sc.event)||[])[1]}"`];return[4,'pixel ed evento corretti']}
+  if(L==='sito')return[2,'ottimizzi per clic o visite, non per conversioni'];
+  if(L==='inserzione'||L==='profilo')return[4,'nessun tracciamento necessario'];
+  if(L==='moduli')return s.ad.formType?[4,s.ad.formType==='intento'?'modulo "Intento più elevato": meno contatti ma più seri':'modulo "Volume più elevato": tanti contatti, qualità variabile']:[2,'scegli il tipo di modulo (Volume o Intento più elevato) nel passaggio Inserzione'];
+  if(L==='messaggi'){if(!s.apps.length)return[0,'non hai scelto l\'app di messaggistica'];if(sc.msgApp&&!s.apps.includes(sc.msgApp))return[1,'il cliente gestisce le prenotazioni solo su WhatsApp'];return[4,'app di messaggistica corretta']}
+  return[2,'impostazione accettabile']});
+ avg=su.reduce((t,x)=>t+x[0],0)/n;
+ I.push(it(avg>=4?'ok':avg>=2?'warn':'bad','Tracciamento',sets.map((s,i)=>nm(s)+su[i][1]).join(' · ')+'.',avg,4));
+ cats.push({t:'Ottimizzazione',items:I});
+ // 4 Pubblico
+ I=[];
+ const lp=info.map(({s,au})=>{const p=(sc.loc[s.loc]||[0,0])[1];return au.rt?Math.max(p,6):p});avg=lp.reduce((a,b)=>a+b,0)/n;
+ I.push(it(avg>=8?'ok':avg>=5?'warn':'bad','Località',avg>=8?'La zona corrisponde a dove si trovano i clienti.':sets.map((s,i)=>`${nm(s)}"${locOf(s.loc).t}"`).join(' · ')+(sc.id==='cosmetici'?' — il cliente spedisce in tutta Italia: non restringere la zona.':sc.id==='agriturismo'?' — i clienti arrivano dalle regioni vicine, non da chi vive già in Val d\'Orcia.':' — il brief indica un\'area diversa.'),avg,8));
+ const ap=info.map(({s,au})=>{if(s.adv||au.inc.length)return 4;const ai=au.ai;return ai.cov>=.85&&ai.prec>=.6?4:ai.cov>=.5?2:1});avg=ap.reduce((a,b)=>a+b,0)/n;
+ I.push(it(avg>=4?'ok':avg>=2?'warn':'bad','Età',avg>=4?'Fascia d\'età coerente con il brief (con Advantage+ è un suggerimento).':`Il brief indica ${sc.age[0]}–${sc.age[1]>=65?'65+':sc.age[1]} anni: ${sets.map(s=>nm(s)+s.ageMin+'–'+(s.ageMax>=65?'65+':s.ageMax)).join(' · ')}.`,avg,4));
+ const gpp=info.map(({s,au})=>(s.adv||au.inc.length)?3:(sc.gender[s.gender]||[0,0])[1]);avg=gpp.reduce((a,b)=>a+b,0)/n;
+ I.push(it(avg>=3?'ok':avg>=2?'warn':'bad','Genere',avg>=3?'Scelta coerente.':sc.id==='bici'?'Il negozio è per tutti: non escludere un genere.':'Escludere una parte del pubblico ideale riduce i risultati.',avg,3));
+ const tp=info.map(({s,au})=>{if(au.inc.length)return[5,'pubblico personalizzato'];if(s.adv)return[5,'Advantage+: Meta trova il pubblico'];const sel=sc.interests.filter(x=>s.interests.includes(x[0]));if(!sel.length)return[3,'nessun interesse: pubblico ampio'];const bad=sel.filter(x=>x[1]<.3).map(x=>x[0]);const r=sel.reduce((t,x)=>t+x[1],0)/sel.length;return[bad.length?1:r>=.8?4:3,bad.length?`interessi non pertinenti: ${bad.join(', ')}`:'interessi pertinenti']});
+ avg=tp.reduce((t,x)=>t+x[0],0)/n;
+ I.push(it(avg>=4?'ok':avg>=3?'warn':'bad','Targeting dettagliato',sets.map((s,i)=>nm(s)+tp[i][1]).join(' · ')+'.',avg,5));
+ // pubblici personalizzati e dimensione
+ if(sc.id==='cosmetici'){
+  const rtSet=info.find(x=>x.au.rt);const pros=info.filter(x=>!x.au.rt);
+  let p=0,m=[];
+  if(rtSet){p+=2.5;m.push('remarketing presente')}else m.push('manca un gruppo di remarketing (visitatori del sito o carrello)');
+  if(pros.length&&pros.every(x=>x.au.excBuyers)){p+=1.5;m.push('clienti esclusi dal gruppo per nuovi clienti')}else if(pros.length)m.push('escludi acquirenti o lista clienti dal gruppo per nuovi clienti');
+  if(rtSet&&rtSet.au.excBuyers){p+=1;m.push('acquirenti esclusi anche dal remarketing')}else if(rtSet)m.push('nel remarketing escludi chi ha già acquistato');
+  I.push(it(p>=5?'ok':p>=2.5?'warn':'bad','Pubblici personalizzati',m.join(' · ')+'.',p,5));
+ }else{
+  const sp=info.map(({au,s})=>au.N<15e3&&!au.inc.length?[1,'pubblico molto piccolo: costi alti e persone stanche di vederti']:au.N<15e3?[3,'pubblico personalizzato piccolo: tienilo come gruppo secondario']:au.N>2e7&&sc.id!=='cosmetici'?[2,'pubblico enorme rispetto all\'attività']:[5,'dimensione adeguata']);
+  avg=sp.reduce((t,x)=>t+x[0],0)/n;
+  I.push(it(avg>=5?'ok':avg>=3?'warn':'bad','Dimensione del pubblico',sets.map((s,i)=>nm(s)+sp[i][1]+` (≈ ${int(info[i].au.N)} persone)`).join(' · ')+'.',avg,5));
+ }
+ cats.push({t:'Pubblico',items:I});
+ // 5 Posizionamenti
+ I=[];const pp=sets.map(s=>{if(s.pl==='adv')return[5,'Advantage+'];const on=PL.filter(p=>s.plm[p[0]]).map(p=>p[0]);if(!on.length)return[0,'nessun posizionamento'];if(on.every(x=>x==='an'||x==='msgr'))return[0,'solo Audience Network/Messenger: traffico di bassa qualità'];if(!(s.plm.stories||s.plm.reels))return[2,'senza storie e reels perdi gli spazi più economici'];return[4,'manuali, buona copertura']});
+ avg=pp.reduce((t,x)=>t+x[0],0)/n;
+ I.push(it(avg>=5?'ok':avg>=3?'warn':'bad','Posizionamenti',avg>=5?'Posizionamenti Advantage+: Meta usa gli spazi dove costa meno ottenere risultati.':sets.map((s,i)=>nm(s)+pp[i][1]).join(' · ')+'.',avg,5));
+ cats.push({t:'Posizionamenti',items:I});
+ // 6 Inserzione
+ I=[];
+ const A=info.map(x=>x.ad);const avgf=f=>info.reduce((t,x)=>t+f(x),0)/n;
+ avg=avgf(x=>x.s.ad.ig?2:0);
+ I.push(it(avg>=2?'ok':'warn','Identità',avg>=2?'Usi l\'account Instagram del cliente: le inserzioni su Instagram mostrano il profilo vero.':'Collega l\'account Instagram del cliente: altrimenti su Instagram l\'inserzione appare a nome della Pagina Facebook.',avg,2));
+ avg=avgf(x=>{const f=sc.formatFit[x.s.ad.format]||[0,1];return x.s.ad.format==='carousel'&&x.ad.M.length<2?1:f[1]});
+ I.push(it(avg>=3?'ok':'warn','Formato',avg>=3?'Formato adatto al messaggio.':sc.id==='agriturismo'?'Il carosello è ideale per mostrare camera, cibo e paesaggio in una sola inserzione.':'Il carosello richiede almeno 2 contenuti; per questo cliente un contenuto singolo forte funziona meglio.',avg,3));
+ avg=avgf(x=>x.ad.rej?0:5*x.ad.q);const badM=[...new Set(info.flatMap(x=>x.ad.M.filter(m=>m.note&&!m.reject)))];const rejM=info.find(x=>x.ad.rej);
+ I.push(it(rejM?'bad':avg>=4?'ok':avg>=2.5?'warn':'bad','Contenuti multimediali',(rejM?`INSERZIONE RIFIUTATA: "${rejM.ad.rej.t}" usa ${rejM.ad.rej.reject}. `:'')+(info.some(x=>!x.ad.M.length)?'Un\'inserzione non ha contenuti: non può essere pubblicata. ':'')+(badM.length?'Da evitare: '+badM.map(m=>`"${m.t}" (${m.note})`).join('; ')+'. ':'')+(avg>=4?'Contenuti autentici e di qualità.':'Preferisci foto e video veri del cliente.'),avg,5));
+ avg=avgf(x=>(x.ad.vert?(x.ad.has916?2:0):2)+(x.ad.feed?(x.ad.hasFeed?2:0):2));
+ I.push(it(avg>=4?'ok':avg>=2?'warn':'bad','Formati per i posizionamenti',avg>=4?'Hai un contenuto verticale 9:16 per storie e reels e uno 1:1 o 4:5 per i feed.':(info.some(x=>x.ad.vert&&!x.ad.has916)?'Manca un contenuto verticale 9:16: in storie e reels l\'inserzione viene ritagliata o mostrata con bande. ':'')+(info.some(x=>x.ad.feed&&!x.ad.hasFeed)?'Manca un contenuto 1:1 o 4:5 per i feed.':''),avg,4));
+ const pol=info.filter(x=>x.ad.policy);
+ avg=avgf(x=>{const a=x.ad;if(a.policy||!a.T.length)return 0;return(a.offer125?2:0)+(a.benefit?1:0)+(a.T.length>=2?1:0)+(a.shouty?0:1)});
+ const tm=[];if(pol.length)tm.push('INSERZIONE RIFIUTATA: il testo allude a caratteristiche personali di chi legge (es. "Hai mal di schiena?"). Le norme di Meta lo vietano: parla del servizio, non dei difetti della persona.');
+ if(info.some(x=>!x.ad.T.length))tm.push('manca il testo principale');
+ if(info.some(x=>x.ad.T.length&&!x.ad.offer125))tm.push('metti l\'offerta nelle prime righe (circa 125 caratteri visibili)');
+ if(info.some(x=>x.ad.T.length&&!x.ad.benefit))tm.push('aggiungi i punti di forza del cliente');
+ if(info.some(x=>x.ad.T.length===1))tm.push('scrivi almeno 2 varianti del testo');
+ if(info.some(x=>x.ad.shouty))tm.push('evita MAIUSCOLO e punti esclamativi multipli');
+ I.push(it(pol.length?'bad':avg>=4.5?'ok':avg>=2.5?'warn':'bad','Testo principale',tm.length?tm.join('; ')+'.':'Testo chiaro, con offerta in evidenza e varianti.',avg,5));
+ avg=avgf(x=>{const H=x.ad.H;if(!H.length)return 0;return 1.5+(hasTerm(norm(H.join(' ')),sc.offer.concat(sc.benefit))?1:0)+(H.every(h=>h.length<=40)?.5:0)});
+ I.push(it(avg>=3?'ok':avg>=1.5?'warn':'bad','Titolo',avg>=3?'Titoli brevi con offerta o beneficio.':'Aggiungi un titolo breve (max ~40 caratteri) che riprenda l\'offerta.',avg,3));
+ const cp=sets.map(s=>sc.ctaGood.includes(s.ad.cta)?3:sc.ctaOk.includes(s.ad.cta)?2:s.ad.cta?0:0);avg=cp.reduce((a,b)=>a+b,0)/n;
+ const ctaT=id=>(CTAS.find(x=>x[0]===id)||[])[1];
+ I.push(it(avg>=3?'ok':avg>=2?'warn':'bad','Pulsante di invito all\'azione',avg>=3?'Il pulsante corrisponde all\'azione richiesta.':`Il pulsante più adatto è "${ctaT(sc.ctaGood[0])}".`,avg,3));
+ const dp=info.map(({s})=>{const a=s.ad,L=c.obj==='notorieta'?'':s.convLoc;
+  const urlOk=u=>{try{const x=new URL(/^https?:/i.test(u)?u:'https://'+u);const h=x.hostname.replace(/^www\./,'');return h===sc.domain||h.endsWith('.'+sc.domain)}catch(e){return false}};
+  if(L==='moduli'){let p=0,m=[];if(a.fTel)p+=1;else m.push('aggiungi il campo telefono: la titolare deve richiamare');if(a.privacy.trim()&&urlOk(a.privacy))p+=1;else m.push('serve il link all\'informativa privacy del cliente');return[p,m.join('; ')||'modulo ben configurato']}
+  if(L==='messaggi')return a.greeting.trim()?[2,'messaggio di benvenuto presente']:[1,'aggiungi un messaggio di benvenuto per avviare la chat'];
+  if(L==='chiamate')return a.phone.replace(/\D/g,'').length>=6?[2,'numero inserito']:[0,'manca il numero di telefono'];
+  if(L==='inserzione'||L==='profilo')return[2,'nessuna destinazione esterna'];
+  if(!a.url.trim())return[c.obj==='notorieta'?1:0,c.obj==='notorieta'?'aggiungi il link alla pagina dell\'evento':'manca l\'URL del sito'];
+  if(!urlOk(a.url))return[0,'URL non valido o di un altro dominio ('+sc.domain+')'];
+  return[2,'URL corretto']});
+ avg=dp.reduce((t,x)=>t+x[0],0)/n;
+ I.push(it(avg>=2?'ok':avg>=1?'warn':'bad','Destinazione',sets.map((s,i)=>nm(s)+dp[i][1]).join(' · ')+'.',avg,2));
+ avg=avgf(x=>{const L=x.s.convLoc;return(L==='sito'||(c.obj==='notorieta'&&x.s.ad.url.trim()))?(x.s.ad.utm.trim()?1:0):1});
+ I.push(it(avg>=1?'ok':'warn','Parametri UTM',avg>=1?'Tracciamento corretto per questa destinazione.':'Aggiungi parametri UTM (es. utm_source=meta&utm_medium=paid) per riconoscere il traffico in Google Analytics.',avg,1));
+ cats.push({t:'Inserzione',items:I});
+ cats.forEach(k=>{k.pts=k.items.reduce((s,x)=>s+x.pts,0);k.max=k.items.reduce((s,x)=>s+x.max,0)});
+ let total=Math.round(cats.reduce((s,k)=>s+k.pts,0));
+ const none=!info.some(x=>x.ad.ready);
+ if(none){total=Math.min(total,20);cats[0].items.unshift(it('bad','Pubblicazione','Nessuna inserzione è stata pubblicata (contenuti o testo mancanti, oppure inserzione rifiutata): la campagna non ha prodotto risultati. Punteggio massimo 20.',0,0))}
+ return{cats,total,none}}
+
+/* ================= CAMBIO SCENARIO: ogni cliente ha la sua campagna e il suo storico ================= */
+const PER_SC=['c','sets','attempts','history','result','maxStep'];
+function switchScenario(id){
+ if(S.scenario===id)return;
+ S.saved=S.saved||{};
+ if(S.scenario)S.saved[S.scenario]=JSON.parse(JSON.stringify(Object.fromEntries(PER_SC.map(k=>[k,S[k]]))));
+ const f=fresh(),snap=S.saved[id];
+ PER_SC.forEach(k=>S[k]=snap&&snap[k]!==undefined?snap[k]:f[k]);
+ S.scenario=id;S.ui={tab:0};
+}
+
+
+function advState(){const c=S.c;const conv=['vendite','contatti','app'].includes(c.obj);const aud=S.sets.every(s=>s.adv&&!s.inc.length);const pl=S.sets.every(s=>s.pl==='adv');return{conv,cbo:c.cbo,aud,pl,on:conv&&c.cbo&&aud&&pl}}
+function advCard(){const a=advState();if(!S.c.obj)return'';const pill=(ok,t)=>`<span class="tag ${ok?'ok':'mut'}">${ok?'✓':'✗'} ${t}</span>`;
+ if(!a.conv)return`<div class="card"><h3>Automazioni Advantage+</h3><p class="hint">Con l'obiettivo "${objT(S.c.obj)}" puoi usare le singole opzioni Advantage+ (budget, pubblico, posizionamenti), ma non esiste uno stato "campagna Advantage+": quello riguarda solo Vendite, Contatti e App.</p><div class="row" style="flex:none;gap:6px">${pill(a.cbo,'Budget della campagna')}${pill(a.aud,'Pubblico Advantage+')}${pill(a.pl,'Posizionamenti Advantage+')}</div></div>`;
+ return`<div class="card"><header><h3>Stato Advantage+</h3><span class="tag ${a.on?'ok':'warn'}">${a.on?'Campagna Advantage+ attiva':'Non è una campagna Advantage+'}</span></header><p class="hint">Dal 2025, per Vendite, Contatti e App, Meta parte con tre automazioni attive. Se le tieni tutte e tre, la campagna è "Advantage+": Meta gestisce budget, pubblico e posizionamenti. Puoi modificarle (per esempio per fare remarketing con un pubblico personalizzato), ma la campagna perde lo stato Advantage+.</p><div class="row" style="flex:none;gap:6px">${pill(a.cbo,'Budget della campagna Advantage+')}${pill(a.aud,'Pubblico Advantage+ (senza pubblici personalizzati inclusi)')}${pill(a.pl,'Posizionamenti Advantage+')}</div></div>`}
+const NAMEX=()=>({pilates:'Contatti – Prova gratuita – Bologna – Nov',bici:'Notorietà – Inaugurazione – Padova – Dic',agriturismo:'Contatti – Weekend WhatsApp – Centro Italia',cosmetici:'Vendite – Nuovi clienti e remarketing – Italia',reel:'Interazione – Reel IFTS VIP – Pisa'})[S.scenario]||'Obiettivo – Prodotto – Zona – Mese';
+/* ================= RENDER ================= */
+function render(){S.maxStep=Math.max(S.maxStep,S.step);
+ renderSteps();renderHelp();renderChip();
+ $('#view').innerHTML=[rScenario,rCampaign,rBudget,rOpt,rAud,rAd,rSummary,rResults][S.step]();
+ afterRender();save()}
+function renderSteps(){let last='';
+ $('#steps').innerHTML=STEPS.map(([t,l],i)=>{const dis=(i>0&&!S.scenario)||(i===7&&!S.result);let h='';if(l&&l!==last)h=`<li class="lvl">${l}</li>`;last=l;const done=i<S.maxStep&&i!==S.step;
+  return h+`<li><button type="button" data-go="${i}" class="${i===S.step?'cur':''} ${done?'done':''}" ${dis?'disabled':''}><span class="n">${done?'✓':i+1}</span>${t}</button></li>`}).join('')}
+function renderHelp(){const h=HELP[S.step];$('#help').innerHTML=`<div class="box"><span class="lab">Cos'è questo passaggio</span><h3>${h.t}</h3>${h.b}</div><div class="box err"><span class="lab">Errore comune</span><p>${h.e}</p></div><div class="box tip"><span class="lab">Consiglio</span><p>${h.p}</p></div>`}
+function renderChip(){const sc=SC[S.scenario];$('#scChip').innerHTML=sc?`<button type="button" class="chip btn sm" id="bBrief">Cliente: <b>${esc(sc.name)}</b></button>`:''}
+const briefHTML=sc=>`<div class="brief"><b>${esc(sc.name)} · brief del cliente</b><dl>${sc.facts.map(f=>`<dt>${f[0]}</dt><dd>${esc(f[1])}</dd>`).join('')}</dl></div>`;
+const nav=(next='Avanti',dis=false)=>`<div class="nav"><button class="btn" type="button" data-go="${S.step-1}" ${S.step===0?'style="visibility:hidden"':''}>← Indietro</button><button class="btn pri" type="button" data-go="${S.step+1}" ${dis?'disabled':''}>${next} →</button></div>`;
+const radio=(b,val,cur,t,d,extra='')=>`<label class="opt ${cur===val?'on':''} ${extra}"><input type="radio" name="${b}" data-b="${b}" value="${val}" ${cur===val?'checked':''} ${extra?'disabled':''}><span><b>${t}</b>${d?`<small>${d}</small>`:''}</span></label>`;
+const check=(b,on,t,d)=>`<label class="opt ${on?'on':''}"><input type="checkbox" data-b="${b}" ${on?'checked':''}><span><b>${t}</b>${d?`<small>${d}</small>`:''}</span></label>`;
+const cntS=(v,max)=>`<span class="cnt ${v.length>max?'over':''}" data-max="${max}">${v.length}/${max} consigliati</span>`;
+function setTabs(){if(S.sets.length<2)return'';const i=S.ui.tab;return`<div class="tabs"><span class="hint">Gruppo di inserzioni:</span>${S.sets.map((s,j)=>`<button type="button" data-tab="${j}" class="${j===i?'on':''}">${esc(s.name||'Gruppo '+(j+1))}</button>`).join('')}</div>`}
+const struct=lvl=>`<div class="struct">${['Campagna','Gruppo di inserzioni','Inserzione'].map(x=>`<span class="${x===lvl?'on':''}">${x}</span>`).join('<span style="border:0;background:none;padding:0">→</span>')}</div>`;
+
+function rScenario(){const sc=SC[S.scenario];
+ return`<div class="card"><h2>Scegli il cliente</h2><p class="lead">Ogni scenario è un cliente con un brief. Creerai la campagna su Meta (Facebook e Instagram) seguendo i tre livelli di Gestione inserzioni. Alla fine vedrai i risultati simulati e un punteggio su 100 con i consigli per migliorare.</p>
+ <div class="scen">${Object.values(SC).map(s=>`<button type="button" class="sc ${S.scenario===s.id?'on':''}" data-sc="${s.id}"><span class="k">${s.k}</span><h3>${esc(s.name)}</h3><p>${esc(s.short)}</p><span class="lv">${s.lv}</span></button>`).join('')}</div></div>
+ ${sc?`<div class="card">${briefHTML(sc)}<p class="hint">Leggi bene il brief: alcuni dettagli tecnici (pixel, WhatsApp, date) cambiano le scelte giuste.</p></div>`:''}
+ ${exampleCard('20–30')}
+ ${nav('Inizia a creare la campagna',!sc)}
+ <p class="fine">© 2026 Azzurra Curcio · Campagna Zero · Materiale didattico. Opera distribuita con licenza <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.it" target="_blank" rel="noopener">Creative Commons Attribuzione – Non commerciale – Non opere derivate 4.0 Internazionale (CC BY-NC-ND 4.0)</a>: puoi usarla e condividerla citando l'autrice, senza scopi commerciali e senza modificarla. Simulatore didattico indipendente, non affiliato né approvato da Meta. Meta, Facebook, Instagram, Messenger e WhatsApp sono marchi di Meta Platforms, Inc. Clienti, marchi, siti e numeri di telefono degli scenari sono di fantasia: ogni riferimento a realtà esistenti è casuale. I risultati sono stime di un modello semplificato.</p>`}
+
+function rCampaign(){const c=S.c;
+ return`<div class="card">${struct('Campagna')}<h2>Scegli l'obiettivo della campagna</h2>
+ <div class="opts">${OBJ.map(o=>radio('c.obj',o.id,c.obj,o.t,o.d,o.off?'off':'')).join('')}</div></div>
+ <div class="card"><div class="field"><label for="cname">Nome della campagna</label><input type="text" id="cname" data-b="c.name" value="${esc(c.name)}" placeholder="Es. ${esc(NAMEX())}"><span class="hint">Lo vedi solo tu. Uno schema fisso ti aiuta a ritrovare le campagne.</span></div></div>
+ <div class="card"><h3>Categorie speciali di inserzioni</h3><p class="hint">Dichiara una categoria solo se le inserzioni riguardano uno di questi temi.</p>
+ <div class="field" style="max-width:380px"><label for="spec">Categoria</label><select id="spec" data-b="c.special">${SPECIAL.map(([id,t])=>`<option value="${id}" ${c.special===id?'selected':''}>${t}</option>`).join('')}</select></div></div>
+ <div class="card"><h3>Budget della campagna Advantage+</h3>${check('c.cbo',c.cbo,'Attiva il budget della campagna Advantage+','Un unico budget per la campagna: Meta lo distribuisce tra i gruppi di inserzioni che rendono di più. Se lo disattivi, imposti un budget per ogni gruppo.')}</div>
+ ${advCard()}
+ ${nav()}`}
+
+function rBudget(){const c=S.c;const sc=SC[S.scenario];
+ const per=c.btype==='total'?daysBetween(c.start,c.end):0;
+ return`<div class="card">${struct('Campagna')}<h2>Budget e programmazione</h2>
+ <div class="opts">${radio('c.btype','daily',c.btype,'Budget giornaliero','Spesa media al giorno. La campagna continua finché non la fermi o fino alla data di fine.')}${radio('c.btype','total',c.btype,'Budget totale','Una cifra da spendere tra una data di inizio e una di fine.')}</div>
+ ${c.cbo?`<div class="field" style="max-width:340px"><label for="bud">${c.btype==='daily'?'Budget giornaliero (€)':'Budget totale (€)'}</label><input type="number" min="0" step="1" id="bud" data-b="c.budget" value="${esc(c.budget)}" placeholder="${c.btype==='daily'?'Es. 20':'Es. 300'}"><span class="hint" id="budh"></span></div>`:`<div class="al info"><span class="dot info"></span><span>Il budget della campagna Advantage+ è disattivato: imposterai il budget di ogni gruppo nel passaggio "Ottimizzazione".</span></div>`}
+ <div class="row"><div class="field"><label for="ds">Data di inizio</label><input type="date" id="ds" data-b="c.start" value="${esc(c.start)}"></div><div class="field"><label for="de">Data di fine ${c.btype==='daily'?'<span class="hint">(facoltativa)</span>':''}</label><input type="date" id="de" data-b="c.end" value="${esc(c.end)}"></div></div>
+ ${c.btype==='total'&&per>0?`<p class="hint">Durata: ${per} giorni.</p>`:''}</div>
+ <div class="card"><h3>Strategia di offerta</h3><div class="list">${BIDS.map(b=>radio('c.bid',b.id,c.bid,b.t,b.d)).join('')}</div>
+ ${c.bid==='costcap'?`<div class="field" style="max-width:300px"><label for="cc">Costo per risultato desiderato (€)</label><input type="number" id="cc" data-b="c.costcap" value="${esc(c.costcap)}"></div>`:''}
+ ${c.bid==='bidcap'?`<div class="field" style="max-width:300px"><label for="bc">Limite dell'offerta (€)</label><input type="number" id="bc" data-b="c.bidcap" value="${esc(c.bidcap)}"></div>`:''}
+ ${c.bid==='roas'?`<div class="field" style="max-width:300px"><label for="ro">ROAS minimo (es. 3 = 3 € di vendite per ogni euro)</label><input type="number" step="0.1" id="ro" data-b="c.roas" value="${esc(c.roas)}"></div>`:''}
+ </div>${nav()}`}
+
+function rOpt(){const c=S.c,sc=SC[S.scenario];const i=Math.min(S.ui.tab,S.sets.length-1);S.ui.tab=i;const s=S.sets[i];const P=`sets.${i}`;
+ const locs=CONVLOC[c.obj]||[];const goals=GOPTS(c.obj,s.convLoc);
+ return`<div class="card">${struct('Gruppo di inserzioni')}<h2>Gruppi di inserzioni: ottimizzazione</h2><p class="lead">Ogni gruppo di inserzioni ha il suo pubblico e le sue inserzioni. Per molti clienti ne basta uno; usane due se servono pubblici diversi (es. nuovi clienti e remarketing).</p>
+ <div class="tabs">${S.sets.map((x,j)=>`<button type="button" data-tab="${j}" class="${j===i?'on':''}">${esc(x.name||'Gruppo '+(j+1))}</button>`).join('')}${S.sets.length<3?`<button type="button" id="addSet">+ Aggiungi gruppo</button>`:''}</div></div>
+ <div class="card"><header><h3>${esc(s.name||'Gruppo')}</h3>${S.sets.length>1?`<button type="button" class="btn sm ghost" data-del="${i}">Elimina gruppo</button>`:''}</header>
+ <div class="field"><label for="sn">Nome del gruppo di inserzioni</label><input type="text" id="sn" data-b="${P}.name" value="${esc(s.name)}" placeholder="Es. Nuovi clienti – Italia – Advantage+"></div>
+ ${!c.obj?'<div class="al warn"><span class="dot warn"></span><span>Scegli prima l\'obiettivo della campagna.</span></div>':''}
+ ${c.obj&&c.obj!=='notorieta'?`<span class="lbl">Luogo della conversione</span><div class="opts">${locs.map(l=>radio(P+'.convLoc',l,s.convLoc,CL[l],CLD[l])).join('')}</div>`:''}
+ ${c.obj==='notorieta'||s.convLoc?`<span class="lbl">Obiettivo di performance</span><div class="list">${goals.map(g=>radio(P+'.goal',g,s.goal,GL[g],'')).join('')}</div>`:''}
+ ${s.convLoc==='sito'&&GCAT[s.goal]==='conv'?`<div class="field" style="max-width:380px"><label for="ev">Evento di conversione (pixel)</label>${sc.pixel?`<select id="ev" data-b="${P}.event"><option value="">— scegli —</option>${EVENTS.map(([id,t])=>`<option value="${id}" ${s.event===id?'selected':''}>${t}</option>`).join('')}</select>`:'<div class="al bad"><span class="dot bad"></span><span>Nessun dataset disponibile: il pixel di Meta non è installato sul sito del cliente.</span></div>'}</div>`:''}
+ ${s.convLoc==='messaggi'?`<span class="lbl">App di messaggistica</span><div class="opts">${[['whatsapp','WhatsApp'],['messenger','Messenger'],['igdirect','Instagram Direct']].map(([id,t])=>`<label class="opt ${s.apps.includes(id)?'on':''}"><input type="checkbox" data-arr="${P}.apps" value="${id}" ${s.apps.includes(id)?'checked':''}><span><b>${t}</b></span></label>`).join('')}</div>`:''}
+ ${!c.cbo?`<div class="field" style="max-width:300px"><label for="sb">${c.btype==='daily'?'Budget giornaliero del gruppo (€)':'Budget totale del gruppo (€)'}</label><input type="number" id="sb" data-b="${P}.budget" value="${esc(s.budget)}"></div>`:''}
+ </div>${nav()}`}
+
+function rAud(){const sc=SC[S.scenario];const i=Math.min(S.ui.tab,S.sets.length-1);S.ui.tab=i;const s=S.sets[i];const P=`sets.${i}`;
+ const ages=[];for(let a=18;a<=65;a++)ages.push(a);
+ return`<div class="card">${struct('Gruppo di inserzioni')}<h2>Pubblico e posizionamenti</h2>${setTabs()}</div>
+ <div class="card"><h3>Pubblici personalizzati</h3><p class="hint">Persone che conoscono già il cliente. Includile per il remarketing, escludile se hanno già comprato.</p>
+ <div class="tw"><table><thead><tr><th>Pubblico</th><th class="num">Persone</th><th>Includi</th><th>Escludi</th></tr></thead><tbody>${sc.custom.map(cu=>`<tr style="${cu.off?'opacity:.5':''}"><td>${esc(cu.t)}</td><td class="num">${cu.off?'—':int(cu.size)}</td><td><input type="checkbox" aria-label="Includi" data-arr="${P}.inc" value="${cu.id}" ${s.inc.includes(cu.id)?'checked':''} ${cu.off?'disabled':''}></td><td><input type="checkbox" aria-label="Escludi" data-arr="${P}.exc" value="${cu.id}" ${s.exc.includes(cu.id)?'checked':''} ${cu.off?'disabled':''}></td></tr>`).join('')}</tbody></table></div></div>
+ <div class="card"><h3>Controlli del pubblico</h3><span class="lbl">Località</span><div class="opts">${locsFor(sc).map(l=>radio(P+'.loc',l.id,s.loc,l.t,'')).join('')}</div>
+ <div class="row" style="max-width:420px"><div class="field"><label for="amin">Età minima</label><select id="amin" data-b="${P}.ageMin">${ages.map(a=>`<option value="${a}" ${+s.ageMin===a?'selected':''}>${a}</option>`).join('')}</select></div><div class="field"><label for="amax">Età massima</label><select id="amax" data-b="${P}.ageMax">${ages.map(a=>`<option value="${a}" ${+s.ageMax===a?'selected':''}>${a===65?'65+':a}</option>`).join('')}</select></div></div></div>
+ <div class="card"><h3>Pubblico Advantage+</h3>${check(P+'.adv',s.adv,'Usa il pubblico Advantage+','Meta trova il pubblico migliore. Età, genere e interessi diventano suggerimenti (località ed età minima restano limiti).')}
+ <span class="lbl">Genere ${s.adv?'<span class="hint">(suggerimento)</span>':''}</span><div class="opts">${radio(P+'.gender','all',s.gender,'Tutti','')}${radio(P+'.gender','f',s.gender,'Donne','')}${radio(P+'.gender','m',s.gender,'Uomini','')}</div>
+ <span class="lbl">Targeting dettagliato: interessi ${s.adv?'<span class="hint">(suggerimento)</span>':''}</span><div class="opts">${sc.interests.map(([t])=>`<label class="opt ${s.interests.includes(t)?'on':''}"><input type="checkbox" data-arr="${P}.interests" value="${esc(t)}" ${s.interests.includes(t)?'checked':''}><span><b>${esc(t)}</b></span></label>`).join('')}</div>
+ <div class="gauge" id="gauge"></div></div>
+ ${advCard()}
+ <div class="card"><h3>Posizionamenti</h3><div class="list">${radio(P+'.pl','adv',s.pl,'Posizionamenti Advantage+ (consigliato da Meta)','Meta mostra le inserzioni dove probabilmente rendono di più.')}${radio(P+'.pl','manual',s.pl,'Posizionamenti manuali','Scegli tu dove mostrare le inserzioni.')}</div>
+ ${s.pl==='manual'?`<div class="opts">${PL.map(p=>`<label class="opt ${s.plm[p[0]]?'on':''}"><input type="checkbox" data-b="${P}.plm.${p[0]}" ${s.plm[p[0]]?'checked':''}><span><b>${p[1]}</b></span></label>`).join('')}</div>`:''}</div>
+ ${nav()}`}
+
+function mediaThumb(m,big){return`<div class="${big?'md':'th'}" style="background:linear-gradient(135deg,${m.c[0]},${m.c[1]});${big&&m.ratio==='1.91:1'?'aspect-ratio:1.91/1':big&&m.ratio==='4:5'?'aspect-ratio:4/5':big&&m.ratio==='9:16'?'aspect-ratio:4/5':''}">${big?'':`<em>${m.type==='video'?'▶ ':''}${m.ratio}</em><span class="ck">✓</span>`}<span style="${m.c[0]==='#ffffff'||m.c[0].startsWith('#e')||m.c[0].startsWith('#f')?'color:#222':''}">${m.txt?esc(m.txt):(m.type==='video'?'▶ ':'')+esc(m.t.split(':')[0])}</span></div>`}
+function rAd(){const sc=SC[S.scenario],c=S.c;const i=Math.min(S.ui.tab,S.sets.length-1);S.ui.tab=i;const s=S.sets[i],a=s.ad;const P=`sets.${i}.ad`;const L=c.obj==='notorieta'?'':s.convLoc;
+ return`<div class="card">${struct('Inserzione')}<h2>Inserzione</h2>${setTabs()}</div>
+ <div class="pv"><div class="post" id="pvFeed"></div><div id="pvStory"></div></div>
+ <div class="card"><h3>Identità</h3><div class="hint">Pagina Facebook: <b>${esc(sc.name)}</b></div>${check(P+'.ig',a.ig,'Usa l\'account Instagram del cliente','Se non lo colleghi, su Instagram l\'inserzione appare a nome della Pagina Facebook.')}</div>
+ <div class="card"><h3>Formato</h3><div class="opts">${radio(P+'.format','single',a.format,'Immagine o video singolo','Un contenuto. Puoi aggiungere una versione verticale per storie e reels.')}${radio(P+'.format','carousel',a.format,'Carosello','Da 2 a 10 immagini o video scorrevoli.')}</div></div>
+ <div class="card"><header><h3>Contenuti multimediali</h3><span class="hint">Libreria del cliente · clicca per selezionare</span></header><div class="lib">${sc.media.map(m=>`<button type="button" class="med ${a.media.includes(m.id)?'on':''}" data-med="${m.id}">${mediaThumb(m)}<span class="cap">${esc(m.t)}</span></button>`).join('')}</div>
+ <p class="hint">${a.format==='single'?'Per un contenuto singolo scegli quello principale ed eventualmente la sua versione 9:16 per storie e reels.':'Per il carosello scegli da 2 a 5 contenuti, nell\'ordine in cui li clicchi.'}</p></div>
+ <div class="card"><header><h3>Testo principale</h3><span class="hint">fino a 5 varianti · ~125 caratteri visibili</span></header>${a.texts.map((t,j)=>`<div class="field"><label class="hint" for="tx${j}">Variante ${j+1}${j===0?' *':''}</label><textarea id="tx${j}" rows="${j===0?4:2}" data-b="${P}.texts.${j}">${esc(t)}</textarea>${cntS(t,125)}</div>`).join('')}</div>
+ <div class="card"><header><h3>Titolo e descrizione</h3><span class="hint">titolo ~40 · descrizione ~30 caratteri</span></header><div class="grid2">${a.heads.map((t,j)=>`<div class="field"><label class="hint" for="hd${j}">Titolo ${j+1}</label><input type="text" id="hd${j}" data-b="${P}.heads.${j}" value="${esc(t)}">${cntS(t,40)}</div>`).join('')}<div class="field"><label class="hint" for="dsc">Descrizione</label><input type="text" id="dsc" data-b="${P}.desc" value="${esc(a.desc)}">${cntS(a.desc,30)}</div></div></div>
+ <div class="card"><h3>Pulsante e destinazione</h3><div class="field" style="max-width:340px"><label for="cta">Invito all'azione</label><select id="cta" data-b="${P}.cta"><option value="">— scegli —</option>${CTAS.map(([id,t])=>`<option value="${id}" ${a.cta===id?'selected':''}>${t}</option>`).join('')}</select></div>
+ ${L==='moduli'?`<span class="lbl">Modulo istantaneo · tipo</span><div class="opts">${radio(P+'.formType','volume',a.formType,'Volume più elevato','Modulo veloce da inviare: più contatti, qualità variabile.')}${radio(P+'.formType','intento',a.formType,'Intento più elevato','Aggiunge un passaggio di conferma: meno contatti, più seri.')}</div>
+  <span class="lbl">Domande del modulo</span><div class="opts">${check(P+'.fNome',a.fNome,'Nome e cognome','')}${check(P+'.fEmail',a.fEmail,'Email','')}${check(P+'.fTel',a.fTel,'Numero di telefono','')}</div>
+  <div class="field"><label for="prv">Link all'informativa sulla privacy (obbligatorio)</label><input type="url" id="prv" data-b="${P}.privacy" value="${esc(a.privacy)}" placeholder="https://"></div>`:''}
+ ${L==='messaggi'?`<div class="field"><label for="grt">Messaggio di benvenuto</label><textarea id="grt" rows="2" data-b="${P}.greeting" placeholder="Es. Ciao! Per quale weekend vorresti informazioni?">${esc(a.greeting)}</textarea><span class="hint">Il primo messaggio che la persona vede nella chat.</span></div>`:''}
+ ${L==='chiamate'?`<div class="field" style="max-width:340px"><label for="phn">Numero di telefono</label><input type="text" id="phn" data-b="${P}.phone" value="${esc(a.phone)}"></div>`:''}
+ ${(L==='sito'||c.obj==='notorieta'||!L)?`<div class="field"><label for="url">URL del sito web</label><input type="url" id="url" data-b="${P}.url" value="${esc(a.url)}" placeholder="https://www.${sc.domain}${sc.paths[0]}"></div><div class="field"><label for="utm">Parametri URL (UTM)</label><input type="text" id="utm" data-b="${P}.utm" value="${esc(a.utm)}" placeholder="utm_source=meta&utm_medium=paid&utm_campaign=..."></div>`:''}
+ </div>${nav()}`}
+
+function rSummary(){const sc=SC[S.scenario],c=S.c;const blk=[];
+ if(!c.obj)blk.push('Scegli l\'obiettivo della campagna.');
+ if(c.cbo&&!num(c.budget))blk.push('Inserisci il budget della campagna.');
+ if(!c.cbo&&S.sets.some(s=>!num(s.budget)))blk.push('Ogni gruppo di inserzioni ha bisogno di un budget.');
+ if(c.btype==='total'&&daysBetween(c.start,c.end)<=0)blk.push('Con il budget totale servono data di inizio e di fine.');
+ S.sets.forEach(s=>{const a=adInfo(s,sc);const n=s.name||'Gruppo';if(c.obj&&c.obj!=='notorieta'&&!s.convLoc)blk.push(`"${n}": manca il luogo della conversione.`);if(!s.goal)blk.push(`"${n}": manca l'obiettivo di performance.`);if(!a.M.length)blk.push(`"${n}": l'inserzione non ha contenuti multimediali.`);if(!a.T.length)blk.push(`"${n}": manca il testo principale.`)});
+ const row=(k,v)=>`<tr><th style="width:36%">${k}</th><td>${v}</td></tr>`;const miss='<span class="tag bad">mancante</span>';
+ return`<div class="card"><h2>Riepilogo</h2><div class="tw"><table>
+ ${row('Cliente',esc(sc.name))}${row('Campagna',(esc(c.name)||miss)+' · '+(objT(c.obj)||miss))}${row('Categoria speciale',SPECIAL.find(x=>x[0]===c.special)[1])}
+ ${row('Budget',c.cbo?(num(c.budget)?`${eur(num(c.budget))} ${c.btype==='daily'?'al giorno':'in totale'} · budget della campagna Advantage+`:miss):'Budget per gruppo di inserzioni')}
+ ${row('Date',(c.start||'—')+' → '+(c.end||'nessuna fine'))}${row('Strategia di offerta',BIDS.find(b=>b.id===c.bid).t)}
+ ${S.sets.map(s=>{const au=audience(s,sc);return row(esc(s.name||'Gruppo'),`${s.convLoc?CL[s.convLoc]+' · ':''}${GL[s.goal]||miss}<br>${locOf(s.loc).t} · ${s.ageMin}–${s.ageMax>=65?'65+':s.ageMax} · ${s.adv?'Advantage+':'pubblico manuale'}${s.inc.length?' · '+s.inc.length+' pubblici personalizzati':''} · ≈ ${int(au.N)} persone<br>${s.pl==='adv'?'Posizionamenti Advantage+':'Posizionamenti manuali'} · ${s.ad.media.length} contenuti · ${s.ad.texts.filter(x=>x.trim()).length} testi · pulsante ${(CTAS.find(x=>x[0]===s.ad.cta)||['','—'])[1]}`)}).join('')}
+ </table></div></div>
+ ${advCard()}
+ <div class="card"><h3>Controlli prima della pubblicazione</h3>${blk.length?blk.map(b=>`<div class="al bad"><span class="dot bad"></span><span>${esc(b)}</span></div>`).join('')+'<p class="hint">Puoi pubblicare comunque e vedere l\'effetto di questi problemi.</p>':'<div class="al ok"><span class="dot ok"></span><span>Nessun blocco: la campagna può essere pubblicata.</span></div>'}</div>
+ <div class="nav"><button class="btn" type="button" data-go="5">← Indietro</button><button class="btn pri" type="button" id="publish">Pubblica e simula →</button></div>`}
+
+function rResults(){const R=S.result;if(!R)return'<div class="card">Nessun risultato.</div>';
+ const sc=SC[S.scenario],t=R.tot;const col=R.total>=85?'var(--good)':R.total>=70?'var(--accent)':R.total>=50?'var(--warn)':'var(--bad)';
+ const verdict=R.total>=85?'Campagna pronta per il cliente':R.total>=70?'Buona base, da rifinire':R.total>=50?'Da rivedere prima di spendere':'Non ancora pronta';
+ const prev=S.history.length>1?S.history[S.history.length-2]:null;
+ const sum=(t.useful+t.out+t.sat)||1;const spend=[{k:'Pubblico in target',v:t.useful,c:'var(--good)'},{k:'Fuori target (zona, età, già clienti)',v:t.out,c:'var(--bad)'},{k:'Saturazione (frequenza troppo alta)',v:t.sat,c:'var(--warn)'}];
+ const fixes=R.cats.flatMap(k=>k.items.filter(x=>x.lvl!=='ok'&&x.max>0).map(x=>({...x,cat:k.t}))).sort((a,b)=>(b.max-b.pts)-(a.max-a.pts)).slice(0,3);
+ const kpi=(k,v,hi)=>`<div class="kpi ${hi?'hi':''}"><span>${k}</span><b>${v}</b></div>`;
+ const isReach=sc.kpi==='reach';
+ const resTiles=isReach?kpi(sc.kpiL,int(t.res),1)+kpi('Costo per 1.000 persone',t.res?eur(t.spend/t.res*1000):'—',1):sc.kpi==='acquisti'?kpi('Acquisti',dec(t.res),1)+kpi('Costo per acquisto',t.res>=.5?eur(t.spend/t.res):'—',1)+kpi('Valore vendite',eur(t.value,0),1)+kpi('ROAS',t.spend?dec(t.value/t.spend,2):'—',1):sc.kpi==='video'?kpi(sc.kpiL,int(t.res),1)+kpi('Costo per ThruPlay',t.res>=1?eur(t.spend/t.res,3):'—',1)+kpi(sc.kpiQ,int(t.qual),1):kpi(sc.kpiL,dec(t.res),1)+kpi('Costo per risultato',t.res>=.5?eur(t.spend/t.res):'—',1)+kpi(sc.kpiQ,dec(t.qual),1);
+ return`<div class="card"><div class="hero"><div class="ring" style="--p:${R.total};--c:${col}"><div><span><b>${R.total}</b><br><small>su 100</small></span></div></div>
+ <div style="display:flex;flex-direction:column;gap:8px"><span class="hint">Tentativo n° ${S.attempts} · ${esc(sc.name)}</span><h2>${verdict}</h2>
+ ${prev!=null?`<p>${R.total>prev?`Hai migliorato di <b>${R.total-prev} punti</b> rispetto al tentativo precedente (${prev}).`:R.total<prev?`Il punteggio è sceso di ${prev-R.total} punti rispetto al tentativo precedente (${prev}).`:'Stesso punteggio del tentativo precedente.'}</p>`:''}
+ <div class="row" style="flex:none"><button class="btn pri" type="button" data-go="1" style="flex:none">Modifica la campagna</button><button class="btn" type="button" id="copyRep" style="flex:none">Copia il report</button>${getName()?`<button class="btn ghost" type="button" id="chName" style="flex:none">Nome: ${esc(getName())} · cambia</button>`:''}<button class="btn ghost" type="button" data-go="0" style="flex:none">Cambia scenario</button></div></div></div></div>
+ ${(R.rejected||[]).map(r=>`<div class="al bad"><span class="dot bad"></span><span><b>Inserzione rifiutata</b> in "${esc(r.name||r)}"${r.why?': '+esc(r.why):''}. Quel gruppo non ha speso nulla.</span></div>`).join('')}
+ ${fixes.length?`<div class="card"><h3>Le prime cose da sistemare</h3><ol class="top3">${fixes.map(f=>`<li><span><b>${f.cat} · ${f.t}</b> — ${esc(f.msg)}</span></li>`).join('')}</ol></div>`:''}
+ <div class="card"><header><h3>Risultati simulati · ${R.D} giorni</h3>${R.rows.some(r=>r.limited)?'<span class="tag warn">Apprendimento limitato</span>':''}</header>
+ <div class="kpis">${resTiles}${kpi('Copertura',int(t.reach))}${kpi('Impressioni',int(t.impr))}${kpi('Frequenza',t.reach?dec(t.impr/t.reach,2):'—')}${kpi('CPM',t.impr?eur(t.spend/t.impr*1000):'—')}${kpi('Clic sul link',int(t.clicks))}${kpi('CTR (link)',t.impr?pct(t.clicks/t.impr):'—')}${kpi('CPC (link)',t.clicks?eur(t.spend/t.clicks):'—')}${kpi('Importo speso',eur(t.spend,0))}</div>
+ <div class="field"><span class="lbl">Dove sono andati i soldi</span><div class="stack">${spend.map(s=>`<div style="width:${s.v/sum*100}%;background:${s.c}" title="${s.k}"></div>`).join('')}</div><div class="legend">${spend.map(s=>`<span><i style="background:${s.c}"></i>${s.k}: <b class="mono">${eur(s.v,0)}</b> (${Math.round(s.v/sum*100)}%)</span>`).join('')}</div></div>
+ <p class="fine">Simulazione didattica: numeri stimati con un modello semplificato, utili per capire cause ed effetti. Non sono previsioni reali di Meta. Social Lab è stato creato da Azzurra Curcio.</p></div>
+ <div class="card"><h3>Valutazione per area</h3>${R.cats.map(k=>`<div class="cat"><header><h3>${k.t}</h3><span class="pts">${dec(k.pts)} / ${k.max}</span></header><div class="bar"><i style="width:${k.pts/k.max*100}%"></i></div>${k.items.map(x=>`<div class="al ${x.lvl}"><span class="dot ${x.lvl}"></span><span><b>${x.t}</b> · ${esc(x.msg)} ${x.max?`<span class="pts">(${dec(x.pts)}/${x.max})</span>`:''}</span></div>`).join('')}</div>`).join('<hr style="border:0;border-top:1px solid var(--line);width:100%">')}</div>
+ <div class="card"><h3>Gruppi di inserzioni</h3><div class="tw"><table><thead><tr><th>Gruppo</th><th>Stato</th><th class="num">Pubblico</th><th class="num">Spesa</th><th class="num">Copertura</th><th class="num">Freq.</th><th class="num">CPM</th><th class="num">CTR</th><th class="num">${esc(isReach?'Raggiunti in zona':sc.kpiL)}</th><th class="num">Costo/ris.</th></tr></thead><tbody>
+ ${R.rows.map(r=>`<tr><td>${esc(r.name)}</td><td>${!r.ready?'<span class="tag bad">Non pubblicato</span>':r.limited?'<span class="tag warn">Apprendimento limitato</span>':'<span class="tag ok">Attivo</span>'}</td><td class="num">${int(r.N)}</td><td class="num">${eur(r.spend,0)}</td><td class="num">${int(r.reach)}</td><td class="num">${r.reach?dec(r.impr/r.reach,2):'—'}</td><td class="num">${r.impr?eur(r.spend/r.impr*1000):'—'}</td><td class="num">${r.impr?pct(r.clicks/r.impr):'—'}</td><td class="num">${isReach?int(r.res):dec(r.res)}</td><td class="num">${r.res>=.5?eur(r.spend/r.res*(isReach?1000:1))+(isReach?' /1000':''):'—'}</td></tr>`).join('')}
+ </tbody></table></div><p class="hint">"Apprendimento limitato": il gruppo ottiene meno di circa 50 risultati a settimana, quindi Meta fatica a ottimizzare. Con budget piccoli è normale: evita di dividere il budget in troppi gruppi.</p></div>
+ <div class="card"><h3>Ripartizione per posizionamento</h3><div class="tw"><table><thead><tr><th>Posizionamento</th><th class="num">Impressioni</th><th class="num">Clic sul link</th><th class="num">CTR</th><th class="num">Spesa</th></tr></thead><tbody>
+ ${R.pl.map(p=>`<tr><td>${esc(p.t)}</td><td class="num">${int(p.impr)}</td><td class="num">${int(p.clicks)}</td><td class="num">${p.impr?pct(p.clicks/p.impr):'—'}</td><td class="num">${eur(p.spend,0)}</td></tr>`).join('')||'<tr><td colspan="5">Nessun dato.</td></tr>'}
+ </tbody></table></div><p class="hint">Se storie e reels hanno un CTR molto più basso dei feed, di solito manca un contenuto verticale 9:16.</p></div>`}
+
+/* ================= LIVE ================= */
+function afterRender(){setTimeout(markTerms,0);addHelpM();centerStep();if(S.step===2)budHint();if(S.step===4)gauge();if(S.step===5)preview()}
+function budHint(){const el=$('#budh');if(!el)return;const c=S.c,v=num(c.budget);el.textContent=!v?'':c.btype==='daily'?`≈ ${eur(v*30.4,0)} al mese`:(daysBetween(c.start,c.end)>0?`≈ ${eur(v/daysBetween(c.start,c.end))} al giorno per ${daysBetween(c.start,c.end)} giorni`:'Imposta le date per vedere la spesa giornaliera.')}
+function gauge(){const el=$('#gauge');if(!el)return;const sc=SC[S.scenario],s=S.sets[S.ui.tab];const au=audience(s,sc);
+ const lg=Math.log10(au.N);const pos=clamp((lg-3.5)/(7.6-3.5),0,1)*100;
+ const lab=au.N<30e3?'Specifico':au.N>2e7?'Ampio':'Adeguato';
+ el.innerHTML=`<span class="lbl">Dimensione stimata del pubblico</span><b>${int(au.N*.85)} – ${int(au.N*1.15)}</b><div class="trk"><span class="pin" style="left:${pos}%"></span></div><div class="ends"><span>Specifico</span><span>${lab}</span><span>Ampio</span></div>${au.N<30e3&&!au.inc.length?'<span class="hint">Pubblico molto ristretto: costi più alti e frequenza elevata.</span>':''}`}
+function preview(){const sc=SC[S.scenario],s=S.sets[S.ui.tab],a=s.ad;const M=a.media.map(id=>mediaOf(sc,id)).filter(Boolean);
+ const T=a.texts.map(x=>x.trim()).filter(Boolean)[0]||'Qui comparirà il testo principale.';const H=a.heads.map(x=>x.trim()).filter(Boolean)[0]||'Titolo';
+ const ctaT=(CTAS.find(x=>x[0]===a.cta)||['',''])[1];const short=T.length>125?esc(T.slice(0,125))+'… <i>Altro</i>':esc(T);
+ const feedM=M.filter(m=>m.ratio!=='9:16');const main=feedM[0]||M[0];
+ const mediaHTML=a.format==='carousel'&&M.length>1?`<div class="car">${M.slice(0,5).map(m=>mediaThumb(m,true)).join('')}</div>`:main?mediaThumb(main,true):'<div class="md" style="background:var(--line);color:var(--muted)">Nessun contenuto selezionato</div>';
+ const name=a.ig?sc.name.toLowerCase().replace(/[^a-z]+/g,'.').replace(/^\.|\.$/g,''):sc.name;
+ $('#pvFeed').innerHTML=`<div class="hd"><span class="av">${esc(sc.name[0])}</span><div><b>${esc(name)}</b><small>Sponsorizzato</small></div></div><div class="tx">${short}</div>${mediaHTML}<div class="ft"><div><small>${esc(sc.domain)}</small><b>${esc(H)}</b>${a.desc?`<span>${esc(a.desc)}</span>`:''}</div>${ctaT&&a.cta!=='nessuno'?`<button type="button" class="cta" tabindex="-1">${esc(ctaT)}</button>`:''}</div>`;
+ const v=M.find(m=>m.ratio==='9:16');const sm=v||main;
+ $('#pvStory').innerHTML=`<span class="hint">Storie e reels</span><div class="story" style="background:${sm?`linear-gradient(160deg,${sm.c[0]},${sm.c[1]})`:'var(--line)'}">${sm&&!v?`<div style="position:absolute;inset:0;background:#111"></div><div style="position:relative;width:100%;aspect-ratio:${sm.ratio==='1.91:1'?'1.91/1':sm.ratio==='4:5'?'4/5':'1/1'};background:linear-gradient(135deg,${sm.c[0]},${sm.c[1]});display:grid;place-items:center">${esc(sm.txt||sm.t.split(':')[0])}</div>`:`<span>${sm?esc(sm.txt||sm.t.split(':')[0]):''}</span>`}<div class="s-top"><i></i>${esc(name)} · Sponsorizzato</div>${ctaT&&a.cta!=='nessuno'?`<span class="s-cta">${esc(ctaT)}</span>`:''}</div>${sm&&!v?'<span class="hint" style="color:var(--warn)">Manca un contenuto 9:16: qui verrebbe mostrato con bande nere.</span>':''}`}
+function updCnt(el){const c=el.parentElement.querySelector('.cnt');if(!c)return;const m=+c.dataset.max;c.textContent=el.value.length+'/'+m+' consigliati';c.classList.toggle('over',el.value.length>m)}
+
+
+function addHelpM(){const h=HELP[S.step];if(!h)return;const v=document.querySelector('#view');
+ v.insertAdjacentHTML('afterbegin',`<details class="helpm"><summary>Cos'è questo passaggio? · ${h.t}</summary><div class="hb">${h.b}<div class="hx e"><b>Errore comune</b>${h.e}</div><div class="hx t"><b>Consiglio</b>${h.p}</div></div></details>`)}
+function centerStep(){const st=document.querySelector('#steps'),cur=st&&st.querySelector('.cur');if(!cur||st.scrollWidth<=st.clientWidth)return;st.scrollLeft=cur.offsetLeft-st.clientWidth/2+cur.offsetWidth/2}
+/* ================= EVENTI ================= */
+$('#view').addEventListener('input',e=>{const el=e.target,b=el.dataset.b;if(!b||el.type==='checkbox'||el.type==='radio'||el.tagName==='SELECT')return;
+ set(b,el.value);updCnt(el);save();if(S.step===2)budHint();if(S.step===5)preview()});
+$('#view').addEventListener('change',e=>{const el=e.target;
+ if(el.dataset.arr){const p=el.dataset.arr;const arr=get(p);const v=el.value;set(p,el.checked?[...new Set([...arr,v])]:arr.filter(x=>x!==v));
+  if(/\.inc$/.test(p)&&el.checked){const q=p.replace(/inc$/,'exc');set(q,get(q).filter(x=>x!==v))}
+  if(/\.exc$/.test(p)&&el.checked){const q=p.replace(/exc$/,'inc');set(q,get(q).filter(x=>x!==v))}
+  render();return}
+ const b=el.dataset.b;if(!b)return;
+ if(el.type==='checkbox'){set(b,el.checked);render();return}
+ if(el.type==='radio'){set(b,el.value);
+  if(b==='c.obj'){S.sets.forEach(s=>{s.convLoc='';s.goal='';s.event=''})}
+  const m=b.match(/^sets\.(\d+)\.convLoc$/);if(m){const s=S.sets[+m[1]];s.goal='';s.event=''}
+  if(b==='c.btype'&&S.c.btype==='total'&&!S.c.end){}
+  render();return}
+ if(el.tagName==='SELECT'){set(b,el.value);if(/ageMin|ageMax/.test(b)){const s=S.sets[S.ui.tab];if(+s.ageMin>+s.ageMax){s.ageMax=s.ageMin}render();return}save();if(S.step===5)preview();return}
+ if(el.type==='date'){set(b,el.value);save();if(S.step===2)render()}
+});
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.dataset.go!=null){const s=+t.dataset.go;if(s<0)return;if(s>0&&!S.scenario)return;if(s===7&&!S.result)return;S.step=s;render();window.scrollTo({top:0});return}
+ if(t.dataset.sc){switchScenario(t.dataset.sc);render();return}
+ if(t.id==='addSet'){S.sets.push(newSet('Gruppo di inserzioni '+(S.sets.length+1)));S.ui.tab=S.sets.length-1;render();return}
+ if(t.dataset.del!=null){S.sets.splice(+t.dataset.del,1);S.ui.tab=0;render();return}
+ if(t.dataset.tab!=null){S.ui.tab=+t.dataset.tab;render();return}
+ if(t.dataset.med){const a=S.sets[S.ui.tab].ad;const id=t.dataset.med;a.media=a.media.includes(id)?a.media.filter(x=>x!==id):[...a.media,id];render();return}
+ if(t.id==='publish'){publish();return}
+ if(t.id==='copyRep'){copyReport();return}
+ if(t.id==='bGloss'){openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Glossario</h2><button class="btn sm" type="button" data-close>Chiudi</button></header><dl>${GLOSS.map(g=>`<div><dt>${g[0]}</dt><dd>${g[1]}</dd></div>`).join('')}</dl>`);return}
+ if(t.id==='bBrief'){openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Brief del cliente</h2><button class="btn sm" type="button" data-close>Chiudi</button></header>${briefHTML(SC[S.scenario])}`);return}
+ if(t.id==='bReset'){openModal(`<h2>Ricominciare da zero?</h2><p>Perderai la campagna attuale e lo storico dei punteggi.</p><div class="nav"><button class="btn" type="button" data-close>Annulla</button><button class="btn pri" type="button" id="doReset">Sì, ricomincia</button></div>`);return}
+ if(t.id==='doReset'){S=fresh();closeModal();render();return}
+ if(t.dataset.close!=null){closeModal();return}
+});
+$('#ov').addEventListener('click',e=>{if(e.target.id==='ov')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+function openModal(h){$('#modal').innerHTML=h;$('#ov').classList.add('on');const b=$('#modal button');if(b)b.focus()}
+function closeModal(){$('#ov').classList.remove('on')}
+function publish(){const R=simulate(),G=grade(R);S.attempts++;S.history.push(G.total);
+ S.result={total:G.total,cats:G.cats,tot:R.tot,D:R.D,pl:R.pl,rejected:R.rows.filter(r=>r.ad.policy||r.ad.rej).map(r=>({name:r.name,why:[r.ad.policy?'il testo allude a caratteristiche personali di chi legge':'',r.ad.rej?r.ad.rej.reject:''].filter(Boolean).join('; ')})),
+  rows:R.rows.map(r=>({name:r.name,ready:r.ready,limited:r.limited,N:r.au.N,spend:r.spend,reach:r.reach,impr:r.impr,clicks:r.clicks,res:r.res}))};
+ S.step=7;render();window.scrollTo({top:0})}
+function copyReport(){if(!getName()){askName(copyReport,'Salva e copia il report');return}const R=S.result,sc=SC[S.scenario],t=R.tot;
+ const res=sc.kpi==='reach'?`${int(t.res)} persone raggiunte in zona`:sc.kpi==='video'?`${int(t.res)} ThruPlay · ${int(t.qual)} visite al profilo stimate`:sc.kpi==='acquisti'?`${dec(t.res)} acquisti · ROAS ${t.spend?dec(t.value/t.spend,2):'—'}`:`${dec(t.res)} ${sc.kpiL.toLowerCase()} (${dec(t.qual)} di qualità)`;
+ const txt=['SOCIAL LAB – Report campagna Meta Ads','Campagna Zero · simulatore creato da Azzurra Curcio',`Studente: ${getName()}`,`Cliente: ${sc.name}`,`Campagna: ${S.c.name||'(senza nome)'} · Obiettivo: ${objT(S.c.obj)||'—'}`,`Tentativo n° ${S.attempts} · Punteggio: ${R.total}/100`,'',
+ `Risultati simulati (${R.D} giorni): spesa ${eur(t.spend,0)} · copertura ${int(t.reach)} · frequenza ${t.reach?dec(t.impr/t.reach,2):'—'} · CTR ${t.impr?pct(t.clicks/t.impr):'—'} · ${res}`,'',
+ ...R.cats.flatMap(k=>[`${k.t}: ${dec(k.pts)}/${k.max}`,...k.items.filter(x=>x.lvl!=='ok').map(x=>`  - ${x.t}: ${x.msg}`)])].join('\n');
+ const fb=()=>openModal(`<header style="display:flex;align-items:center"><h2 style="flex:1">Report</h2><button class="btn sm" type="button" data-close>Chiudi</button></header><p class="hint">Seleziona il testo e copialo per inviarlo alla docente.</p><textarea readonly>${esc(txt)}</textarea>`);
+ try{navigator.clipboard.writeText(txt).then(()=>{const b=$('#copyRep');if(b){b.textContent='Copiato ✓';setTimeout(()=>{const x=$('#copyRep');if(x)x.textContent='Copia il report'},2000)}},fb)}catch(e){fb()}}
+if(S.step===7&&!S.result)S.step=6;
+
+/* ===== Nome dello studente nel report ===== */
+const NAME_KEY='labadv-nome';let _nm=null;
+function getName(){if(_nm!==null)return _nm;try{_nm=localStorage.getItem(NAME_KEY)||''}catch(e){_nm=''}return _nm}
+function setName(v){_nm=v;try{localStorage.setItem(NAME_KEY,v)}catch(e){}}
+function askName(after,label){openModal(`<h2>Come ti chiami?</h2><p class="hint">Il tuo nome compare nella prima riga del report, così la docente sa chi l'ha inviato. Resta salvato solo in questo browser.</p><div class="field"><label for="nmIn">Nome e cognome</label><input type="text" id="nmIn" value="${esc(getName())}" autocomplete="name" maxlength="60"></div><p class="hint" id="nmErr" style="color:var(--bad)" hidden>Scrivi nome e cognome per continuare.</p><div class="row" style="justify-content:flex-end;flex:none"><button class="btn" type="button" data-close style="flex:none">Annulla</button><button class="btn pri" type="button" id="saveName" style="flex:none">${label||'Salva'}</button></div>`);window._afterName=after;setTimeout(()=>{const i=document.getElementById('nmIn');if(i)i.focus()},30)}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.id==='saveName'){const v=(document.getElementById('nmIn').value||'').trim().replace(/\s+/g,' ');if(v.length<3||!/\s/.test(v)){document.getElementById('nmErr').hidden=false;return}setName(v);closeModal();const f=window._afterName;window._afterName=null;if(f)f()}
+ if(t.id==='chName')askName(()=>render(),'Salva')});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='nmIn'){e.preventDefault();document.getElementById('saveName').click()}});
+
+/* ===== Sigle spiegate dove compaiono ===== */
+const DEFS={'CPM':'Costo per mille impressioni: quanto paghi ogni 1.000 volte che l\'annuncio viene mostrato.','CPC':'Costo per clic: quanto paghi in media per ogni clic.','CTR':'Percentuale di clic: clic diviso impressioni. Indica quanto l\'annuncio invoglia a cliccare.','CPA':'Costo per acquisizione: quanto costa in media un risultato (una vendita, un contatto).','ROAS':'Ritorno sulla spesa pubblicitaria: valore delle vendite diviso spesa. ROAS 3 = 3 € incassati per ogni euro speso.','ThruPlay':'Visualizzazione del video fino alla fine (o per almeno 15 secondi).','Advantage+':'Le automazioni di Meta: budget, pubblico o posizionamenti gestiti dall\'algoritmo.','Spark Ads':'Annunci TikTok che promuovono un post già pubblicato, mantenendo like e commenti.','pixel':'Codice installato sul sito che comunica alla piattaforma cosa fanno le persone (acquisti, contatti).','Pangle':'Rete di app di terze parti in cui TikTok può mostrare gli annunci.','UTM':'Parametri aggiunti al link per riconoscere da dove arriva il traffico in Google Analytics.','remarketing':'Mostrare annunci a chi ha già visitato il sito o interagito con il brand.','Punteggio di qualità':'Voto da 1 a 10 che Google dà a una parola chiave: più è alto, meno paghi ogni clic.','AI Max':'Funzioni di Google che ampliano le ricerche oltre le parole chiave e personalizzano titoli e link.','Frequenza':'Quante volte, in media, ogni persona ha visto l\'annuncio.','Copertura':'Numero di persone diverse che hanno visto l\'annuncio almeno una volta.','lead':'Contatto di una persona interessata: nome, telefono o email.','impressioni':'Le volte in cui l\'annuncio è stato mostrato.','Rete Display':'Banner e annunci su siti e app: li vede chi naviga, non chi sta cercando.','sitelink':'Link aggiuntivi sotto l\'annuncio che portano ad altre pagine del sito.','callout':'Brevi frasi sui punti di forza mostrate sotto l\'annuncio, es. "Consegna gratuita".','corrispondenza':'Quanto le ricerche reali possono essere diverse dalla tua parola chiave: generica, a frase o esatta.','parole chiave negative':'Termini che escludono le ricerche che non vuoi, es. "lavoro" o "ricetta".'};
+const _TK=Object.keys(DEFS).sort((a,b)=>b.length-a.length);
+const _TRX=new RegExp('(^|[^A-Za-zÀ-ÿ0-9])('+_TK.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![A-Za-zÀ-ÿ0-9])','i');
+function markTerms(){const used=new Set();const roots=[document.getElementById('view'),document.getElementById('help')].filter(Boolean);
+ const skip='input,textarea,select,option,button,script,style,.term,.serp,.post,.phone,.story,#pvFeed,#pvStory,a,h1,.brand,.kw,.mt,.tag';
+ roots.forEach(root=>{const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.nodeValue.trim()&&n.parentElement&&n.parentElement.offsetParent!==null&&!n.parentElement.closest(skip)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
+  const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  nodes.forEach(node=>{let txt=node.nodeValue;const frag=document.createDocumentFragment();let changed=false;
+   for(let guard=0;guard<6;guard++){const m=_TRX.exec(txt);if(!m)break;const key=_TK.find(k=>k.toLowerCase()===m[2].toLowerCase());if(used.has(key)){const cut=m.index+m[0].length;frag.appendChild(document.createTextNode(txt.slice(0,cut)));txt=txt.slice(cut);changed=true;continue}
+    used.add(key);const start=m.index+m[1].length;frag.appendChild(document.createTextNode(txt.slice(0,start)));const sp=document.createElement('span');sp.className='term';sp.tabIndex=0;sp.dataset.def=DEFS[key];sp.textContent=m[2];frag.appendChild(sp);txt=txt.slice(start+m[2].length);changed=true}
+   if(changed){frag.appendChild(document.createTextNode(txt));node.parentNode.replaceChild(frag,node)}})})}
+(function(){const tip=document.createElement('div');tip.id='tip';tip.setAttribute('role','tooltip');document.body.appendChild(tip);let cur=null;
+ let shownAt=0,lastTouch=0;document.addEventListener('touchstart',()=>{lastTouch=Date.now()},{passive:true,capture:true});const show=el=>{cur=el;shownAt=Date.now();tip.textContent=el.dataset.def;tip.style.display='block';const r=el.getBoundingClientRect();const tw=Math.min(280,window.innerWidth-24);tip.style.maxWidth=tw+'px';let x=r.left+window.scrollX;x=Math.min(x,window.scrollX+window.innerWidth-tip.offsetWidth-12);x=Math.max(window.scrollX+12,x);tip.style.left=x+'px';tip.style.top=(r.bottom+window.scrollY+6)+'px'};
+ const hide=()=>{cur=null;tip.style.display='none'};
+ document.addEventListener('mouseover',e=>{if(Date.now()-lastTouch<1000)return;const t=e.target.closest&&e.target.closest('.term');if(t)show(t)});
+ document.addEventListener('mouseout',e=>{if(Date.now()-lastTouch<1000)return;const t=e.target.closest&&e.target.closest('.term');if(t)hide()});
+ document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('term'))show(e.target)});
+ document.addEventListener('focusout',e=>{if(e.target.classList&&e.target.classList.contains('term'))hide()});
+ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('.term');if(t){e.preventDefault();e.stopPropagation();if(cur===t&&Date.now()-shownAt>500)hide();else show(t)}else if(cur)hide()},true);
+ window.addEventListener('scroll',()=>{if(cur)hide()},{passive:true});})();
+
+/* ===== Campagna di esempio commentata ===== */
+function showExample(){const X=EXAMPLE;openModal(`<header style="display:flex;align-items:center;gap:10px"><h2 style="flex:1">Campagna di esempio commentata</h2><button class="btn sm" type="button" data-close>Chiudi</button></header>
+ <p class="hint">Cliente: <b>${esc(X.client)}</b>. Ecco le scelte di una campagna fatta bene e il perché di ognuna.</p>
+ <div class="tw"><table><thead><tr><th>Passaggio</th><th>Scelta</th><th>Perché</th></tr></thead><tbody>${X.rows.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td><td class="hint">${esc(r[2])}</td></tr>`).join('')}</tbody></table></div>
+ <div class="al warn"><span class="dot warn"></span><span>Caricare l'esempio sostituisce la campagna che stai facendo per questo cliente. Per esercitarti davvero, prova poi con un altro cliente.</span></div>
+ <div class="row" style="justify-content:flex-end;flex:none"><button class="btn" type="button" data-close style="flex:none">Chiudi</button><button class="btn pri" type="button" id="loadEx" style="flex:none">Carica l'esempio e guarda i risultati</button></div>`)}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.id==='bEx'){showExample()}if(t.id==='loadEx'){closeModal();EXAMPLE.load();window.scrollTo({top:0})}});
+const exampleCard=(mins)=>`<div class="card exbox"><div><b>Prima volta?</b> <span class="hint">Una campagna richiede circa ${mins} minuti. Puoi interrompere e riprendere quando vuoi: il lavoro resta salvato in questo browser.</span></div><button class="btn" type="button" id="bEx" style="flex:none">Guarda una campagna di esempio</button></div>`;
+const EXAMPLE={client:'Studio Pilates Équilibre',rows:[
+ ['Obiettivo','Contatti','La titolare vuole nomi e numeri da richiamare per la lezione di prova.'],
+ ['Budget','Budget della campagna Advantage+, 20 € al giorno','Come da brief. Con un solo gruppo di inserzioni Meta gestisce la spesa da solo.'],
+ ['Strategia di offerta','Volume più elevato','La scelta consigliata per un account nuovo, senza storico di risultati.'],
+ ['Luogo della conversione','Moduli istantanei','Il sito non ha il pixel: il modulo dentro Facebook e Instagram funziona comunque ed è veloce da compilare.'],
+ ['Obiettivo di performance','Massimizza il numero di contatti','Ottimizza proprio per i moduli inviati.'],
+ ['Pubblico','Bologna + 10 km, 28–60 anni, Advantage+','La zona da cui arrivano i clienti; Meta trova da solo le persone più interessate.'],
+ ['Posizionamenti','Advantage+','Meta usa feed, storie e reels dove costa meno ottenere contatti.'],
+ ['Identità','Pagina Facebook + account Instagram','Su Instagram compare il profilo vero dello studio.'],
+ ['Contenuti','Video 9:16 della lezione + foto 4:5','Contenuti autentici, verticale per storie e reels, 4:5 per i feed.'],
+ ['Testo','Offerta nelle prime righe, 2 varianti','"Prima lezione di prova gratuita…": si capisce subito il vantaggio. Nessun riferimento a difetti fisici.'],
+ ['Pulsante','Iscriviti','Corrisponde all\'azione: lasciare i propri dati.'],
+ ['Modulo','Intento più elevato, con telefono e privacy','Meno contatti ma più seri, e il numero serve per richiamare.']],
+ load(){switchScenario('pilates');Object.assign(S.c,{name:'Contatti – Prova gratuita – Bologna – Nov',obj:'contatti',special:'none',cbo:true,btype:'daily',budget:'20',start:'',end:'',bid:'volume'});
+  const s=newSet('Bologna 10 km – Advantage+');Object.assign(s,{convLoc:'moduli',goal:'leads',loc:'bologna10',ageMin:28,ageMax:60,adv:true,pl:'adv'});
+  Object.assign(s.ad,{ig:true,format:'single',media:['v1','f1'],texts:['Prima lezione di prova gratuita al reformer, in piccoli gruppi da massimo 6 persone, zona Santo Stefano.','Migliora postura ed energia con il pilates reformer: la prima lezione è gratuita.','','',''],heads:['Lezione di prova gratuita','','','',''],cta:'iscriviti',formType:'intento',fNome:true,fEmail:true,fTel:true,privacy:'https://www.equilibrepilates.it/privacy'});
+  S.sets=[s];S.ui={tab:0};publish()}};
+
+render();
+</script>
+</body>
+</html>
